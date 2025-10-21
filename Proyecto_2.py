@@ -1,3 +1,43 @@
+import sqlite3
+
+DB_Sistema= "sistema_empresa.db"
+
+class BasedeDatos():
+    @staticmethod
+    def conectar():
+        conn = sqlite3.connect(DB_Sistema)
+        conn.row_factory = sqlite3.Row
+        return conn
+    @staticmethod
+    def crear_tablas(conn):
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre TEXT NOT NULL,
+                usuario TEXT UNIQUE NOT NULL,
+                contrasena TEXT NOT NULL,
+                rol TEXT NOT NULL
+            );
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS clientes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nit TEXT UNIQUE NOT NULL,
+                nombre TEXT NOT NULL,
+                telefono TEXT,
+                correo TEXT,
+                direccion TEXT
+            );
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS inventario (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                producto TEXT NOT NULL,
+                cantidad INTEGER NOT NULL,
+                precio REAL NOT NULL
+            );
+        """)
+        conn.commit()
 class Usuario:
     def __init__(self,nombre,dpi,correo,puesto,usuario,contrasena,rol):
         self.__nombre= nombre
