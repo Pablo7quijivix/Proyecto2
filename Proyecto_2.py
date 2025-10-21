@@ -48,6 +48,22 @@ class Usuario:
         self.__contrasena= contrasena
         self._rol= rol
 
+    @staticmethod
+    def crear_tabla():
+        with BasedeDatos.conectar() as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS usuarios(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nombre TEXT NOT NULL,
+                    dpi TEXT NOT NULL,
+                    correo TEXT NOT NULL,
+                    puesto TEXT NOT NULL,
+                    usuario TEXT UNIQUE NOT NULL,
+                    contrasena TEXT NOT NULL,
+                    rol TEXT NOT NULL
+                );
+            """)
+
     @property
     def correo(self):
         return self._correo
@@ -91,6 +107,23 @@ class Cliente:
         self.__fecha_nacimiento= fecha_nacimiento
         self.__nombre_negocio= nombre_negocio
 
+    @staticmethod
+    def crear_tabla():
+        with BasedeDatos.conectar() as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS clientes(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nit TEXT UNIQUE NOT NULL,
+                    nombre TEXT NOT NULL,
+                    telefono TEXT,
+                    correo TEXT,
+                    direccion TEXT,
+                    dpi TEXT,
+                    fecha_nacimiento TEXT,
+                    nombre_negocio TEXT
+                );
+            """)
+
 
     def mostrar_informacion(self):
         print(f"{self.nit} - {self.nombre} ({self.nombre_negocio})")
@@ -102,6 +135,20 @@ class Factura:
         self._monto= monto
         self._fecha= fecha
         self._estado= estado
+
+    @staticmethod
+    def crear_tabla():
+        with BasedeDatos.conectar() as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS facturas(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    no_factura INTEGER NOT NULL,
+                    nit_cliente TEXT NOT NULL,
+                    monto REAL NOT NULL,
+                    fecha TEXT NOT NULL,
+                    estado TEXT NOT NULL
+                );
+            """)
 
     @property
     def estado(self):
