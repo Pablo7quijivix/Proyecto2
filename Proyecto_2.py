@@ -55,6 +55,16 @@ class Usuario:
     def rol(self):
         return self._rol
 
+    def guardar(self):
+        conn = self._conn()
+        cursor = conn.cursor()
+        cursor.execute(
+    "INSERT INTO usuarios (nombre, dpi, correo, puesto, usuario, contrasena, rol) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+    (self.__nombre, self.__dpi, self._correo, self._puesto, self.__usuario, self.__contrasena, self._rol))
+        conn.commit()
+        print(f"Usuario '{self.__usuario}' guardado con éxito.")
+        conn.close()
+
     def mostrar_info(self):
         print(f"{self.nombre} ({self.puesto}) - Rol:{self.rol}")
 
@@ -104,6 +114,16 @@ class Cliente:
         conn.commit()
         return conn
 
+    def guardar(self):
+        conn = self._conn()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO clientes (nit, nombre, telefono, correo, direccion, dpi, fecha_nacimiento, nombre_negocio) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+            (self.__nit, self.__nombre, self._telefono, self._correo, self._direccion, self.__dpi, self.__fecha_nacimiento, self.__nombre_negocio))
+        conn.commit()
+        print(f"Cliente '{self.__nombre}' guardado con éxito.")
+        conn.close()
+
 
     def mostrar_informacion(self):
         print(f"{self.nit} - {self.nombre} ({self.nombre_negocio})")
@@ -147,6 +167,16 @@ class Factura:
     @property
     def nit_cliente(self):
         return self.__nit_cliente
+
+    def guardar(self):
+        conn = self._conn()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO facturas (no_factura, nit_cliente, monto, fecha, estado) VALUES (%s, %s, %s, %s, %s)",
+            (self.__no_factura, self.__nit_cliente, self._monto, self._fecha, self._estado))
+        conn.commit()
+        print(f"Factura '{self.__no_factura}' guardada con éxito.")
+        conn.close()
 
 class Reporte:
     def __init__(self,total_clientes,total_facturas):
