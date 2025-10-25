@@ -1,43 +1,17 @@
-import sqlite3
-
+import mysql.connector
 DB_Sistema= "sistema_empresa.db"
 
+Conexion= ()
 class BasedeDatos():
     @staticmethod
     def conectar():
-        conn = sqlite3.connect(DB_Sistema)
-        conn.row_factory = sqlite3.Row
+        conn = mysql.connector.connect(
+            host="190.143.186.220",
+            user="root",
+            password="Wilson200.",
+            database="sistema_contable"
+        )
         return conn
-    @staticmethod
-    def crear_tablas(conn):
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS usuarios (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nombre TEXT NOT NULL,
-                usuario TEXT UNIQUE NOT NULL,
-                contrasena TEXT NOT NULL,
-                rol TEXT NOT NULL
-            );
-        """)
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS clientes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nit TEXT UNIQUE NOT NULL,
-                nombre TEXT NOT NULL,
-                telefono TEXT,
-                correo TEXT,
-                direccion TEXT
-            );
-        """)
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS inventario (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                producto TEXT NOT NULL,
-                cantidad INTEGER NOT NULL,
-                precio REAL NOT NULL
-            );
-        """)
-        conn.commit()
 class Usuario:
     def __init__(self,nombre,dpi,correo,puesto,usuario,contrasena,rol):
         self.__nombre= nombre
@@ -49,20 +23,23 @@ class Usuario:
         self._rol= rol
 
     @staticmethod
-    def crear_tabla():
-        with BasedeDatos.conectar() as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS usuarios(
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    nombre TEXT NOT NULL,
-                    dpi TEXT NOT NULL,
-                    correo TEXT NOT NULL,
-                    puesto TEXT NOT NULL,
-                    usuario TEXT UNIQUE NOT NULL,
-                    contrasena TEXT NOT NULL,
-                    rol TEXT NOT NULL
-                );
-            """)
+    def _conn():
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nombre VARCHAR(255) NOT NULL,
+                dpi VARCHAR(50),
+                correo VARCHAR(255),
+                puesto VARCHAR(50),
+                usuario VARCHAR(255) UNIQUE NOT NULL,
+                contrasena VARCHAR(255) NOT NULL,
+                rol VARCHAR(50) NOT NULL
+            );
+        """)
+        conn.commit()
+        return conn
 
     @property
     def correo(self):
@@ -108,21 +85,24 @@ class Cliente:
         self.__nombre_negocio= nombre_negocio
 
     @staticmethod
-    def crear_tabla():
-        with BasedeDatos.conectar() as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS clientes(
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    nit TEXT UNIQUE NOT NULL,
-                    nombre TEXT NOT NULL,
-                    telefono TEXT,
-                    correo TEXT,
-                    direccion TEXT,
-                    dpi TEXT,
-                    fecha_nacimiento TEXT,
-                    nombre_negocio TEXT
-                );
-            """)
+    def _conn():
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS clientes (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nit VARCHAR(50) UNIQUE NOT NULL,
+                nombre VARCHAR(255) NOT NULL,
+                telefono VARCHAR(20),
+                correo VARCHAR(255),
+                direccion TEXT,
+                dpi VARCHAR(50),
+                fecha_nacimiento DATE,
+                nombre_negocio VARCHAR(255)
+        );
+        """)
+        conn.commit()
+        return conn
 
 
     def mostrar_informacion(self):
@@ -137,18 +117,21 @@ class Factura:
         self._estado= estado
 
     @staticmethod
-    def crear_tabla():
-        with BasedeDatos.conectar() as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS facturas(
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    no_factura INTEGER NOT NULL,
-                    nit_cliente TEXT NOT NULL,
-                    monto REAL NOT NULL,
-                    fecha TEXT NOT NULL,
-                    estado TEXT NOT NULL
-                );
-            """)
+    def _conn():
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS facturas (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                no_factura INT NOT NULL,
+                nit_cliente VARCHAR(50) NOT NULL,
+                monto DECIMAL(10,2) NOT NULL,
+                fecha DATE NOT NULL,
+                estado VARCHAR(50) NOT NULL
+            );
+        """)
+        conn.commit()
+        return conn
 
     @property
     def estado(self):
