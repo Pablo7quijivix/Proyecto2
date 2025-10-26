@@ -75,6 +75,21 @@ class Auditor(Usuario):
     def mostrar_info(self):
         pass
 
+    def registrar_cliente(self):
+        print("--- REGISTRAR CLIENTE ---")
+        nit = input("Ingrese NIT: ")
+        nombre = input("Ingrese nombre: ")
+        telefono = input("Ingrese numero de teléfono: ")
+        correo = input("Ingrese correo electronico: ")
+        direccion = input("Ingrese diirección: ")
+        dpi = input("Ingrese DPI: ")
+        fecha_nacimiento = input("Ingrese fecha de nacimiento (YYYY-MM-DD): ")
+        nombre_negocio = input("Ingrese nombre de negocio: ")
+
+        cliente = Cliente(nit, nombre, telefono, correo, direccion, dpi, fecha_nacimiento, nombre_negocio)
+        cliente.guardar()
+
+
 class Empleado(Usuario):
     def __init__(self,nombre,dpi,correo,usuario,contrasena):
         super().__init__(nombre,dpi,correo,"Empelado",usuario,"Usuario")
