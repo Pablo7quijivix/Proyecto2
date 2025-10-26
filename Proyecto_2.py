@@ -146,6 +146,15 @@ class Cliente:
         print(f"Cliente '{self.__nombre}' guardado con éxito.")
         conn.close()
 
+    @staticmethod
+    def listar():
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM clientes")
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return rows
 
     def mostrar_informacion(self):
         print(f"{self.nit} - {self.nombre} ({self.nombre_negocio})")
