@@ -206,6 +206,37 @@ class Reporte:
         self.total_factuas= total_facturas
 
 
+class Inventario:
+    def __init__(self, producto, cantidad, precio, nit_cliente):
+        self._producto = producto
+        self._cantidad = int(cantidad)
+        self._precio = float(precio)
+        self._nit_cliente = nit_cliente
+
+    def _crear_tabla(self):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS inventario (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nit_cliente VARCHAR(60),
+                producto VARCHAR(200) NOT NULL,
+                cantidad INT NOT NULL,
+                precio DECIMAL(12,2) NOT NULL
+            );""")
+        conn.commit()
+        cursor.close()
+
+    def guardar(self):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO inventario (nit_cliente,producto,cantidad,precio) VALUES (%s,%s,%s,%s)",
+            (self._nit_cliente, self._producto, self._cantidad, self._precio))
+        conn.commit()
+        cursor.close()
+
+
 
 
 
