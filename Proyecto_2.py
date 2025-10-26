@@ -89,6 +89,13 @@ class Auditor(Usuario):
         cliente = Cliente(nit, nombre, telefono, correo, direccion, dpi, fecha_nacimiento, nombre_negocio)
         cliente.guardar()
 
+    def crear_usuario(self, nombre, dpi, correo, puesto, usuario, contrasena, rol):
+        u = Usuario(nombre, dpi, correo, puesto, usuario, contrasena, rol)
+        return u.guardar()
+
+    def crear_cliente(self, nit,nombre,telefono="",correo="",direccion="",dpi="",fecha_nac=None,nombre_negocio=""):
+        c = Cliente(nit,nombre,telefono,correo,direccion,dpi,fecha_nac,nombre_negocio)
+        return c.guardar()
 
 class Empleado(Usuario):
     def __init__(self,nombre,dpi,correo,usuario,contrasena):
