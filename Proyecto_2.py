@@ -236,6 +236,21 @@ class Inventario:
         conn.commit()
         cursor.close()
 
+    @staticmethod
+    def listar(nit_cliente=None):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+        if nit_cliente:
+            cursor.execute("SELECT * FROM inventario WHERE nit_cliente=%s", (nit_cliente,))
+        else:
+            cursor.execute("SELECT * FROM inventario")
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return rows
+
+
+
 
 
 
