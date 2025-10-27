@@ -68,6 +68,9 @@ class Usuario:
     def mostrar_info(self):
         print(f"{self.nombre} ({self.puesto}) - Rol:{self.rol}")
 
+reportes = {}
+facturas = {}
+
 class Auditor(Usuario):
     def __init__(self,nombre,dpi,correo,usuario,contrasena):
         super().__init__(nombre,dpi,correo,"Auditor",usuario,contrasena,"Admin")
@@ -96,6 +99,15 @@ class Auditor(Usuario):
     def crear_cliente(self, nit,nombre,telefono="",correo="",direccion="",dpi="",fecha_nac=None,nombre_negocio=""):
         c = Cliente(nit,nombre,telefono,correo,direccion,dpi,fecha_nac,nombre_negocio)
         return c.guardar()
+
+    def crear_empresa(self, nombre_empresa, nit_cliente, direccion=""):
+        empresa = Empresa(nombre_empresa, nit_cliente, direccion)
+        guardado = empresa.guardar()
+        if guardado:
+            tabla = empresa.tabla_inventario
+            reportes.setdefault(tabla, [])
+            facturas.setdefault(tabla, [])
+        return guardado
 
 class Empleado(Usuario):
     def __init__(self,nombre,dpi,correo,usuario,contrasena):
