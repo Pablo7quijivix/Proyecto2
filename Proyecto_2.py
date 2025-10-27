@@ -109,6 +109,9 @@ class Auditor(Usuario):
             facturas.setdefault(tabla, [])
         return guardado
 
+    def listar_empresas(self):
+        return Empresa.listar()
+
 class Empleado(Usuario):
     def __init__(self,nombre,dpi,correo,usuario,contrasena):
         super().__init__(nombre,dpi,correo,"Empelado",usuario,"Usuario")
@@ -217,6 +220,21 @@ class Empresa:
         conn.commit()
         cursor.close()
 
+    @staticmethod
+    def listar(nit_cliente=None):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+        if nit_cliente:
+            cursor.execute(
+                "SELECT id, nombre, nit_cliente, direccion FROM empresas WHERE nit_cliente=%s",
+                (nit_cliente,))
+        else:
+            cursor.execute(
+                "SELECT id, nombre, nit_cliente, direccion FROM empresas")
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return rows
 
 class Factura:
     def __init__(self,no_factura,nit_cliente,monto,fecha,estado="Emitida"):
