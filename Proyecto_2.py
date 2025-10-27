@@ -170,12 +170,24 @@ class Cliente:
     def mostrar_informacion(self):
         print(f"{self.nit} - {self.nombre} ({self.nombre_negocio})")
 
+def normalizar_nombre(nombre):
+    nombre_empresa = nombre.strip().lower()
+    nombre_empresa = "_".join(nombre_empresa.split())
+
+    resultado = ""
+    for x in nombre_empresa:
+        if x.isalnum() or x == "_":
+            resultado += x
+    if not resultado:
+        resultado = "empresa"
+    return resultado
+
 class Empresa:
     def __init__(self, nombre, nit_cliente, direccion=""):
         self._nombre = nombre
         self._nit_cliente = nit_cliente
         self._direccion = direccion
-        self.tabla_inventario = "inventario_"
+        self.tabla_inventario = "inventario_" + normalizar_nombre(self._nombre)
 
     @staticmethod
     def _crear_tabla():
@@ -269,7 +281,8 @@ class Inventario:
         self._precio = float(precio)
         self._nit_cliente = nit_cliente
 
-    def _crear_tabla(self):
+    def _crear_tabla(self,nombre_empresa):
+        tabla = "inventario_" + normalizar_nombre(nombre_empresa)
         conn = BasedeDatos.conectar()
         cursor = conn.cursor()
         cursor.execute("""
@@ -282,6 +295,7 @@ class Inventario:
             );""")
         conn.commit()
         cursor.close()
+        return tabla
 
     def guardar(self):
         conn = BasedeDatos.conectar()
