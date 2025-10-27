@@ -275,13 +275,14 @@ class Reporte:
 
 
 class Inventario:
-    def __init__(self, producto, cantidad, precio, nit_cliente):
+    def __init__(self, empresa_nombre, producto, cantidad, precio):
+        self._empresa_nombre = empresa_nombre
         self._producto = producto
         self._cantidad = int(cantidad)
         self._precio = float(precio)
-        self._nit_cliente = nit_cliente
+        Inventario.crear_tabla(empresa_nombre)
 
-    def _crear_tabla(self,nombre_empresa):
+    def crear_tabla(self,nombre_empresa):
         tabla = "inventario_" + normalizar_nombre(nombre_empresa)
         conn = BasedeDatos.conectar()
         cursor = conn.cursor()
@@ -298,26 +299,24 @@ class Inventario:
         return tabla
 
     def guardar(self):
+        tabla= "inventario_" + normalizar_nombre(self._empresa_nombre)
         conn = BasedeDatos.conectar()
         cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO inventario (nit_cliente,producto,cantidad,precio) VALUES (%s,%s,%s,%s)",
-            (self._nit_cliente, self._producto, self._cantidad, self._precio))
+        cursor.execute(f"INSERT INTO {tabla} (producto,cantidad,precio) VALUES (%s,%s,%s)",
+                    (self._producto, self._cantidad, self._precio))
         conn.commit()
         cursor.close()
 
     @staticmethod
-    def listar(nit_cliente=None):
+    def listar(nombre_empresa):
+        tabla = "inventario_" + normalizar_nombre(nombre_empresa)
         conn = BasedeDatos.conectar()
         cursor = conn.cursor(dictionary=True)
-        if nit_cliente:
-            cursor.execute("SELECT * FROM inventario WHERE nit_cliente=%s", (nit_cliente,))
-        else:
-            cursor.execute("SELECT * FROM inventario")
+        cursor.execute(f"SELECT producto,cantidad,precio FROM {tabla}")
         rows = cursor.fetchall()
         cursor.close()
-        conn.close()
         return rows
+
 
 
 
