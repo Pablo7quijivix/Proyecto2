@@ -102,15 +102,27 @@ class Auditor(Usuario):
 
     def crear_empresa(self, nombre_empresa, nit_cliente, direccion=""):
         empresa = Empresa(nombre_empresa, nit_cliente, direccion)
-        guardado = empresa.guardar()
-        if guardado:
+        guardar = empresa.guardar()
+        if guardar:
             tabla = empresa.tabla_inventario
-            reportes.setdefault(tabla, [])
-            facturas.setdefault(tabla, [])
-        return guardado
+
+            if tabla not in reportes:
+                reportes[tabla] = []
+            if tabla not in facturas:
+                facturas[tabla] = []
+        return guardar
 
     def listar_empresas(self):
         return Empresa.listar()
+
+    def registrar_factura(self,numero_factura,nit_cliente,empresa_nombre,monto,fecha=None):
+        factura = Factura(numero_factura, nit_cliente, empresa_nombre, monto, fecha)
+        guardar = factura.guardar()
+        if guardar:
+            if empresa_nombre not in facturas:
+                facturas[empresa_nombre] = []
+            facturas[empresa_nombre].append(factura)
+        return guardar
 
 class Empleado(Usuario):
     def __init__(self,nombre,dpi,correo,usuario,contrasena):
