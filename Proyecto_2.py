@@ -115,6 +115,17 @@ class Auditor(Usuario):
     def listar_empresas(self):
         return Empresa.listar()
 
+    def listar_clientes(self):
+        return Cliente.listar()
+
+    def ver_inventario(self,nombre_empresa):
+        return Empresa.listar(nombre_empresa)
+
+    def modificar_inventario(self,nombre_empresa,producto,cantidad,precio):
+        inventario=Inventario(nombre_empresa,producto,cantidad,precio)
+        guardar=inventario.guardar()
+        return  guardar
+
     def registrar_factura(self,numero_factura,nit_cliente,empresa_nombre,monto,fecha=None):
         factura = Factura(numero_factura, nit_cliente, empresa_nombre, monto, fecha)
         guardar = factura.guardar()
