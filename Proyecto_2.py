@@ -118,15 +118,14 @@ class Empleado(Usuario):
 
 
 class Cliente:
-    def __init__(self,nit,nombre,telefono,correo,direccion,dpi,fecha_nacimiento,nombre_negocio):
-        self.__nit=nit
-        self.__nombre= nombre
-        self._telefono= telefono
-        self._correo= correo
-        self._direccion= direccion
-        self.__dpi= dpi
-        self.__fecha_nacimiento= fecha_nacimiento
-        self.__nombre_negocio= nombre_negocio
+    def __init__(self, nit, nombre, telefono="", correo="", direccion="", dpi="", fecha_nacimiento=None):
+        self._nit = nit
+        self._nombre = nombre
+        self._telefono = telefono
+        self._correo = correo
+        self._direccion = direccion
+        self._dpi = dpi
+        self._fecha_nacimiento = fecha_nacimiento
 
     @staticmethod
     def _conn():
