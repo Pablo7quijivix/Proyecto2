@@ -159,6 +159,42 @@ class Cliente:
     def mostrar_informacion(self):
         print(f"{self.nit} - {self.nombre} ({self.nombre_negocio})")
 
+class Empresa:
+    def __init__(self, nombre, nit_cliente, direccion=""):
+        self._nombre = nombre
+        self._nit_cliente = nit_cliente
+        self._direccion = direccion
+        self.tabla_inventario = "inventario_"
+
+    @staticmethod
+    def _crear_tabla():
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS empresas (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nombre VARCHAR(200) NOT NULL,
+                nit_cliente VARCHAR(60),
+                direccion VARCHAR(255),
+                FOREIGN KEY (nit_cliente) REFERENCES clientes(nit) ON DELETE SET NULL
+            );
+            """)
+        conn.commit()
+        cursor.close()
+
+    def guardar(self):
+        conn= BasedeDatos.conectar()
+        cursor= conn.cursor()
+        cursor.execute(
+            "INSERT INTO empresas (nombre,nit_cliente,direccion) VALUES (%s,%s,%s)",
+            (self._nombre,self._nit_cliente,self._direccion))
+        conn.commit()
+        cursor.close()
+        Inventario._crear_tabla(self._nombre)
+        conn.commit()
+        cursor.close()
+
+
 class Factura:
     def __init__(self,no_factura,nit_cliente,monto,fecha,estado="Emitida"):
         self.__no_factura= no_factura
