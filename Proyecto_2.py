@@ -14,6 +14,15 @@ def metodo_bubble_sort(lista, indice=1):
             break
     return datos
 
+def metodo_quick_sort(lista, indice=1):
+    if len(lista) <= 1:
+        return list(lista)
+    pivote = lista[len(lista)//2][indice]
+    menores = [x for x in lista if x[indice] < pivote]
+    iguales = [x for x in lista if x[indice] == pivote]
+    mayores = [x for x in lista if x[indice] > pivote]
+    return metodo_quick_sort(menores, indice) + iguales + metodo_quick_sort(mayores, indice)
+
 Conexion= ()
 class BasedeDatos():
     @staticmethod
