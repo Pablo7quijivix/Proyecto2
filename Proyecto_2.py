@@ -23,6 +23,18 @@ def metodo_quick_sort(lista, indice=1):
     mayores = [x for x in lista if x[indice] > pivote]
     return metodo_quick_sort(menores, indice) + iguales + metodo_quick_sort(mayores, indice)
 
+def meotod_selection_sort(lista, indice=1):
+    lista_ordenar = list(lista)
+    for i in range(len(lista_ordenar)-1):
+        menor = i
+        for j in range(i+1, len(lista_ordenar)):
+            if lista_ordenar[j][indice] < lista_ordenar[menor][indice]:
+                menor = j
+        aux = lista_ordenar[i]
+        lista_ordenar[i] = lista_ordenar[menor]
+        lista_ordenar[menor] = aux
+    return lista_ordenar
+
 Conexion= ()
 class BasedeDatos():
     @staticmethod
