@@ -1,6 +1,19 @@
 import mysql.connector
 DB_Sistema= "sistema_empresa.db"
 
+def busqueda_binaria(lista, indice, valor):
+    inicio = 0
+    fin = len(lista) - 1
+    while inicio <= fin:
+        medio = (inicio + fin) // 2
+        if lista[medio][indice] == valor:
+            return lista[medio]
+        elif lista[medio][indice] < valor:
+            inicio = medio + 1
+        else:
+            fin = medio - 1
+    return -1
+
 def metodo_bubble_sort(lista, indice=1):
     datos = list(lista)
     numero = len(datos)
