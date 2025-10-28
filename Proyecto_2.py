@@ -1,6 +1,19 @@
 import mysql.connector
 DB_Sistema= "sistema_empresa.db"
 
+def metodo_bubble_sort(lista, indice=1):
+    datos = list(lista)
+    numero = len(datos)
+    for i in range(numero):
+        cambio = False
+        for j in range(0, numero - i - 1):
+            if datos[j][indice] > datos[j + 1][indice]:
+                datos[j], datos[j + 1] = datos[j + 1], datos[j]
+                cambio = True
+        if not cambio:
+            break
+    return datos
+
 Conexion= ()
 class BasedeDatos():
     @staticmethod
