@@ -14,6 +14,12 @@ def busqueda_binaria(lista, indice, valor):
             fin = medio - 1
     return -1
 
+def busqueda_secuencial(lista,indice,valor):
+    for x in lista:
+        if x[indice] == valor:
+            return x
+    return -1
+
 def metodo_bubble_sort(lista, indice=1):
     datos = list(lista)
     numero = len(datos)
