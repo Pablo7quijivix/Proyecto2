@@ -64,7 +64,7 @@ class BasedeDatos():
             host="localhost",
             user="root",
             password="Wilson200.",
-            database="prueba_5000"
+            database="prueba_9000"
         )
         return conn
 class Usuario:
@@ -76,6 +76,7 @@ class Usuario:
         self.__usuario= usuario
         self.__contrasena= contrasena
         self._rol= rol
+        Usuario._conn()
 
     @staticmethod
     def _conn():
@@ -97,7 +98,6 @@ class Usuario:
                 );
             """)
             conn.commit()
-            return conn
         except mysql.connector as e:
             print(f"Ocurrio un error en la base de datos {e}")
         finally:
@@ -122,12 +122,11 @@ class Usuario:
         return self._rol
 
     def guardar(self):
-        self._conn()
         conn= None
         cursor= None
         try:
-            conn = self._conn()
-            cursor = conn.cursor()
+            conn= BasedeDatos.conectar()
+            cursor= conn.cursor()
             cursor.execute(
         "INSERT INTO usuarios (nombre, dpi, correo, puesto, usuario, contrasena, rol) VALUES (%s, %s, %s, %s, %s, %s, %s)",
         (self.__nombre, self.__dpi, self._correo, self._puesto, self.__usuario, self.__contrasena, self._rol))
@@ -136,10 +135,10 @@ class Usuario:
         except mysql.connector as e:
             print(f"Ocurrio un error en la de datos. {e}")
         finally:
-            if conn:
-                conn.close()
             if cursor:
                 cursor.close()
+            if conn:
+                conn.close()
 
     def mostrar_info(self):
         print(f"{self.nombre} ({self.puesto}) - Rol:{self.rol}")
@@ -232,6 +231,7 @@ class Cliente:
         self._dpi = dpi
         self._fecha_nacimiento = fecha_nacimiento
         self.__nombre_negocio= nombre_negocio
+        Cliente._conn()
 
     @staticmethod
     def _conn():
@@ -251,10 +251,11 @@ class Cliente:
         );
         """)
         conn.commit()
-        return conn
+        cursor.close()
+        conn.close()
 
     def guardar(self):
-        self._conn()
+        Cliente._conn()
         conn = None
         cursor = None
         try:
@@ -307,12 +308,12 @@ class Empresa:
         self._nombre = nombre
         self._nit_cliente = nit_cliente
         self._direccion = direccion
-        self.tabla_inventario = "inventario_" + normalizar_nombre(self._nombre)
-        self.tabla_facturas = "facturas_" + normalizar_nombre(self._nombre)
+        self.tabla_inventario = "inventario_" + normalizar_nombre(nombre)
+        self.tabla_facturas = "facturas_" + normalizar_nombre(nombre)
+        Empresa._crear_tabla()
 
     @staticmethod
     def _crear_tabla():
-        Cliente._conn()
         conn = None
         cursor = None
         try:
@@ -337,7 +338,6 @@ class Empresa:
                 conn.close()
 
     def guardar(self):
-        self._crear_tabla()
         conn = None
         cursor = None
         try:
@@ -403,46 +403,21 @@ class Factura:
     def informacion(self):
         print(f"Factura: {self.no_factura} | Clinte: {self.nit_cliente} | Monto: {self.monto} | fecha: {self.fecha} | Estado:{self.estado}")
 
-    def _tabla_facturas(self, empresa_nombre):
-        facturas= "facturas_" + normalizar_nombre(empresa_nombre)
-        conn= None
-        cursor= None
-        try:
-            conn= BasedeDatos.conectar()
-            cursor= conn.cursor()
-            cursor.execute(f"""
-                    CREATE TABLE IF NOT EXISTS {facturas}(
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        no_factura VARCHAR(50),
-                        nit_cliente VARCHAR(50),
-                        monto FLOAT,
-                        fecha DATE,
-                        estado VARCHAR(20) DEFAULT 'Vigente'
-                        );
-             """)
-            conn.commit()
-            return facturas
-        except mysql.connector.Error as e:
-            print(f"Ocurrio un error en base de datos",e)
-        finally:
-            if conn:
-                conn.close()
-            if cursor:
-                cursor.close()
-
     def registro_factura(self,empresa_nombre):
-        facturas= self._tabla_facturas(empresa_nombre)
+        Tabla= "facturas_" + normalizar_nombre(empresa_nombre)
         conn= None
         cursor= None
         try:
             conn= BasedeDatos.conectar()
             cursor= conn.cursor()
             cursor.execute(f"""
-                INSERT INTO {facturas} (no_factura, nit_cliente, monto, fecha, estado)
+                INSERT INTO {Tabla} (no_factura, nit_cliente, monto, fecha, estado)
                 VALUES (%s,%s,%s,%s,%s)""", (self.no_factura, self.nit_cliente, self.monto, self.fecha, self.estado))
             conn.commit()
+            return True
         except mysql.connector.Error as e:
             print("Ocurrio un error en base de datos",e)
+            return False
         finally:
             if cursor:
                 cursor.close()
@@ -471,17 +446,6 @@ class Factura:
     def fecha(self):
         return self._fecha
 
-
-    def guardar(self):
-        conn = self._conn()
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO facturas (no_factura, nit_cliente, monto, fecha, estado) VALUES (%s, %s, %s, %s, %s)",
-            (self.__no_factura, self.__nit_cliente, self._monto, self._fecha, self._estado))
-        conn.commit()
-        print(f"Factura '{self.__no_factura}' guardada con éxito.")
-        conn.close()
-
 class Reporte:
     def __init__(self,total_clientes,total_facturas):
         self.total_clientes= total_clientes
@@ -494,32 +458,6 @@ class Inventario:
         self._producto = producto
         self._cantidad = int(cantidad)
         self._precio = float(precio)
-        Inventario.crear_tabla(empresa_nombre)
-
-    def crear_tabla(self,nombre_empresa):
-        tabla = "inventario_" + normalizar_nombre(nombre_empresa)
-        conn = BasedeDatos.conectar()
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS inventario (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nit_cliente VARCHAR(60),
-                producto VARCHAR(200) NOT NULL,
-                cantidad INT NOT NULL,
-                precio DECIMAL(12,2) NOT NULL
-            );""")
-        conn.commit()
-        cursor.close()
-        return tabla
-
-    def guardar(self):
-        tabla= "inventario_" + normalizar_nombre(self._empresa_nombre)
-        conn = BasedeDatos.conectar()
-        cursor = conn.cursor()
-        cursor.execute(f"INSERT INTO {tabla} (producto,cantidad,precio) VALUES (%s,%s,%s)",
-                    (self._producto, self._cantidad, self._precio))
-        conn.commit()
-        cursor.close()
 
     @staticmethod
     def listar(nombre_empresa):
@@ -530,5 +468,4 @@ class Inventario:
         rows = cursor.fetchall()
         cursor.close()
         return rows
-
 
