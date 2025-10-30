@@ -403,21 +403,31 @@ class Factura:
         print(f"Factura: {self.no_factura} | Clinte: {self.nit_cliente} | Monto: {self.monto} | fecha: {self.fecha} | Estado:{self.estado}")
 
     @staticmethod
-    def _conn():
-        conn = BasedeDatos.conectar()
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS facturas (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                no_factura INT NOT NULL,
-                nit_cliente VARCHAR(50) NOT NULL,
-                monto DECIMAL(10,2) NOT NULL,
-                fecha DATE NOT NULL,
-                estado VARCHAR(50) NOT NULL
-            );
-        """)
-        conn.commit()
-        return conn
+    def _conn(self,empresa_nombre):
+        facturas= "facturas_" + normalizar_nombre(empresa_nombre)
+        conn= None
+        cursor= None
+        try:
+            conn= BasedeDatos.conectar()
+            cursor= conn.cursor()
+            cursor.execute(f"""
+                    CREATE TABLE IF NOT EXISTS {facturas}(
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        no_factura VARCHAR(50),
+                        nit_cliente VARCHAR(50),
+                        monto FLOAT,
+                        fecha DATE,
+                        estado VARCHAR(20) DEFAULT 'Vigente'
+                        );
+             """)
+            conn.commit()
+        except mysql.connector.Error as e:
+            print(f"Ocurrio un error en base de datos",e)
+        finally:
+            if conn:
+                conn.close()
+            if cursor:
+                cursor.close()
 
     @property
     def estado(self):
