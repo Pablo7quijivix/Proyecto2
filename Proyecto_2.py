@@ -365,31 +365,15 @@ class Empresa:
         cursor = None
         try:
             conn = BasedeDatos.conectar()
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO empresas (nombre,nit_cliente,direccion) VALUES (%s,%s,%s)",
-                (self._nombre, self._nit_cliente, self._direccion)
-            )
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM empresas WHERE nombre=%s", (self._nombre,))
+            if cursor.fetchone():
+                print(f"Empresa ya existe.")
+                return False
+            cursor.execute("INSERT INTO empresas (nombre, nit_cliente, direccion) VALUES (%s,%s,%s)",
+                           (self._nombre, self._nit_cliente, self._direccion))
             conn.commit()
-            cursor.execute(f"""
-                CREATE TABLE IF NOT EXISTS {self.tabla_inventario} (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    producto VARCHAR(100) NOT NULL,
-                    cantidad INT NOT NULL,
-                    precio FLOAT NOT NULL
-                );
-            """)
-            cursor.execute(f"""
-                CREATE TABLE IF NOT EXISTS {self.tabla_facturas} (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    no_factura VARCHAR(50),
-                    nit_cliente VARCHAR(50),
-                    monto FLOAT,
-                    fecha DATE
-                );
-            """)
-            conn.commit()
-            print("Se registro a la empresa...")
+            print(f"Empresa {self._nombre} guardada.")
             return True
         except mysql.connector.Error as e:
             print(f"Error al guardar empresa: {e}")
