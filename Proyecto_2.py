@@ -61,10 +61,10 @@ class BasedeDatos():
     @staticmethod
     def conectar():
         conn = mysql.connector.connect(
-            host="190.143.186.220",
+            host="localhost",
             user="root",
             password="Wilson200.",
-            database="sistema_contable"
+            database="prueba_5000"
         )
         return conn
 class Usuario:
@@ -223,7 +223,7 @@ class Empleado(Usuario):
 
 
 class Cliente:
-    def __init__(self, nit, nombre, telefono="", correo="", direccion="", dpi="", fecha_nacimiento=None):
+    def __init__(self, nit, nombre, telefono="", correo="", direccion="", dpi="", fecha_nacimiento=None,nombre_negocio=""):
         self._nit = nit
         self._nombre = nombre
         self._telefono = telefono
@@ -231,6 +231,7 @@ class Cliente:
         self._direccion = direccion
         self._dpi = dpi
         self._fecha_nacimiento = fecha_nacimiento
+        self.__nombre_negocio= nombre_negocio
 
     @staticmethod
     def _conn():
@@ -402,8 +403,7 @@ class Factura:
     def informacion(self):
         print(f"Factura: {self.no_factura} | Clinte: {self.nit_cliente} | Monto: {self.monto} | fecha: {self.fecha} | Estado:{self.estado}")
 
-    @staticmethod
-    def _conn(empresa_nombre):
+    def _tabla_facturas(self, empresa_nombre):
         facturas= "facturas_" + normalizar_nombre(empresa_nombre)
         conn= None
         cursor= None
@@ -421,6 +421,7 @@ class Factura:
                         );
              """)
             conn.commit()
+            return facturas
         except mysql.connector.Error as e:
             print(f"Ocurrio un error en base de datos",e)
         finally:
@@ -430,7 +431,7 @@ class Factura:
                 cursor.close()
 
     def registro_factura(self,empresa_nombre):
-        facturas= "facturas_" + normalizar_nombre(empresa_nombre)
+        facturas= self._tabla_facturas(empresa_nombre)
         conn= None
         cursor= None
         try:
@@ -529,11 +530,5 @@ class Inventario:
         rows = cursor.fetchall()
         cursor.close()
         return rows
-
-
-
-
-
-
 
 
