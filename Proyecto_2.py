@@ -183,13 +183,11 @@ class Auditor(Usuario):
         empresa = Empresa(nombre_empresa, nit_cliente, direccion)
         guardar = empresa.guardar()
         if guardar:
-            tabla = empresa.tabla_inventario
-
-            if tabla not in reportes:
+            if nombre_empresa not in reportes:
                 reportes[nombre_empresa] = []
-            if tabla not in facturas:
+            if nombre_empresa not in facturas:
                 facturas[nombre_empresa] = []
-            if tabla not in inventario:
+            if nombre_empresa not in inventario:
                 inventario[nombre_empresa] = []
         return guardar
 
@@ -234,7 +232,7 @@ class Cliente:
         self._dpi = dpi
         self._fecha_nacimiento = fecha_nacimiento
         self.__nombre_negocio= nombre_negocio
-        Cliente._conn()
+        self._conn()
 
     @staticmethod
     def _conn():
@@ -320,10 +318,9 @@ class Empresa:
         self._direccion = direccion
         self.tabla_inventario = "inventario_" + normalizar_nombre(nombre)
         self.tabla_facturas = "facturas_" + normalizar_nombre(nombre)
-        Empresa._crear_tabla()
+        self._crear_tabla()
 
-    @staticmethod
-    def _crear_tabla():
+    def _crear_tabla(self):
         conn = None
         cursor = None
         try:
@@ -338,14 +335,30 @@ class Empresa:
                     FOREIGN KEY (nit_cliente) REFERENCES clientes(nit) ON DELETE SET NULL
                 );
             """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {self.tabla_inventario} (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    producto VARCHAR(200) NOT NULL,
+                    cantidad INT NOT NULL,
+                    precio FLOAT NOT NULL
+                );
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {self.tabla_facturas} (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    no_factura VARCHAR(50),
+                    nit_cliente VARCHAR(50),
+                    monto FLOAT,
+                    fecha DATE,
+                    estado VARCHAR(20) DEFAULT 'Emitida'
+                );
+            """)
             conn.commit()
         except mysql.connector.Error as e:
-            print(f" Error al crear tabla empresas: {e}")
+            print(f"Error al crear tablas: {e}")
         finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
+            if cursor: cursor.close()
+            if conn: conn.close()
 
     def guardar(self):
         conn = None
