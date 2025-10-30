@@ -77,22 +77,33 @@ class Usuario:
 
     @staticmethod
     def _conn():
-        conn = BasedeDatos.conectar()
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS usuarios (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nombre VARCHAR(255) NOT NULL,
-                dpi VARCHAR(50),
-                correo VARCHAR(255),
-                puesto VARCHAR(50),
-                usuario VARCHAR(255) UNIQUE NOT NULL,
-                contrasena VARCHAR(255) NOT NULL,
-                rol VARCHAR(50) NOT NULL
-            );
-        """)
-        conn.commit()
-        return conn
+        cursor= None
+        conn= None
+        try:
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS usuarios (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    nombre VARCHAR(255) NOT NULL,
+                    dpi VARCHAR(50),
+                    correo VARCHAR(255),
+                    puesto VARCHAR(50),
+                    usuario VARCHAR(255) UNIQUE NOT NULL,
+                    contrasena VARCHAR(255) NOT NULL,
+                    rol VARCHAR(50) NOT NULL
+                );
+            """)
+            conn.commit()
+            return conn
+        except mysql.connector as e:
+            print(f"Ocurrio un error en la base de datos {e}")
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
 
     @property
     def correo(self):
