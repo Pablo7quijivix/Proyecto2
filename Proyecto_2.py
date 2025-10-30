@@ -266,10 +266,8 @@ class Cliente:
                 "INSERT INTO clientes (nit,nombre,telefono,correo,direccion,dpi,fecha_nacimiento,nombre_negocio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
                 (self._nit, self._nombre, self._telefono, self._correo, self._direccion, self._dpi, self._fecha_nacimiento)            )
             conn.commit()
-            print(f"✅ Cliente '{self._nombre}' guardado con éxito.")
             return True
         except mysql.connector.Error as e:
-            print(f"❌ Error al guardar cliente: {e}")
             return False
         finally:
             if cursor:
