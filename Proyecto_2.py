@@ -120,14 +120,24 @@ class Usuario:
         return self._rol
 
     def guardar(self):
-        conn = self._conn()
-        cursor = conn.cursor()
-        cursor.execute(
-    "INSERT INTO usuarios (nombre, dpi, correo, puesto, usuario, contrasena, rol) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-    (self.__nombre, self.__dpi, self._correo, self._puesto, self.__usuario, self.__contrasena, self._rol))
-        conn.commit()
-        print(f"Usuario '{self.__usuario}' guardado con éxito.")
-        conn.close()
+        self._conn()
+        conn= None
+        cursor= None
+        try:
+            conn = self._conn()
+            cursor = conn.cursor()
+            cursor.execute(
+        "INSERT INTO usuarios (nombre, dpi, correo, puesto, usuario, contrasena, rol) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+        (self.__nombre, self.__dpi, self._correo, self._puesto, self.__usuario, self.__contrasena, self._rol))
+            conn.commit()
+            print(f"Usuario '{self.__usuario}' guardado con éxito.")
+        except mysql.connector as e:
+            print(f"Ocurrio un error en la de datos. {e}")
+        finally:
+            if conn:
+                conn.close()
+            if cursor:
+                cursor.close()
 
     def mostrar_info(self):
         print(f"{self.nombre} ({self.puesto}) - Rol:{self.rol}")
@@ -241,14 +251,31 @@ class Cliente:
         return conn
 
     def guardar(self):
-        conn = self._conn()
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO clientes (nit, nombre, telefono, correo, direccion, dpi, fecha_nacimiento, nombre_negocio) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-            (self.__nit, self.__nombre, self._telefono, self._correo, self._direccion, self.__dpi, self.__fecha_nacimiento, self.__nombre_negocio))
-        conn.commit()
-        print(f"Cliente '{self.__nombre}' guardado con éxito.")
-        conn.close()
+        self._conn()
+        conn = None
+        cursor = None
+        try:
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM clientes WHERE nit=%s", (self._nit,))
+            if cursor.fetchone():
+                print(f"⚠ Cliente con NIT {self._nit} ya existe.")
+                return False
+
+            cursor.execute(
+                "INSERT INTO clientes (nit,nombre,telefono,correo,direccion,dpi,fecha_nacimiento,nombre_negocio) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
+                (self._nit, self._nombre, self._telefono, self._correo, self._direccion, self._dpi, self._fecha_nacimiento)            )
+            conn.commit()
+            print(f"✅ Cliente '{self._nombre}' guardado con éxito.")
+            return True
+        except mysql.connector.Error as e:
+            print(f"❌ Error al guardar cliente: {e}")
+            return False
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     @staticmethod
     def listar():
