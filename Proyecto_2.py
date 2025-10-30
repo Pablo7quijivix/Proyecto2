@@ -403,7 +403,7 @@ class Factura:
         print(f"Factura: {self.no_factura} | Clinte: {self.nit_cliente} | Monto: {self.monto} | fecha: {self.fecha} | Estado:{self.estado}")
 
     @staticmethod
-    def _conn(self,empresa_nombre):
+    def _conn(empresa_nombre):
         facturas= "facturas_" + normalizar_nombre(empresa_nombre)
         conn= None
         cursor= None
@@ -428,6 +428,25 @@ class Factura:
                 conn.close()
             if cursor:
                 cursor.close()
+
+    def registro_factura(self,empresa_nombre):
+        facturas= "facturas_" + normalizar_nombre(empresa_nombre)
+        conn= None
+        cursor= None
+        try:
+            conn= BasedeDatos.conectar()
+            cursor= conn.cursor()
+            cursor.execute(f"""
+                INSERT INTO {facturas} (no_factura, nit_cliente, monto, fecha, estado)
+                VALUES (%s,%s,%s,%s,%s)""", (self.no_factura, self.nit_cliente, self.monto, self.fecha, self.estado))
+            conn.commit()
+        except mysql.connector.Error as e:
+            print("Ocurrio un error en base de datos",e)
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     @property
     def estado(self):
