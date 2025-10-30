@@ -123,6 +123,7 @@ class Usuario:
 
 reportes = {}
 facturas = {}
+inventario={}
 
 class Auditor(Usuario):
     def __init__(self,nombre,dpi,correo,usuario,contrasena):
@@ -157,12 +158,12 @@ class Auditor(Usuario):
         empresa = Empresa(nombre_empresa, nit_cliente, direccion)
         guardar = empresa.guardar()
         if guardar:
-            tabla = empresa.tabla_inventario
-
-            if tabla not in reportes:
-                reportes[tabla] = []
-            if tabla not in facturas:
-                facturas[tabla] = []
+            if nombre_empresa not in reportes:
+                reportes[nombre_empresa] = []
+            if nombre_empresa not in facturas:
+                facturas[nombre_empresa] = []
+            if nombre_empresa not in inventario:
+                inventario[nombre_empresa] = []
         return guardar
 
     def listar_empresas(self):
@@ -185,7 +186,7 @@ class Auditor(Usuario):
         if guardar:
             if empresa_nombre not in facturas:
                 facturas[empresa_nombre] = []
-            facturas[empresa_nombre].append(factura)
+            facturas[empresa_nombre].append((factura.no_factura,factura._monto,factura._fecha))
         return guardar
 
 class Empleado(Usuario):
