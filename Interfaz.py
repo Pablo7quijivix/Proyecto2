@@ -13,3 +13,4 @@ class VentanaPrincipal(QWidget):
         self.logica_auditor= Auditor(Usuario)
 
         self.inicializar_ui()
+print(f"actualizacion de la interfaz grafica con herramientas de Qt Designer")
