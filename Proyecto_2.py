@@ -158,11 +158,13 @@ class Auditor(Usuario):
         empresa = Empresa(nombre_empresa, nit_cliente, direccion)
         guardar = empresa.guardar()
         if guardar:
-            if nombre_empresa not in reportes:
+            tabla = empresa.tabla_inventario
+
+            if tabla not in reportes:
                 reportes[nombre_empresa] = []
-            if nombre_empresa not in facturas:
+            if tabla not in facturas:
                 facturas[nombre_empresa] = []
-            if nombre_empresa not in inventario:
+            if tabla not in inventario:
                 inventario[nombre_empresa] = []
         return guardar
 
@@ -186,7 +188,7 @@ class Auditor(Usuario):
         if guardar:
             if empresa_nombre not in facturas:
                 facturas[empresa_nombre] = []
-            facturas[empresa_nombre].append((factura.no_factura,factura._monto,factura._fecha))
+            facturas[empresa_nombre].append(factura)
         return guardar
 
 class Empleado(Usuario):
@@ -253,14 +255,13 @@ class Cliente:
 def normalizar_nombre(nombre):
     nombre_empresa = nombre.strip().lower()
     nombre_empresa = "_".join(nombre_empresa.split())
-
     resultado = ""
     for x in nombre_empresa:
-        if x.isalnum() or x == "_":
+        if ("a" <= x <= "z") or ("0" <= x <= "9") or x == "_":
             resultado += x
     if not resultado:
         resultado = "empresa"
-    return resultado
+    return resultado[:50]
 
 class Empresa:
     def __init__(self, nombre, nit_cliente, direccion=""):
