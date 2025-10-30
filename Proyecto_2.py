@@ -325,16 +325,25 @@ class Empresa:
         cursor.close()
 
     def guardar(self):
-        conn= BasedeDatos.conectar()
-        cursor= conn.cursor()
-        cursor.execute(
-            "INSERT INTO empresas (nombre,nit_cliente,direccion) VALUES (%s,%s,%s)",
-            (self._nombre,self._nit_cliente,self._direccion))
-        conn.commit()
-        cursor.close()
-        Inventario._crear_tabla(self._nombre)
-        conn.commit()
-        cursor.close()
+        self._crear_tabla()
+        conn = None
+        cursor = None
+        try:
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO empresas (nombre,nit_cliente,direccion) VALUES (%s,%s,%s)",
+                (self._nombre, self._nit_cliente, self._direccion)
+            )
+            conn.commit()
+        except mysql.connector.Error as e:
+            print(f"Error al guardar empresa: {e}")
+            return False
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     @staticmethod
     def listar(nit_cliente=None):
