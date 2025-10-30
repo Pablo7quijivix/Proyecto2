@@ -467,6 +467,27 @@ class Inventario:
         self._cantidad = cantidad
         self._precio = precio
 
+    def guardar(self):
+        tabla= "inventario_" + normalizar_nombre(self._empresa_nombre)
+        conn= None
+        cursor= None
+        try:
+            conn= BasedeDatos.conectar()
+            cursor= conn.cursor()
+            cursor.execute(f"""INSERT INTO {tabla} (producto, cantidad, precio)VALUES (%s,%s,%s)
+            """, (self._producto, self._cantidad, self._precio))
+            conn.commit()
+            print("Porducto agregado a inventario")
+            return True
+        except mysql.connector.Error as e:
+            print("Error al guardar inventario",e)
+            return False
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
     @staticmethod
     def listar(nombre_empresa):
         tabla = "inventario_" + normalizar_nombre(nombre_empresa)
