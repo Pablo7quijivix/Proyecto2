@@ -1,4 +1,6 @@
 import mysql.connector
+from datetime import date
+
 DB_Sistema= "sistema_empresa.db"
 
 def busqueda_binaria(lista, indice, valor):
@@ -394,8 +396,11 @@ class Factura:
         self.__no_factura= no_factura
         self.__nit_cliente= nit_cliente
         self._monto= monto
-        self._fecha= fecha
+        self._fecha= fecha if fecha else date.today()
         self._estado= estado
+
+    def informacion(self):
+        print(f"Factura: {self.no_factura} | Clinte: {self.nit_cliente} | Monto: {self.monto} | fecha: {self.fecha} | Estado:{self.estado}")
 
     @staticmethod
     def _conn():
@@ -428,6 +433,14 @@ class Factura:
     @property
     def nit_cliente(self):
         return self.__nit_cliente
+    @property
+    def monto(self):
+        return self._monto
+
+    @property
+    def fecha(self):
+        return self._fecha
+
 
     def guardar(self):
         conn = self._conn()
