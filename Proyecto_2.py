@@ -122,23 +122,26 @@ class Usuario:
         return self._rol
 
     def guardar(self):
-        conn= None
-        cursor= None
+        conn = None
+        cursor = None
         try:
-            conn= BasedeDatos.conectar()
-            cursor= conn.cursor()
-            cursor.execute(
-        """INSERT INTO usuarios (nombre, dpi, correo, puesto, usuario, contrasena, rol) VALUES (%s, %s, %s, %s, %s, %s, %s)""",
-        (self.__nombre, self.__dpi, self._correo, self._puesto, self.__usuario, self.__contrasena, self._rol))
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT * FROM usuarios WHERE usuario=%s", (self.__usuario,))
+            if cursor.fetchone():
+                print(f"Usuario {self.__usuario} ya existe.")
+                return False
+            cursor.execute("""INSERT INTO usuarios (nombre, dpi, correo, puesto, usuario, contrasena, rol) VALUES (%s,%s,%s,%s,%s,%s,%s)
+            """, (self.__nombre, self.__dpi, self._correo, self._puesto, self.__usuario, self.__contrasena, self._rol))
             conn.commit()
-            print(f"Usuario '{self.__usuario}' guardado con éxito.")
+            print(f"Usuario {self.__usuario} guardado.")
+            return True
         except mysql.connector.Error as e:
-            print(f"Ocurrio un error en la de datos. {e}")
+            print(f"Error al guardar usuario: {e}")
+            return False
         finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
+            if cursor: cursor.close()
+            if conn: conn.close()
 
     def mostrar_info(self):
         print(f"{self.nombre} ({self.puesto}) - Rol:{self.rol}")
