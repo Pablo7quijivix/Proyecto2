@@ -309,19 +309,29 @@ class Empresa:
 
     @staticmethod
     def _crear_tabla():
-        conn = BasedeDatos.conectar()
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS empresas (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nombre VARCHAR(200) NOT NULL,
-                nit_cliente VARCHAR(60),
-                direccion VARCHAR(255),
-                FOREIGN KEY (nit_cliente) REFERENCES clientes(nit) ON DELETE SET NULL
-            );
+        Cliente._conn()
+        conn = None
+        cursor = None
+        try:
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS empresas (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    nombre VARCHAR(200) NOT NULL,
+                    nit_cliente VARCHAR(60),
+                    direccion VARCHAR(255),
+                    FOREIGN KEY (nit_cliente) REFERENCES clientes(nit) ON DELETE SET NULL
+                );
             """)
-        conn.commit()
-        cursor.close()
+            conn.commit()
+        except mysql.connector.Error as e:
+            print(f" Error al crear tabla empresas: {e}")
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def guardar(self):
         self._crear_tabla()
