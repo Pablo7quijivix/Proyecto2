@@ -172,9 +172,9 @@ class Auditor(Usuario):
         u = Usuario(nombre, dpi, correo, puesto, usuario, contrasena, rol)
         return u.guardar()
 
-    def crear_cliente(self, nit,nombre,telefono="",correo="",direccion="",dpi="",fecha_nac=None,nombre_negocio=""):
-        c = Cliente(nit,nombre,telefono,correo,direccion,dpi,fecha_nac,nombre_negocio)
-        return c.guardar()
+    def crear_cliente(self, nit,nombre,telefono="",correo="",direccion="",dpi="",fecha_nacimiento="",nombre_negocio=""):
+        cliente = Cliente(nit,nombre,telefono,correo,direccion,dpi,fecha_nacimiento,nombre_negocio)
+        return cliente.guardar()
 
     def crear_empresa(self, nombre_empresa, nit_cliente, direccion=""):
         empresa = Empresa(nombre_empresa, nit_cliente, direccion)
@@ -204,9 +204,9 @@ class Auditor(Usuario):
         guardar=inventario.guardar()
         return  guardar
 
-    def registrar_factura(self,numero_factura,nit_cliente,empresa_nombre,monto,fecha=None):
-        factura = Factura(numero_factura, nit_cliente, empresa_nombre, monto, fecha)
-        guardar = factura.guardar()
+    def registrar_factura(self, numero_factura, nit_cliente, empresa_nombre, monto, fecha=None):
+        factura = Factura(numero_factura, nit_cliente, monto, fecha)
+        guardar = factura.guardar(empresa_nombre)
         if guardar:
             if empresa_nombre not in facturas:
                 facturas[empresa_nombre] = []
