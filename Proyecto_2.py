@@ -307,6 +307,7 @@ class Empresa:
         self._nit_cliente = nit_cliente
         self._direccion = direccion
         self.tabla_inventario = "inventario_" + normalizar_nombre(self._nombre)
+        self.tabla_facturas = "facturas_" + normalizar_nombre(self._nombre)
 
     @staticmethod
     def _crear_tabla():
@@ -336,6 +337,25 @@ class Empresa:
                 (self._nombre, self._nit_cliente, self._direccion)
             )
             conn.commit()
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {self.tabla_inventario} (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    producto VARCHAR(100) NOT NULL,
+                    cantidad INT NOT NULL,
+                    precio FLOAT NOT NULL
+                );
+            """)
+            cursor.execute(f"""
+                CREATE TABLE IF NOT EXISTS {self.tabla_facturas} (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    no_factura VARCHAR(50),
+                    nit_cliente VARCHAR(50),
+                    monto FLOAT,
+                    fecha DATE
+                );
+            """)
+            conn.commit()
+            print("Se registro a la empresa...")
         except mysql.connector.Error as e:
             print(f"Error al guardar empresa: {e}")
             return False
