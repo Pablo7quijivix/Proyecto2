@@ -503,3 +503,5 @@ class Inventario:
         conn.close()
         return rows
 
+    #
+
