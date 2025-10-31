@@ -105,6 +105,12 @@ class Usuario:
             if conn:
                 conn.close()
 
+    @property
+    def nombre(self):
+        return self.__nombre
+
+    def puesto(self):
+        return self._puesto
 
     @property
     def correo(self):
@@ -247,6 +253,17 @@ class Cliente:
                 cursor.close()
             if conn:
                 conn.close()
+    @property
+    def nit(self):
+        return self._nit
+
+    @property
+    def nombre(self):
+        return self._nombre
+
+    @property
+    def nombre_negocio(self):
+        return self.__nombre_negocio
 
     def guardar(self):
         conn = None
