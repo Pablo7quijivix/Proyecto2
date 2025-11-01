@@ -585,3 +585,28 @@ class Inventario:
         cursor.close()
         conn.close()
         return rows
+
+
+def inicio_sesio(usuario,contrasena):
+    try:
+        if usuario == "contador" and contrasena == "contador123":
+            return {"rol": "Contador", "nombre": "Administrador"}
+
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM usuarios WHERE usuario = %s AND contrasena = %s",
+                       (usuario, contrasena))
+        usuario_db = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if usuario_db:
+            return usuario_db
+        elif usuario == "0" and contrasena == "0":
+            return "salir"
+        else:
+            return None
+
+    except Exception as e:
+        print(f"Ocurrio un error inesperado: {e}")
+        return None
