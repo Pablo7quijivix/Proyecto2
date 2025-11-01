@@ -520,6 +520,21 @@ class Reporte:
         conn.close()
         return resultado
 
+    @staticmethod
+    def total_ventas_empresa(empresa):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT empresa_nombre, COUNT(*) as facturas, SUM(monto) as total
+            FROM facturas_general 
+            WHERE estado = 'Emitida' AND empresa_nombre = %s
+            GROUP BY empresa_nombre""",
+                       (empresa,))
+        resultados = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return resultados
+
 class Inventario:
     def __init__(self, empresa_nombre, producto, cantidad, precio):
         self._empresa_nombre = empresa_nombre
