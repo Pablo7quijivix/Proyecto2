@@ -63,7 +63,8 @@ class BasedeDatos():
             host="localhost",
             user="root",
             password="Wilson200.",
-            database="prueba_10"
+            database="prueba_100",
+            port= 3306
         )
         return conn
 class Usuario:
@@ -196,8 +197,8 @@ class Auditor(Usuario):
         guardar = inventario.guardar()
         return guardar
 
-    def reporte_facturas_emitidas(self,empesa):
-        return Reporte.facturas_emitidas(empesa)
+    def reporte_facturas_emitidas(self,empresa):
+        return Reporte.facturas_emitidas(empresa)
 
     def reporte_facturas_canceladas(self,empresa):
         return Reporte.facturas_anuladas(empresa)
@@ -504,7 +505,8 @@ class Reporte:
         self.total_clientes = total_clientes
         self.total_facturas = total_facturas
 
-    def facturas_emitidas(self,empresa):
+    @staticmethod
+    def facturas_emitidas(empresa):
         conn = BasedeDatos.conectar()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
@@ -517,7 +519,8 @@ class Reporte:
         conn.close()
         return resultados
 
-    def facturas_anuladas(self,empresa):
+    @staticmethod
+    def facturas_anuladas(empresa):
         conn = BasedeDatos.conectar()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
