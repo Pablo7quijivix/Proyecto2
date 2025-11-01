@@ -196,6 +196,15 @@ class Auditor(Usuario):
         guardar = inventario.guardar()
         return guardar
 
+    def reporte_facturas_emitidas(self,empesa):
+        return Reporte.facturas_emitidas(empesa)
+
+    def reporte_facturas_canceladas(self,empresa):
+        return Reporte.facturas_anuladas(empresa)
+
+    def reporte_ventas(self,empresa):
+        return Reporte.total_ventas_empresa(empresa)
+
     def registrar_factura(self, numero_factura, nit_cliente, empresa_nombre, monto, fecha=None):
         factura = Factura(numero_factura, nit_cliente, monto, fecha)
         guardar = factura.guardar(empresa_nombre)
