@@ -447,6 +447,27 @@ class Factura:
             if conn:
                 conn.close()
 
+    @staticmethod
+    def listar_por_empresa(empresa_nombre):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""SELECT 
+                facturas_general.no_factura,
+                facturas_general.nit_cliente,
+                clientes.nombre as nombre_cliente,
+                facturas_general.monto,
+                facturas_general.fecha,
+                facturas_general.estado
+            FROM facturas_general
+            INNER JOIN clientes ON facturas_general.nit_cliente = clientes.nit
+            WHERE facturas_general.empresa_nombre = %s
+            ORDER BY facturas_general.fecha DESC""",
+            (empresa_nombre,))
+        datos_filas = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return datos_filas
+
     @property
     def estado(self):
         return self._estado
