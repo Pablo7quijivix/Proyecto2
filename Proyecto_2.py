@@ -495,6 +495,31 @@ class Reporte:
         self.total_clientes = total_clientes
         self.total_facturas = total_facturas
 
+    def facturas_emitidas(self,empresa):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT no_factura, nit_cliente, monto, fecha, empresa_nombre
+            FROM facturas_general 
+            WHERE estado = 'Emitida' AND empresa_nombre = %s""",
+                (empresa,))
+        resultados = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return resultados
+
+    def facturas_anuladas(self,empresa):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT no_factura, nit_cliente, monto, fecha, empresa_nombre
+            FROM facturas_general 
+            WHERE estado = 'Anulada' AND empresa_nombre = %s""", (empresa,))
+        resultado = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return resultado
+
 class Inventario:
     def __init__(self, empresa_nombre, producto, cantidad, precio):
         self._empresa_nombre = empresa_nombre
@@ -530,211 +555,9 @@ class Inventario:
         cursor.execute("""
             SELECT producto, cantidad, precio 
             FROM inventario_general 
-            WHERE empresa_nombre = %s
-            ORDER BY producto""", (nombre_empresa,))
+            WHERE empresa_nombre = %s""",
+            (nombre_empresa,))
         rows = cursor.fetchall()
         cursor.close()
         conn.close()
         return rows
-
-
-# EJEMPLOS DE USO DEL SISTEMA
-
-def main():
-    print("=== EJEMPLOS DE USO DEL SISTEMA ===")
-
-    # 1. CREAR UN AUDITOR/ADMINISTRADOR
-    print("\n1. CREANDO AUDITOR...")
-    auditor = Auditor("Carlos Lopez", "1234567890101", "carlos@empresa.com", "clopez", "clave123")
-
-    # 2. CREAR CLIENTES
-    print("\n2. CREANDO CLIENTES...")
-    auditor.crear_cliente(
-        nit="CF123456789",
-        nombre="Juan Pérez",
-        telefono="1234-5678",
-        correo="juan@negocio.com",
-        direccion="Zona 1, Ciudad",
-        dpi="1234567890101",
-        fecha_nacimiento="1990-05-15",
-        nombre_negocio="Super Tienda Juan"
-    )
-
-    auditor.crear_cliente(
-        nit="CF987654321",
-        nombre="María García",
-        telefono="8765-4321",
-        correo="maria@empresa.com",
-        nombre_negocio="Distribuidora María"
-    )
-
-    # 3. CREAR EMPRESAS PARA LOS CLIENTES
-    print("\n3. CREANDO EMPRESAS...")
-    auditor.crear_empresa(
-        nombre_empresa="Tienda Central",
-        nit_cliente="CF123456789",
-        direccion="Centro Comercial MegaPlaza, Local 5"
-    )
-
-    auditor.crear_empresa(
-        nombre_empresa="Almacén Express",
-        nit_cliente="CF987654321",
-        direccion="Zona Industrial, Bodega 12"
-    )
-
-    # 4. AGREGAR PRODUCTOS AL INVENTARIO
-    print("\n4. AGREGANDO PRODUCTOS AL INVENTARIO...")
-    auditor.modificar_inventario("Tienda Central", "Laptop HP", 10, 4500.00)
-    auditor.modificar_inventario("Tienda Central", "Mouse Inalámbrico", 50, 85.50)
-    auditor.modificar_inventario("Tienda Central", "Teclado Mecánico", 25, 250.00)
-
-    auditor.modificar_inventario("Almacén Express", "Silla Oficina", 15, 350.00)
-    auditor.modificar_inventario("Almacén Express", "Escritorio Ejecutivo", 8, 1200.00)
-    auditor.modificar_inventario("Almacén Express", "Archivador Metal", 30, 180.75)
-
-    # 5. REGISTRAR FACTURAS
-    print("\n5. REGISTRANDO FACTURAS...")
-    auditor.registrar_factura("F001", "CF123456789", "Tienda Central", 4550.00)
-    auditor.registrar_factura("F002", "CF123456789", "Tienda Central", 1275.50)
-    auditor.registrar_factura("F003", "CF987654321", "Almacén Express", 2400.00)
-
-    # 6. LISTAR INFORMACIÓN
-    print("\n6. LISTANDO INFORMACIÓN...")
-
-    print("\n--- CLIENTES REGISTRADOS ---")
-    clientes = auditor.listar_clientes()
-    for cliente in clientes:
-        print(f"NIT: {cliente['nit']} | Nombre: {cliente['nombre']} | Negocio: {cliente['nombre_negocio']}")
-
-    print("\n--- EMPRESAS REGISTRADAS ---")
-    empresas = auditor.listar_empresas()
-    for empresa in empresas:
-        print(f"Empresa: {empresa['nombre']} | Cliente: {empresa['nit_cliente']} | Dirección: {empresa['direccion']}")
-
-    print("\n--- INVENTARIO TIENDA CENTRAL ---")
-    inventario_tienda = auditor.ver_inventario("Tienda Central")
-    for producto in inventario_tienda:
-        print(f"Producto: {producto['producto']} | Cantidad: {producto['cantidad']} | Precio: Q{producto['precio']}")
-
-    print("\n--- INVENTARIO ALMACÉN EXPRESS ---")
-    inventario_almacen = auditor.ver_inventario("Almacén Express")
-    for producto in inventario_almacen:
-        print(f"Producto: {producto['producto']} | Cantidad: {producto['cantidad']} | Precio: Q{producto['precio']}")
-
-    # 7. EJEMPLOS DE BÚSQUEDAS
-    print("\n7. EJEMPLOS DE BÚSQUEDAS...")
-
-    # Buscar cliente por NIT (búsqueda secuencial)
-    print("\n--- BUSCAR CLIENTE POR NIT ---")
-    datos_clientes = [(c['nombre'], c['nit'], c['telefono'], c['correo']) for c in clientes]
-    resultado = busqueda_secuencial(datos_clientes, 1, "CF123456789")  # Buscar por NIT (índice 1)
-    if resultado != -1:
-        print(f"Cliente encontrado: {resultado}")
-
-    # Ordenar clientes por nombre
-    print("\n--- CLIENTES ORDENADOS POR NOMBRE ---")
-    clientes_ordenados = metodo_quick_sort(datos_clientes, 0)  # Ordenar por nombre (índice 0)
-    for cliente in clientes_ordenados:
-        print(f"Nombre: {cliente[0]} | NIT: {cliente[1]}")
-
-    # 8. EJEMPLOS DE ORDENAMIENTO
-    print("\n8. EJEMPLOS DE ORDENAMIENTO...")
-
-    # Ordenar inventario por precio (Bubble Sort)
-    print("\n--- INVENTARIO ORDENADO POR PRECIO (BUBBLE SORT) ---")
-    datos_inventario = [(p['producto'], p['cantidad'], p['precio']) for p in inventario_tienda]
-    inventario_ordenado = metodo_bubble_sort(datos_inventario, 2)  # Ordenar por precio (índice 2)
-    for producto in inventario_ordenado:
-        print(f"Producto: {producto[0]} | Precio: Q{producto[2]}")
-
-    # 9. CREAR MÁS USUARIOS
-    print("\n9. CREANDO MÁS USUARIOS...")
-    auditor.crear_usuario(
-        nombre="Ana Martinez",
-        dpi="9876543210101",
-        correo="ana@empresa.com",
-        puesto="Empleado",
-        usuario="amartinez",
-        contrasena="ana123",
-        rol="Usuario"
-    )
-
-    # 10. DEMOSTRACIÓN DE PROPIEDADES
-    print("\n10. DEMOSTRACIÓN DE PROPIEDADES...")
-    empleado = Empleado("Pedro Ramirez", "5556667770101", "pedro@empresa.com", "pramirez", "pedro123")
-
-    # Usando propiedades
-    print(f"Nombre: {empleado.nombre}")
-    print(f"Rol: {empleado.rol}")
-
-    # Cambiando correo (con validación)
-    empleado.correo = "nuevoemail@empresa.com"  # Válido
-    empleado.correo = "correoinvalido"  # Mostrará error
-
-    print("\n✅ DEMOSTRACIÓN COMPLETADA!")
-
-
-def ejemplos_busquedas_avanzadas():
-    """Ejemplos adicionales de búsquedas y ordenamientos"""
-    print("\n=== BÚSQUEDAS Y ORDENAMIENTOS AVANZADOS ===")
-
-    # Datos de ejemplo
-    productos = [
-        ("Laptop", 10, 4500.00),
-        ("Mouse", 50, 85.50),
-        ("Teclado", 25, 250.00),
-        ("Monitor", 15, 800.00),
-        ("Impresora", 8, 1200.00)
-    ]
-
-    print("Productos originales:")
-    for prod in productos:
-        print(f"  {prod[0]} - Cant: {prod[1]} - Precio: Q{prod[2]}")
-
-    # Búsqueda binaria (requiere datos ordenados)
-    print("\n--- BÚSQUEDA BINARIA ---")
-    productos_ordenados = metodo_quick_sort(productos, 0)  # Ordenar por nombre
-    resultado_bin = busqueda_binaria(productos_ordenados, 0, "Monitor")
-    if resultado_bin != -1:
-        print(f"Producto encontrado (binaria): {resultado_bin}")
-
-    # Búsqueda secuencial
-    print("\n--- BÚSQUEDA SECUENCIAL ---")
-    resultado_sec = busqueda_secuencial(productos, 2, 250.00)  # Buscar por precio
-    if resultado_sec != -1:
-        print(f"Producto encontrado (secuencial): {resultado_sec}")
-
-    # Diferentes métodos de ordenamiento
-    print("\n--- COMPARACIÓN DE MÉTODOS DE ORDENAMIENTO ---")
-
-    print("Ordenado por precio (Quick Sort):")
-    quick_sorted = metodo_quick_sort(productos, 2)
-    for prod in quick_sorted:
-        print(f"  {prod[0]} - Q{prod[2]}")
-
-    print("\nOrdenado por cantidad (Bubble Sort):")
-    bubble_sorted = metodo_bubble_sort(productos, 1)
-    for prod in bubble_sorted:
-        print(f"  {prod[0]} - Cant: {prod[1]}")
-
-    print("\nOrdenado por nombre (Selection Sort):")
-    selection_sorted = meotod_selection_sort(productos, 0)
-    for prod in selection_sorted:
-        print(f"  {prod[0]}")
-
-
-# Ejecutar los ejemplos
-if __name__ == "__main__":
-    try:
-        main()
-        ejemplos_busquedas_avanzadas()
-
-        print("\n" + "=" * 50)
-        print("🎉 TODOS LOS EJEMPLOS EJECUTADOS EXITOSAMENTE")
-        print("=" * 50)
-
-    except Exception as e:
-        print(f"❌ Error durante la ejecución: {e}")
-
-    input("\nPresiona Enter para salir...")
-
