@@ -309,6 +309,12 @@ class Ui_MainWindow(object):
         grid_layout.addWidget(QLabel("Rol:"), 6, 0)
         grid_layout.addWidget(self.combo_rol, 6, 1)
 
+        grid_layout.addWidget(QLabel("Teléfono:"), 7, 0)
+        grid_layout.addWidget(self.input_telefono, 7, 1)
+
+        grid_layout.addWidget(QLabel("Fecha Nacimiento:"), 8, 0)
+        grid_layout.addWidget(self.input_fecha_nacimiento, 8, 1)
+
 
 
 
