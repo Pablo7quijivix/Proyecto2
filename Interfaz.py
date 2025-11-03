@@ -23,7 +23,7 @@ from Proyecto_2 import inicio_sesio, Auditor, Usuario, Cliente, Empresa
 
 
 # --- 1. SIMULACIÓN DE LA INTERFAZ GENERADA POR Qt Designer ---
-# Esta clase simula lo que se generaría a partir de tu archivo .ui
+# se añade la interfaz (para las funciones de empresa) actualización 3
 class Ui_MainWindow(object):
     """
     Clase de simulación de la interfaz generada por PySide6-uic.
@@ -51,6 +51,7 @@ class Ui_MainWindow(object):
         self.setup_login_ui()
         self.setup_dashboard_ui() # AGREGANDO NUEVA FUNCIÓN
         self.setup_gestion_usuarios_ui() # AGREGAMOS NUEVA FUNCIÓN EN ACTUALIZACIÓN 2
+        self.setup_gestion_empresas_ui() # nueva funcion de empresa, A3
 
     def setup_login_ui(self):
         # --- Configuración Visual del Login (siguiendo PDF) ---
@@ -326,14 +327,13 @@ class Ui_MainWindow(object):
         form_layout.addWidget(self.btn_crear_usuario_submit, alignment=Qt.AlignCenter)
         form_layout.addStretch()
 
-
-
-
-
-
-
-
-
+    #-------------------------------------------------------
+    # AGREGANDO FUNCION DE: DISEÑO GESTIONAR EMPRESAS (PAGINA 9 DLE BOCETO DEL CANVA)
+    #-------------------------------------------------------
+    def setup_gestion_empresas_ui(self):
+        # Layout principal de la página de Gestionar Empresas (Índice 2 del dashboard_stacked_widget)
+        main_layout = QHBoxLayout(self.dashboard_empresas_page)
+        main_layout.setContentsMargins(0, 0, 0, 0)
 
 
 
