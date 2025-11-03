@@ -296,6 +296,21 @@ class Ui_MainWindow(object):
         grid_layout.addWidget(QLabel("Correo:"), 2, 0)
         grid_layout.addWidget(self.input_correo, 2, 1)
 
+        grid_layout.addWidget(QLabel("Puesto:"), 3, 0)
+        grid_layout.addWidget(self.input_puesto, 3, 1)
+
+        grid_layout.addWidget(QLabel("Usuario (Login):"), 4, 0)
+        grid_layout.addWidget(self.input_usuario, 4, 1)
+
+        grid_layout.addWidget(QLabel("Contraseña:"), 5, 0)
+        self.input_contrasena.setEchoMode(QLineEdit.Password)
+        grid_layout.addWidget(self.input_contrasena, 5, 1)
+
+        grid_layout.addWidget(QLabel("Rol:"), 6, 0)
+        grid_layout.addWidget(self.combo_rol, 6, 1)
+
+
+
 
 
 
