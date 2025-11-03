@@ -243,6 +243,14 @@ class Ui_MainWindow(object):
         # Diseño del formulario de Crear Usuario (Página 5 del PDF)
         self.setup_formulario_crear_usuario()
 
+    def setup_formulario_crear_usuario(self):
+        form_layout =QVBoxLayout(self.usuarios_crear_page)
+        form_layout.setAlignment(Qt.AlignTop | Qt.AlignCenter)
+
+        titulo = QLabel("Crear nuevo usuario")
+        titulo.setStyleSheet("font-size: 24pt; color: #4B0082; margin-bottom: 20px; font-weight: bold;")
+        form_layout.addWidget(titulo, alignment=Qt.AlignCenter)
+
 
 
 
