@@ -270,6 +270,9 @@ class Ui_MainWindow(object):
         self.input_telefono = QLineEdit()
         self.input_fecha_nacimiento = QLineEdit()  # Usaremos un QLineEdit simple por ahora
 
+        # Campo ROL (QComboBox)
+        self.combo_rol = QComboBox()
+        self.combo_rol.addItems(["Admin", "Usuario"])  # Roles de tu lógica (Admin/Usuario)
 
 
 
