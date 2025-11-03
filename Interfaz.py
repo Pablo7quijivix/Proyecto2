@@ -109,6 +109,31 @@ class Ui_MainWindow(object):
         menu_layout = QVBoxLayout(self.menu_lateral_frame)
         menu_layout.setAlignment(Qt.AlignTop)
 
+        #Logo / Titulo
+        self.label_logo = QLabel("LOGO DE EMPRESA")
+        self.label_logo.setStyleSheet("font-size: 18pt; font-weight: bold; margin: 20px 0;")
+        self.label_logo.setAlignment(Qt.AlignCenter)
+
+        menu_layout.addWidget(self.label_logo)
+
+        #Creacion de botones de navegación de las paginas del PDF (boceto canva) del 3 y 8
+        # btn = significa 'BOTON'
+        self.btn_gestionar_usuarios = QPushButton("GESTIONAR USUARIOS")
+        self.btn_gestionar_empresa = QPushButton("GESTIONAR EMPRESA")
+        self.btn_ver_empresas = QPushButton("VER EMPRESAS")
+
+        #Estilo comun para los botones del menu  o esperar que sean modificados
+        menu_btn_style =(
+            "QPushButton { background-color: transparent; color: white; "
+            "border: none; padding: 15px 10px; text-align: left; font-size: 14pt;}"
+            "QPushButton:hover { background-color: #6A1B9A; }"
+        )
+
+        self.btn_gestionar_usuarios.setStyleSheet(menu_btn_style)
+        self.btn_gestionar_empresa.setStyleSheet(menu_btn_style)
+        self.btn_ver_empresas.setStyleSheet(menu_btn_style)
+
+
 
 
 
