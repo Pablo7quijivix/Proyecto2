@@ -194,6 +194,11 @@ class Ui_MainWindow(object):
         menu_layout = QVBoxLayout(menu_frame)
         menu_layout.setAlignment(Qt.AlignTop)
 
+        # titulo del submenu
+        label_titulo = QLabel("Gestión de Usuarios")
+        label_titulo.setStyleSheet("font-size: 16pt; font-weight: bold; padding: 20px 10px; color: #4B0082;")
+        menu_layout.addWidget(label_titulo)
+
 
 
 
