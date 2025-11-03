@@ -251,6 +251,25 @@ class Ui_MainWindow(object):
         titulo.setStyleSheet("font-size: 24pt; color: #4B0082; margin-bottom: 20px; font-weight: bold;")
         form_layout.addWidget(titulo, alignment=Qt.AlignCenter)
 
+        # Usamos un QFrame para contener el formulario (simulando la "tarjeta" deL CANVA)
+        formulario_frame = QFrame()
+        formulario_frame.setMinimumWidth(500)
+        formulario_frame.setStyleSheet("background-color: #F8F8F8; border-radius: 10px; padding: 25px;")
+
+        grid_layout = QGridLayout(formulario_frame)
+        grid_layout.setHorizontalSpacing(20)
+        grid_layout.setVerticalSpacing(15)
+
+        # ------------------ CAMPOS DE ENTRADA (QLineEdit) ------------------
+        self.input_nombre_completo = QLineEdit()
+        self.input_dpi = QLineEdit()
+        self.input_correo = QLineEdit()
+        self.input_puesto = QLineEdit()
+        self.input_usuario = QLineEdit()
+        self.input_contrasena = QLineEdit()
+        self.input_telefono = QLineEdit()
+        self.input_fecha_nacimiento = QLineEdit()  # Usaremos un QLineEdit simple por ahora
+
 
 
 
