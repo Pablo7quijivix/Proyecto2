@@ -363,7 +363,11 @@ class MainApp(QMainWindow):
         self.ui.btn_modificar_usuarios.clicked.connect(lambda: self.navigate_usuarios(2))
         self.ui.btn_eliminar_usuarios.clicked.connect(lambda: self.navigate_usuarios(3))
 
+        # conexion del formulario CREAR USUARIO <---  APLICANDO CONEXION DE LÓGICA
+        self.ui.btn_crear_usuario_submit.clicked.connect(self.handle_crear_usuario)
 
+        #Establecer la primera vista: login
+        self.ui.stackedWidget.setCurrentIndex(0)
 
         # Establecer la primera vista: Login
         self.ui.stackedWidget.setCurrentIndex(0)
