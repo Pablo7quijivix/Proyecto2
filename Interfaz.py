@@ -6,8 +6,11 @@ print(f"Agregando archivo adicional en donde se alojara la parte grafica")
 # y el punto de entrada de la aplicación.
 # =========================================================
 
-from PySide6.QtWidgets import QMainWindow, QStackedWidget, QApplication, QWidget, QVBoxLayout, QLineEdit, QPushButton, \
-    QLabel, QMessageBox, QFrame
+from PySide6.QtWidgets import (
+    QMainWindow, QStackedWidget, QApplication, QWidget, QVBoxLayout, QLineEdit,
+    QPushButton, QLabel, QMessageBox, QFrame, QHBoxLayout, QSizePolicy
+)
+
 from PySide6.QtCore import Qt
 import sys
 
@@ -26,15 +29,16 @@ class Ui_MainWindow(object):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
+        MainWindow.resize(1000, 700)
 
         # El QStackedWidget será el corazón de la navegación
         self.stackedWidget = QStackedWidget()
         MainWindow.setCentralWidget(self.stackedWidget)
 
+        #paginas
         # Widgets principales (los diseñaremos individualmente después)
-        self.login_page = QWidget()  # Página 0: Login (Diseño de la Página 1 y 2 del PDF)
-        self.dashboard_page = QWidget()  # Página 1: Menú Principal (Diseño de la Página 3 y 8 del PDF)
+        self.login_page = QWidget()  # Página 0: Login (Diseño de la Página 1 y 2 del PDF) \ indice 0
+        self.dashboard_page = QWidget()  # Página 1: Menú Principal (Diseño de la Página 3 y 8 del PDF) \ indice 1
 
         # Agregar las páginas al Stacked Widget
         self.stackedWidget.addWidget(self.login_page)
