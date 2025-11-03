@@ -195,10 +195,16 @@ class MainApp(QMainWindow):
         self.rol_activo = None
 
         # Conexiones: Conectar el botón 'Ingresar' a la función de validación
+        # nos referimos al login
         self.ui.btn_ingresar.clicked.connect(self.handle_login)
 
         # Establecer la primera vista: Login
-        self.ui.stackedWidget.setCurrentIndex(0)
+        #self.ui.stackedWidget.setCurrentIndex(0)
+
+        # Nuevas conexiones de navegacion del Dashboard, agregamos nuevas conexiones
+        self.ui.btn_gestionar_usuarios.clicked.connect(lambda: self.navigate_dashboard(1))
+        self.ui.btn_gestionar_empresa.clicked.connect(lambda: self.navigate_dashboard(2))
+        self.ui.btn_ver_empresas.clicked.connect(lambda: self.navigate_dashboard(3))
 
     def handle_login(self):
         """
