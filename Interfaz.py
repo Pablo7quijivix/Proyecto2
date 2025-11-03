@@ -94,7 +94,7 @@ class Ui_MainWindow(object):
     def setup_dashboard_ui(self):
         '''
         Configurando la pagina del Dashboard con un Menú Lateral y un area de contenido
-        (siguiendo el boceto del canva PDF de la pag 3-8)
+        (siguiendo el boceto del canva PDF de la pag 3-8....)
         '''
         # Estructura Principa: Horizontal (agregando el Menú lateral \ Contenido)
         dashboard_layout = QHBoxLayout(self.dashboard_page)
