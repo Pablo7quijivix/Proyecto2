@@ -182,9 +182,19 @@ class Ui_MainWindow(object):
      # FUNCIÓN CLAVE: DISEÑO PARA GESTIONAR A LOS USUARIOS (pag 4 del canva)
      # -------------------------------------------------------------
      # Layout principal de la página de Gestionar Usuarios (Índice 1 del dashboard_stacked_widget)
-     def setup_gestion_usuarios_ui(self):
-         main_layout = QHBoxLayout(self.dashboard_usuarios_page)
-         main_layout.setContentsMargins(0, 0, 0, 0)
+    def setup_gestion_usuarios_ui(self):
+        main_layout = QHBoxLayout(self.dashboard_usuarios_page)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        # 1. Menú de Usuarios (Sidebar interno)
+        menu_frame = QFrame()
+        menu_frame.setFixedWidth(200)  # Ancho del menú interno
+        menu_frame.setStyleSheet("background-color: #F0F0F0; border-right: 1px solid #CCC;")  # Color gris claro
+
+        menu_layout = QVBoxLayout(menu_frame)
+        menu_layout.setAlignment(Qt.AlignTop)
+
+
 
 
 # --- 2. CLASE CONTROLADORA PRINCIPAL ---
