@@ -105,6 +105,11 @@ class Ui_MainWindow(object):
         self.menu_lateral_frame.setFixedWidth(250)  # Ancho fijo para el menú
         self.menu_lateral_frame.setStyleSheet("background-color: #4B0082; color: white;")  # Morado intenso
 
+        #Layout del Menú
+        menu_layout = QVBoxLayout(self.menu_lateral_frame)
+        menu_layout.setAlignment(Qt.AlignTop)
+
+
 
 
 
