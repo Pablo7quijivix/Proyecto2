@@ -427,7 +427,7 @@ class MainApp(QMainWindow):
                         self.ui.input_correo.clear()
                         self.ui.input_puesto.clear()
                         self.ui.input_usuario.clear()
-                        self.ui.input_contrasena.clear()
+                        self.ui.input_contrasenia.clear()
                         self.ui.input_telefono.clear()
                         self.ui.input_fecha_nacimiento.clear()
                     else:
@@ -436,11 +436,11 @@ class MainApp(QMainWindow):
                 except Exception as e:
                     QMessageBox.critical(self, "Error de Lógica", f"Ocurrió un error al intentar crear el usuario: {e}")
 
-    def navigate_dashboard(self, index):
+    #def navigate_dashboard(self, index):
         """
         Cambia la sub-página visible dentro del QStackedWidget del Dashboard.
         """
-        self.ui.dashboard_stacked_widget.setCurrentIndex(index)
+       # self.ui.dashboard_stacked_widget.setCurrentIndex(index)
 
 
     def handle_login(self):
@@ -461,6 +461,28 @@ class MainApp(QMainWindow):
             # Login exitoso
             self.usuario_activo = resultado
             self.rol_activo = resultado.get("rol", "Usuario")
+
+            # Si el login es exitoso y es Admin, creamos una instancia del Auditor
+            if self.rol_activo.lower() in ["admin", "auditor"]:
+                # Nota: Necesitas datos (nombre, dpi, correo, usuario, contrasena) para Auditor.__init__
+                # Usaremos datos dummy del login por ahora, o buscaríamos el objeto completo.
+                # Asumimos que el usuario 'contador' es el administrador principal:
+                if username == "contador":
+                    self.auditor = Auditor("Administrador", "0000000000000", "admin@app.com", "contador", "contador123")
+                else:
+                    # En un sistema real, buscarías todos los datos del usuario_activo
+                    self.auditor = Auditor(
+                        self.usuario_activo.get("nombre", "Usuario"),
+                        self.usuario_activo.get("dpi", ""),
+                        self.usuario_activo.get("correo", ""),
+                        self.usuario_activo.get("usuario", ""),
+                        self.usuario_activo.get("contrasena", "")
+                    )
+            self.ui.username_input.clear()
+            self.ui.password_input.clear()
+
+            self.ui.label_bienvenida.setText(f"Bienvenido/a, {self.usuario_activo.get('nombre', 'Admin')}!")
+            self.ui.stackedWidget.setCurrentIndex(1)
 
             # Limpia y Transiciona
             self.ui.username_input.clear()
