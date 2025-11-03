@@ -286,6 +286,16 @@ class Ui_MainWindow(object):
         self.input_fecha_nacimiento.setStyleSheet(input_style)
         self.combo_rol.setStyleSheet(input_style)
 
+        # Etiquetas de ayuda (Opcional, pero ayuda a la claridad)
+        grid_layout.addWidget(QLabel("Nombre Completo:"), 0, 0)
+        grid_layout.addWidget(self.input_nombre_completo, 0, 1)
+
+        grid_layout.addWidget(QLabel("DPI:"), 1, 0)
+        grid_layout.addWidget(self.input_dpi, 1, 1)
+
+        grid_layout.addWidget(QLabel("Correo:"), 2, 0)
+        grid_layout.addWidget(self.input_correo, 2, 1)
+
 
 
 
