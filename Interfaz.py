@@ -137,7 +137,32 @@ class Ui_MainWindow(object):
         menu_layout.addWidget(self.btn_gestionar_usuarios)
         menu_layout.addWidget(self.btn_gestionar_empresa)
         menu_layout.addWidget(self.btn_ver_empresas)
-        menu_layout.addStretch() #este método sirve para que los arroje hacia arriba
+        menu_layout.addStretch() #este método sirve para que los arroje hacia arriba #
+
+        #area de contenido principal
+        self.contenido_area =QWidget()
+        self.contenido_area.setStyleSheet("background-color: white;")
+
+        # Usaremos otro QStackedWidget aquí para las sub-vistas del dashboard
+        self.dashboard_stacked_widget = QStackedWidget(self.contenido_area)
+
+        #-------sub-paginas del dashboard------------------------------
+        self.dashboard_inicio_page = QWidget # sub pagina de bienvenida / inicio
+        self.dashboard_usuarios_page = QWidget()  # Sub-página 1: Gestionar Usuarios
+        self.dashboard_empresas_page = QWidget()  # Sub-página 2: Gestionar Empresa
+        self.dashboard_ver_empresas_page = QWidget()  # Sub-página 3: Ver Empresas (Listado)
+
+        self.dashboard_stacked_widget.addWidget(self.dashboard_inicio_page)
+        self.dashboard_stacked_widget.addWidget(self.dashboard_usuarios_page)
+        self.dashboard_stacked_widget.addWidget(self.dashboard_empresas_page)
+        self.dashboard_stacked_widget.addWidget(self.dashboard_ver_empresas_page)
+
+        # simmulacion de la pagina del Dashboard
+        inicio_layout = QVBoxLayout(self.dashboard_inicio_page)
+        self.label_bienvenida = QLabel("Bienvenido al Panel de Administrador")
+        self.label_bienvenida.setStyleSheet("font-size: 30pt; color: #4B0082;")
+        inicio_layout.addWidget(self.label_bienvenida, alignment=Qt.AlignCenter)
+
 
 
 
