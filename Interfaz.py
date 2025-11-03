@@ -8,15 +8,17 @@ print(f"Agregando archivo adicional en donde se alojara la parte grafica")
 
 from PySide6.QtWidgets import (
     QMainWindow, QStackedWidget, QApplication, QWidget, QVBoxLayout, QLineEdit,
-    QPushButton, QLabel, QMessageBox, QFrame, QHBoxLayout, QSizePolicy
+    QPushButton, QLabel, QMessageBox, QFrame, QHBoxLayout, QSizePolicy, QGridLayout,
+    QComboBox, QSpacerItem
 )
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QSize
 import sys
 
 # --- IMPORTACIÓN DE LA LÓGICA DE NEGOCIO ---
-# Importamos la función de login desde el archivo Proyecto2.py
-from Proyecto_2 import inicio_sesio
+# Importamos la función de login desde el archivo Proyecto_2.py
+# actualización 2, imoprtamos auditor para usar sus métodos
+from Proyecto_2 import inicio_sesio, Auditor, Usuario
 
 
 # --- 1. SIMULACIÓN DE LA INTERFAZ GENERADA POR Qt Designer ---
@@ -47,6 +49,7 @@ class Ui_MainWindow(object):
         # Configurar el diseño inicial de la página de Login
         self.setup_login_ui()
         self.setup_dashboard_ui() # AGREGANDO NUEVA FUNCIÓN
+        self.setup_gestion_usuarios_ui() # AGREGAMOS NUEVA FUNCIÓN EN ACTUALIZACIÓN 2
 
     def setup_login_ui(self):
         # --- Configuración Visual del Login (siguiendo PDF) ---
@@ -147,7 +150,7 @@ class Ui_MainWindow(object):
         self.dashboard_stacked_widget = QStackedWidget(self.contenido_area)
 
         #-------sub-paginas del dashboard------------------------------
-        self.dashboard_inicio_page = QWidget # sub pagina de bienvenida / inicio
+        self.dashboard_inicio_page = QWidget() # sub pagina de bienvenida / inicio
         self.dashboard_usuarios_page = QWidget()  # Sub-página 1: Gestionar Usuarios
         self.dashboard_empresas_page = QWidget()  # Sub-página 2: Gestionar Empresa
         self.dashboard_ver_empresas_page = QWidget()  # Sub-página 3: Ver Empresas (Listado)
@@ -176,12 +179,6 @@ class Ui_MainWindow(object):
 
 
 
-
-
-
-
-
-
 # --- 2. CLASE CONTROLADORA PRINCIPAL ---
 class MainApp(QMainWindow):
     def __init__(self):
@@ -204,7 +201,7 @@ class MainApp(QMainWindow):
         self.ui.btn_ver_empresas.clicked.connect(lambda: self.navigate_dashboard(3))
 
         # Establecer la primera vista: Login
-         self.ui.stackedWidget.setCurrentIndex(0)
+        self.ui.stackedWidget.setCurrentIndex(0)
 
 
         # agregando nuevo método de navegacion
