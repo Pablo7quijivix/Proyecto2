@@ -222,6 +222,19 @@ class Ui_MainWindow(object):
         self.usuarios_stacked_widget = QStackedWidget()
         self.usuarios_stacked_widget.setStyleSheet("background-color: white; padding: 10px;")
 
+        # VISTAS INTERNAS DE USUARIOS
+        self.usuarios_vacio_page = QWidget()  # Sub-página 0: Vacio/Inicial
+        self.usuarios_crear_page = QWidget()  # Sub-página 1: Crear Usuario (Página 5 de CANVA)
+        self.usuarios_modificar_page = QWidget()  # Sub-página 2: Modificar Usuarios (Página 6 DE CANVA)
+        self.usuarios_eliminar_page = QWidget()  # Sub-página 3: Eliminar Usuarios (Página 7 de CANVA)
+
+        self.usuarios_stacked_widget.addWidget(self.usuarios_vacio_page)
+        self.usuarios_stacked_widget.addWidget(self.usuarios_crear_page)
+        self.usuarios_stacked_widget.addWidget(self.usuarios_modificar_page)
+        self.usuarios_stacked_widget.addWidget(self.usuarios_eliminar_page)
+
+
+
 
 
 
