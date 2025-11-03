@@ -580,6 +580,40 @@ class Reporte:
         conn.close()
         return resultado
 
+    @staticmethod
+    def facturas_emitidas_mes(empresa, año=None):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+
+        if año:
+            cursor.execute("""SELECT 
+                        MONTH(fecha) as mes,
+                        COUNT(*) as cuantas,
+                        SUM(monto) as total
+                    FROM facturas_general 
+                    WHERE estado = 'Emitida' AND empresa_nombre = %s AND YEAR(fecha) = %s
+                    GROUP BY MONTH(fecha)
+                    ORDER BY mes
+                """,
+                           (empresa, año))
+        else:
+            cursor.execute("""SELECT 
+                        YEAR(fecha) as año,
+                        MONTH(fecha) as mes,
+                        COUNT(*) as cuantas,
+                        SUM(monto) as total
+                    FROM facturas_general 
+                    WHERE estado = 'Emitida' AND empresa_nombre = %s
+                    GROUP BY YEAR(fecha), MONTH(fecha)
+                    ORDER BY año, mes
+                """, (empresa,))
+
+        resultado = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return resultado
+
+
 class Inventario:
     def __init__(self, empresa_nombre, producto, cantidad, precio):
         self._empresa_nombre = empresa_nombre
