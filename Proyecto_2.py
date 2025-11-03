@@ -659,15 +659,34 @@ class Reporte:
         reporte += "=" * 30 + "\n\n"
 
         for dato in datos:
-            año = dato.get('año', '2024')
-            mes_num = dato['mes']
+            año = dato.get("año", "2024")
+            mes_num = dato["mes"]
             mes_nombre = nombres_meses.get(mes_num, f"MES {mes_num}")
 
-            reporte += f"{mes_nombre}: {dato['cantidad']}\n"
+            reporte += f"{mes_nombre}: {dato["cantidad"]}\n"
 
         return reporte
 
 
+    @staticmethod
+    def hacer_reporte_anuladas(empresa, año_seleccionado=None):
+        datos = Reporte.facturas_canceladas_mes(empresa, año_seleccionado)
+        if not datos:
+            return "No hay facturas anuladas"
+
+        nombres_meses = {
+            1: "ENERO", 2: "FEBRERO", 3: "MARZO", 4: "ABRIL",
+            5: "MAYO", 6: "JUNIO", 7: "JULIO", 8: "AGOSTO",
+            9: "SEPTIEMBRE", 10: "OCTUBRE", 11: "NOVIEMBRE", 12: "DICIEMBRE"
+        }
+        reporte = "FACTURAS ANULADAS\n"
+        reporte += "=" * 30+ "\n"
+        for dato in datos:
+            año = dato.get("año", "2024")
+            mes_num = dato["mes"]
+            mes_nombre = nombres_meses.get(mes_num, f"MES {mes_num}")
+            reporte += f"{mes_nombre}: {dato["cantidad"]}\n"
+        return reporte
 
 class Inventario:
     def __init__(self, empresa_nombre, producto, cantidad, precio):
