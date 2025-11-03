@@ -274,6 +274,18 @@ class Ui_MainWindow(object):
         self.combo_rol = QComboBox()
         self.combo_rol.addItems(["Admin", "Usuario"])  # Roles de tu lógica (Admin/Usuario)
 
+        # Estilo para todos los inputs
+        input_style = "QLineEdit, QComboBox { padding: 8px; border: 1px solid #CCC; border-radius: 5px; font-size: 11pt; }"
+        self.input_nombre_completo.setStyleSheet(input_style)
+        self.input_dpi.setStyleSheet(input_style)
+        self.input_correo.setStyleSheet(input_style)
+        self.input_puesto.setStyleSheet(input_style)
+        self.input_usuario.setStyleSheet(input_style)
+        self.input_contrasena.setStyleSheet(input_style)
+        self.input_telefono.setStyleSheet(input_style)
+        self.input_fecha_nacimiento.setStyleSheet(input_style)
+        self.combo_rol.setStyleSheet(input_style)
+
 
 
 
