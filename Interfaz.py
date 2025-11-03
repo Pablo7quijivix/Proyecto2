@@ -1,16 +1,147 @@
 print(f"Agregando archivo adicional en donde se alojara la parte grafica")
 
-import sys
-from PyQt6.QtWidgets import (QApplication, QWidget, QVBoxLayout,
-                             QLineEdit, QPushButton, QLabel, QHBoxLayout)
-from Proyecto_2 import Auditor, Usuario  # Importamos la lógica
+# =========================================================
+# Archivo: Interfaz.py
+# Contiene el código de PySide6, el controlador de la UI,
+# y el punto de entrada de la aplicación.
+# =========================================================
 
-class VentanaPrincipal(QWidget):
+from PySide6.QtWidgets import QMainWindow, QStackedWidget, QApplication, QWidget, QVBoxLayout, QLineEdit, QPushButton, \
+    QLabel, QMessageBox, QFrame
+from PySide6.QtCore import Qt
+import sys
+
+# --- IMPORTACIÓN DE LA LÓGICA DE NEGOCIO ---
+# Importamos la función de login desde el archivo Proyecto2.py
+from Proyecto_2 import inicio_sesio
+
+
+# --- 1. SIMULACIÓN DE LA INTERFAZ GENERADA POR Qt Designer ---
+# Esta clase simula lo que se generaría a partir de tu archivo .ui
+class Ui_MainWindow(object):
+    """
+    Clase de simulación de la interfaz generada por PySide6-uic.
+    Contiene la estructura base de la ventana y el QStackedWidget.
+    """
+
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(800, 600)
+
+        # El QStackedWidget será el corazón de la navegación
+        self.stackedWidget = QStackedWidget()
+        MainWindow.setCentralWidget(self.stackedWidget)
+
+        # Widgets principales (los diseñaremos individualmente después)
+        self.login_page = QWidget()  # Página 0: Login (Diseño de la Página 1 y 2 del PDF)
+        self.dashboard_page = QWidget()  # Página 1: Menú Principal (Diseño de la Página 3 y 8 del PDF)
+
+        # Agregar las páginas al Stacked Widget
+        self.stackedWidget.addWidget(self.login_page)
+        self.stackedWidget.addWidget(self.dashboard_page)
+
+        # Configurar el diseño inicial de la página de Login
+        self.setup_login_ui()
+
+    def setup_login_ui(self):
+        # --- Configuración Visual del Login (siguiendo tu PDF) ---
+
+        # Widgets de entrada
+        self.username_input = QLineEdit()
+        self.username_input.setPlaceholderText("Username")
+        self.username_input.setStyleSheet("padding: 10px; font-size: 14pt; border: 1px solid #ccc; border-radius: 5px;")
+
+        self.password_input = QLineEdit()
+        self.password_input.setPlaceholderText("Password")
+        self.password_input.setEchoMode(QLineEdit.Password)
+        self.password_input.setStyleSheet("padding: 10px; font-size: 14pt; border: 1px solid #ccc; border-radius: 5px;")
+
+        self.btn_ingresar = QPushButton("Ingresar")
+        self.btn_ingresar.setStyleSheet(
+            "background-color: #4B0082; color: white; padding: 10px; font-size: 16pt; border-radius: 5px;")
+
+        self.label_titulo = QLabel("Log in")
+        self.label_titulo.setAlignment(Qt.AlignCenter)
+        self.label_titulo.setStyleSheet("font-size: 24pt; color: #4B0082; margin-bottom: 20px;")
+
+        # QFrame para simular la tarjeta blanca centrada
+        card_frame = QFrame(self.login_page)
+        card_frame.setStyleSheet("background-color: white; border-radius: 15px; padding: 20px;")
+        card_layout = QVBoxLayout(card_frame)
+
+        # Agregar elementos a la tarjeta
+        card_layout.addWidget(self.label_titulo)
+        card_layout.addWidget(self.username_input)
+        card_layout.addWidget(self.password_input)
+        card_layout.addWidget(self.btn_ingresar)
+
+        # Fondo y Centrado (Fondo Morado del PDF)
+        self.login_page.setStyleSheet("background-color: #6A1B9A;")
+        main_layout = QVBoxLayout(self.login_page)
+        main_layout.addStretch()
+        main_layout.addWidget(card_frame, alignment=Qt.AlignCenter)
+        main_layout.addStretch()
+
+
+# -------------------------------------------------------------------
+
+# --- 2. CLASE CONTROLADORA PRINCIPAL ---
+class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Funciones de Auditor")
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
+        self.setWindowTitle("Sistema de Gestión Contable - PySide6")
 
-        self.logica_auditor= Auditor(Usuario)
+        # Atributos para guardar la sesión
+        self.usuario_activo = None
+        self.rol_activo = None
 
-        self.inicializar_ui()
-print(f"actualizacion de la interfaz grafica con herramientas de Qt Designer")
+        # Conexiones: Conectar el botón 'Ingresar' a la función de validación
+        self.ui.btn_ingresar.clicked.connect(self.handle_login)
+
+        # Establecer la primera vista: Login
+        self.ui.stackedWidget.setCurrentIndex(0)
+
+    def handle_login(self):
+        """
+        Maneja el evento del botón Ingresar, llama a la lógica y gestiona la transición de la UI.
+        """
+        username = self.ui.username_input.text()
+        password = self.ui.password_input.text()
+
+        if not username or not password:
+            QMessageBox.warning(self, "Error de Entrada", "Por favor, ingrese usuario y contraseña.")
+            return
+
+        # Llama a tu función de lógica (importada de Proyecto2.py)
+        resultado = inicio_sesio(username, password)
+
+        if resultado and resultado != "salir":
+            # Login exitoso
+            self.usuario_activo = resultado
+            self.rol_activo = resultado.get("rol", "Usuario")
+
+            # Limpia y Transiciona
+            self.ui.username_input.clear()
+            self.ui.password_input.clear()
+
+            # Muestra la página principal (Dashboard)
+            self.ui.stackedWidget.setCurrentIndex(1)
+
+        elif resultado == "salir":
+            QMessageBox.information(self, "Sesión", "Comando de salida detectado.")
+            self.close()
+
+        else:
+            # Login fallido
+            QMessageBox.critical(self, "Error de Acceso", "Usuario o contraseña incorrectos.")
+            self.ui.password_input.clear()
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = MainApp()
+    window.show()
+    sys.exit(app.exec())
+# Fin del archivo Interfaz.py
