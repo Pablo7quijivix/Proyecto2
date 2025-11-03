@@ -369,76 +369,76 @@ class MainApp(QMainWindow):
         # Establecer la primera vista: Login
         self.ui.stackedWidget.setCurrentIndex(0)
 
+    # agregando nuevo método de navegacion
+    # MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (AUDITOR)
+    def navigate_usuarios(self, index):
+        """
+        Cambia la sub-página visible dentro del QStackedWidget de Gestión de Usuarios.
+        """
+        self.ui.usuarios_stacked_widget.setCurrentIndex(index)
 
-        # agregando nuevo método de navegacion
-        # MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (AUDITOR)
-        def navigate_usuarios(self, index):
-            """
-            Cambia la sub-página visible dentro del QStackedWidget de Gestión de Usuarios.
-            """
-            self.ui.usuarios_stacked_widget.setCurrentIndex(index)
+    # --- MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (Auditor) ---
+    def handle_crear_usuario(self):
+        """
+        Recoge datos del formulario y llama al método crear_usuario del Auditor.
+        """
+        # Verificación de auditor activo (esto solo debería ejecutarse si el rol es Admin)
+        if not self.auditor:
+            QMessageBox.critical(self, "Error de Permisos",
+                                    "Operación no permitida. Inicie sesión como Administrador.")
+            return
 
-        # --- MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (Auditor) ---
-        def handle_crear_usuario(self):
-            """
-            Recoge datos del formulario y llama al método crear_usuario del Auditor.
-            """
-            # Verificación de auditor activo (esto solo debería ejecutarse si el rol es Admin)
-            if not self.auditor:
-                QMessageBox.critical(self, "Error de Permisos","Operación no permitida. Inicie sesión como Administrador.")
-                return
+        # REcoleccion de datos
+        nombre = self.ui.input_nombre_completo.text()
+        dpi = self.ui.input_dpi.text()
+        correo = self.ui.input_correo.text()
+        puesto = self.ui.input_puesto.text()
+        usuario = self.ui.input_usuario.text()
+        contrasenia = self.ui.input_contrasenia.text()
+        rol = self.ui.combo_rol.currentText()
+        telefono = self.ui.input_telefono.text()
+        fecha_nacimiento = self.ui.input_fecha_nacimiento.text()  # Nota: La validación de formato debe ser implementada
 
-            # REcoleccion de datos
-            nombre = self.ui.input_nombre_completo.text()
-            dpi = self.ui.input_dpi.text()
-            correo = self.ui.input_correo.text()
-            puesto = self.ui.input_puesto.text()
-            usuario = self.ui.input_usuario.text()
-            contrasenia = self.ui.input_contrasenia.text()
-            rol = self.ui.combo_rol.currentText()
-            telefono = self.ui.input_telefono.text()
-            fecha_nacimiento = self.ui.input_fecha_nacimiento.text()  # Nota: La validación de formato debe ser implementada
+        # Simple validación de campos obligatorios
+        if not all([nombre, dpi, usuario, contrasenia]):
+            QMessageBox.warning(self, "Error de Entrada","Los campos Nombre, DPI, Usuario y Contraseña son obligatorios.")
+            return
 
-            # Simple validación de campos obligatorios
-            if not all([nombre, dpi, usuario, contrasenia]):
-                QMessageBox.warning(self, "Error de Entrada","Los campos Nombre, DPI, Usuario y Contraseña son obligatorios.")
-                return
+        # Llama a tu lógica de negocio
+        try:
+            # Tu clase Auditor requiere 5 argumentos en el init. Para crear un usuario,
+            # llamamos al método crear_usuario que ya definiste en tu lógica.
 
-            # Llama a tu lógica de negocio
-            try:
-                # Tu clase Auditor requiere 5 argumentos en el init. Para crear un usuario,
-                # llamamos al método crear_usuario que ya definiste en tu lógica.
+            # La lógica de PySide no necesita una instancia de Auditor real, solo una
+            # si la usamos para todas las operaciones. En tu código, la clase Auditor
+            # hereda de Usuario y tiene un constructor.
+            # Como ya tenemos una instancia (self.auditor), la usamos:
+            exito = self.auditor.crear_usuario(
+                nombre=nombre,
+                dpi=dpi,
+                correo=correo,
+                puesto=puesto,
+                usuario=usuario,
+                contrasena=contrasenia,
+                rol=rol
+            )
+            if exito:
+                QMessageBox.information(self, "Éxito", f"Usuario '{usuario}' creado correctamente.")
+                # Limpiar el formulario después del éxito
+                self.ui.input_nombre_completo.clear()
+                self.ui.input_dpi.clear()
+                self.ui.input_correo.clear()
+                self.ui.input_puesto.clear()
+                self.ui.input_usuario.clear()
+                self.ui.input_contrasena.clear()
+                self.ui.input_telefono.clear()
+                self.ui.input_fecha_nacimiento.clear()
 
-                # La lógica de PySide no necesita una instancia de Auditor real, solo una
-                # si la usamos para todas las operaciones. En tu código, la clase Auditor
-                # hereda de Usuario y tiene un constructor.
-                # Como ya tenemos una instancia (self.auditor), la usamos:
-                exito = self.auditor.crear_usuario(
-                    nombre=nombre,
-                    dpi=dpi,
-                    correo=correo,
-                    puesto=puesto,
-                    usuario=usuario,
-                    contrasena=contrasena,
-                    rol=rol
-                )
-                if exito:
-                    QMessageBox.information(self, "Éxito", f"Usuario '{usuario}' creado correctamente.")
-                    # Limpiar el formulario después del éxito
-                    self.ui.input_nombre_completo.clear()
-                    self.ui.input_dpi.clear()
-                    self.ui.input_correo.clear()
-                    self.ui.input_puesto.clear()
-                    self.ui.input_usuario.clear()
-                    self.ui.input_contrasena.clear()
-                    self.ui.input_telefono.clear()
-                    self.ui.input_fecha_nacimiento.clear()
+            else:
+                QMessageBox.warning(self, "Error", "El usuario ya existe o hubo un error en la base de datos.")
 
-                else:
-                    QMessageBox.warning(self, "Error", "El usuario ya existe o hubo un error en la base de datos.")
-
-            except Exception as e:
-                QMessageBox.critical(self, "Error de Lógica", f"Ocurrió un error al intentar crear el usuario: {e}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error de Lógica", f"Ocurrió un error al intentar crear el usuario: {e}")
 
     #def navigate_dashboard(self, index):
         """
