@@ -442,7 +442,6 @@ class MainApp(QMainWindow):
         """
        # self.ui.dashboard_stacked_widget.setCurrentIndex(index)
 
-
     def handle_login(self):
         """
         Maneja el evento del botón Ingresar, llama a la lógica y gestiona la transición de la UI.
@@ -484,22 +483,11 @@ class MainApp(QMainWindow):
             self.ui.label_bienvenida.setText(f"Bienvenido/a, {self.usuario_activo.get('nombre', 'Admin')}!")
             self.ui.stackedWidget.setCurrentIndex(1)
 
-            # Limpia y Transiciona
-            self.ui.username_input.clear()
-            self.ui.password_input.clear()
-
-            #actualización del texto de bienvenida
-            self.ui.label_bienvenida.setTex(f"Bienvenido/a, {self.usuario_activo.get('nombre', 'Admin')}!")
-
-            # Muestra la página principal (Dashboard)
-            self.ui.stackedWidget.setCurrentIndex(1)
-
         elif resultado == "salir":
             QMessageBox.information(self, "Sesión", "Comando de salida detectado.")
             self.close()
 
         else:
-            # Login fallido
             QMessageBox.critical(self, "Error de Acceso", "Usuario o contraseña incorrectos.")
             self.ui.password_input.clear()
 
