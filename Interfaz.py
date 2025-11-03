@@ -133,6 +133,13 @@ class Ui_MainWindow(object):
         self.btn_gestionar_empresa.setStyleSheet(menu_btn_style)
         self.btn_ver_empresas.setStyleSheet(menu_btn_style)
 
+        #agregar botones al layout del menu
+        menu_layout.addWidget(self.btn_gestionar_usuarios)
+        menu_layout.addWidget(self.btn_gestionar_empresa)
+        menu_layout.addWidget(self.btn_ver_empresas)
+        menu_layout.addStretch() #este método sirve para que los arroje hacia arriba
+
+
 
 
 
