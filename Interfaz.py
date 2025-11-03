@@ -315,6 +315,18 @@ class Ui_MainWindow(object):
         grid_layout.addWidget(QLabel("Fecha Nacimiento:"), 8, 0)
         grid_layout.addWidget(self.input_fecha_nacimiento, 8, 1)
 
+        # Botón CREAR USUARIO
+        self.btn_crear_usuario_submit = QPushButton("CREAR USUARIO")
+        self.btn_crear_usuario_submit.setStyleSheet(
+            "background-color: #4CAF50; color: white; padding: 12px; font-size: 14pt; font-weight: bold; border-radius: 5px; margin-top: 20px;")
+
+        # Agregamos el formulario a la página
+        form_layout.addWidget(formulario_frame, alignment=Qt.AlignCenter)
+        form_layout.addWidget(self.btn_crear_usuario_submit, alignment=Qt.AlignCenter)
+        form_layout.addStretch()
+
+
+
 
 
 
