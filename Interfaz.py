@@ -381,6 +381,23 @@ class MainApp(QMainWindow):
                 QMessageBox.critical(self, "Error de Permisos",
                                      "Operación no permitida. Inicie sesión como Administrador.")
                 return
+
+            # REcoleccion de datos
+            nombre = self.ui.input_nombre_completo.text()
+            dpi = self.ui.input_dpi.text()
+            correo = self.ui.input_correo.text()
+            puesto = self.ui.input_puesto.text()
+            usuario = self.ui.input_usuario.text()
+            contrasenia = self.ui.input_contrasenia.text()
+            rol = self.ui.combo_rol.currentText()
+            telefono = self.ui.input_telefono.text()
+            fecha_nacimiento = self.ui.input_fecha_nacimiento.text()  # Nota: La validación de formato debe ser implementada
+
+
+
+
+
+
     def navigate_dashboard(self, index):
         """
         Cambia la sub-página visible dentro del QStackedWidget del Dashboard.
