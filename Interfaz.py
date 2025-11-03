@@ -53,6 +53,7 @@ class Ui_MainWindow(object):
 
     def setup_login_ui(self):
         # --- Configuración Visual del Login (siguiendo PDF) ---
+        # en la actualización 2, el login siguie igual (aclaración)
 
         # Widgets de entrada
         self.username_input = QLineEdit()
@@ -93,6 +94,7 @@ class Ui_MainWindow(object):
 
 # -------------------------------------------------------------------
 # AGREGANDO FUNCIÓN CLAVE: DISEÑO DEL DASHBOARD
+# en la actualizacion 2, el dashboard sigue siendo el mismo
 # -------------------------------------------------------------------
     def setup_dashboard_ui(self):
         '''
@@ -116,7 +118,6 @@ class Ui_MainWindow(object):
         self.label_logo = QLabel("LOGO DE EMPRESA")
         self.label_logo.setStyleSheet("font-size: 18pt; font-weight: bold; margin: 20px 0;")
         self.label_logo.setAlignment(Qt.AlignCenter)
-
         menu_layout.addWidget(self.label_logo)
 
         #Creacion de botones de navegación de las paginas del PDF (boceto canva) del 3 y 8
@@ -177,6 +178,13 @@ class Ui_MainWindow(object):
         # Iniciar mostrando la página de inicio del dashboard
         self.dashboard_stacked_widget.setCurrentIndex(0)
 
+     # -------------------------------------------------------------
+     # FUNCIÓN CLAVE: DISEÑO PARA GESTIONAR A LOS USUARIOS (pag 4 del canva)
+     # -------------------------------------------------------------
+     # Layout principal de la página de Gestionar Usuarios (Índice 1 del dashboard_stacked_widget)
+     def setup_gestion_usuarios_ui(self):
+         main_layout = QHBoxLayout(self.dashboard_usuarios_page)
+         main_layout.setContentsMargins(0, 0, 0, 0)
 
 
 # --- 2. CLASE CONTROLADORA PRINCIPAL ---
