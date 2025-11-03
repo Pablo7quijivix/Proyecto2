@@ -336,7 +336,7 @@ class Ui_MainWindow(object):
 
 
 
-# --- 2. CLASE CONTROLADORA PRINCIPAL ---
+# --- 2. CLASE CONTROLADORA PRINCIPAL --- (Se conecta la lógica de navegación y formulario) ---
 class MainApp(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -347,6 +347,7 @@ class MainApp(QMainWindow):
         # Atributos para guardar la sesión
         self.usuario_activo = None
         self.rol_activo = None
+        self.auditor = None # objeto que sirve para interactuar con la lógica de negocio
 
         # Conexiones: Conectar el botón 'Ingresar' a la función de validación
         # nos referimos al login
@@ -356,6 +357,13 @@ class MainApp(QMainWindow):
         self.ui.btn_gestionar_usuarios.clicked.connect(lambda: self.navigate_dashboard(1))
         self.ui.btn_gestionar_empresa.clicked.connect(lambda: self.navigate_dashboard(2))
         self.ui.btn_ver_empresas.clicked.connect(lambda: self.navigate_dashboard(3))
+
+        # NUEVAS CONEXIONES --->Conexiones de Navegación del MÓDULO USUARIOS
+        self.ui.btn_crear_usuario.clicked.connect(lambda: self.navigate_usuarios(1))
+        self.ui.btn_modificar_usuarios.clicked.connect(lambda: self.navigate_usuarios(2))
+        self.ui.btn_eliminar_usuarios.clicked.connect(lambda: self.navigate_usuarios(3))
+
+
 
         # Establecer la primera vista: Login
         self.ui.stackedWidget.setCurrentIndex(0)
