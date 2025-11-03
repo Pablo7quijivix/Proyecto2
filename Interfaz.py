@@ -167,6 +167,13 @@ class Ui_MainWindow(object):
         contenido_layout = QVBoxLayout(self.contenido_area)
         contenido_layout.addWidget(self.dashboard_stacked_widget)
 
+        # 3. Ensamblaje Final
+        dashboard_layout.addWidget(self.menu_lateral_frame)
+        dashboard_layout.addWidget(self.contenido_area)
+
+        # Iniciar mostrando la página de inicio del dashboard
+        self.dashboard_stacked_widget.setCurrentIndex(0)
+
 
 
 
