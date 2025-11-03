@@ -587,27 +587,26 @@ class Reporte:
 
         if año:
             cursor.execute("""SELECT 
-                        MONTH(fecha) as mes,
-                        COUNT(*) as cuantas,
-                        SUM(monto) as total
-                    FROM facturas_general 
-                    WHERE estado = 'Emitida' AND empresa_nombre = %s AND YEAR(fecha) = %s
-                    GROUP BY MONTH(fecha)
-                    ORDER BY mes
-                """,
+                    MONTH(fecha) as mes,
+                    COUNT(*) as cantidad,
+                    SUM(monto) as total
+                FROM facturas_general 
+                WHERE estado = 'Emitida' AND empresa_nombre = %s AND YEAR(fecha) = %s
+                GROUP BY MONTH(fecha)
+                ORDER BY mes
+            """,
                            (empresa, año))
         else:
             cursor.execute("""SELECT 
-                        YEAR(fecha) as año,
-                        MONTH(fecha) as mes,
-                        COUNT(*) as cuantas,
-                        SUM(monto) as total
-                    FROM facturas_general 
-                    WHERE estado = 'Emitida' AND empresa_nombre = %s
-                    GROUP BY YEAR(fecha), MONTH(fecha)
-                    ORDER BY año, mes
-                """, (empresa,))
-
+                    YEAR(fecha) as año,
+                    MONTH(fecha) as mes,
+                    COUNT(*) as cantidad,
+                    SUM(monto) as total
+                FROM facturas_general 
+                WHERE estado = 'Emitida' AND empresa_nombre = %s
+                GROUP BY YEAR(fecha), MONTH(fecha)
+                ORDER BY año, mes
+            """, (empresa,))
         resultado = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -620,7 +619,7 @@ class Reporte:
         if año:
             cursor.execute("""SELECT 
                     MONTH(fecha) as mes,
-                    COUNT(*) as cuantas,
+                    COUNT(*) as cantidad,
                     SUM(monto) as total
                 FROM facturas_general 
                 WHERE estado = 'Anulada' AND empresa_nombre = %s AND YEAR(fecha) = %s
@@ -632,7 +631,7 @@ class Reporte:
                 SELECT 
                     YEAR(fecha) as año,
                     MONTH(fecha) as mes,
-                    COUNT(*) as cuantas,
+                    COUNT(*) as cantidad,
                     SUM(monto) as total
                 FROM facturas_general 
                 WHERE estado = 'Anulada' AND empresa_nombre = %s
