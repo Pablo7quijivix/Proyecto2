@@ -46,9 +46,10 @@ class Ui_MainWindow(object):
 
         # Configurar el diseño inicial de la página de Login
         self.setup_login_ui()
+        self.setup_dashboard_ui() # AGREGANDO NUEVA FUNCIÓN
 
     def setup_login_ui(self):
-        # --- Configuración Visual del Login (siguiendo tu PDF) ---
+        # --- Configuración Visual del Login (siguiendo PDF) ---
 
         # Widgets de entrada
         self.username_input = QLineEdit()
@@ -88,6 +89,24 @@ class Ui_MainWindow(object):
 
 
 # -------------------------------------------------------------------
+# AGREGANDO FUNCIÓN CLAVE: DISEÑO DEL DASHBOARD
+# -------------------------------------------------------------------
+    def setup_dashboard_ui(self):
+        '''
+        Configurando la pagina del Dashboard con un Menú Lateral y un area de contenido
+        (siguiendo el boceto del canva PDF de la pag 3-8)
+        '''
+        # Estructura Principa: Horizontal (agregando el Menú lateral \ Contenido)
+        dashboard_layout = QHBoxLayout(self.dashboard_page)
+        dashboard_layout.setContentsMargins(0, 0, 0, 0)
+
+        #Ménu lateral 1(side menu)
+        self.menu_lateral_frame =QFrame()
+        self.menu_lateral_frame.setFixedWidth(250)  # Ancho fijo para el menú
+        self.menu_lateral_frame.setStyleSheet("background-color: #4B0082; color: white;")  # Morado intenso
+
+
+
 
 # --- 2. CLASE CONTROLADORA PRINCIPAL ---
 class MainApp(QMainWindow):
