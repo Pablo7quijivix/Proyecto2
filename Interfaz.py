@@ -233,6 +233,19 @@ class Ui_MainWindow(object):
         self.usuarios_stacked_widget.addWidget(self.usuarios_modificar_page)
         self.usuarios_stacked_widget.addWidget(self.usuarios_eliminar_page)
 
+        # 3. Ensamblaje Final
+        main_layout.addWidget(menu_frame)
+        main_layout.addWidget(self.usuarios_stacked_widget)
+
+        # Iniciar mostrando la página de crear usuario por defecto
+        self.usuarios_stacked_widget.setCurrentIndex(1)  # Mostramos Crear Usuario (Página 5)
+
+        # Diseño del formulario de Crear Usuario (Página 5 del PDF)
+        self.setup_formulario_crear_usuario()
+
+
+
+
 
 
 
