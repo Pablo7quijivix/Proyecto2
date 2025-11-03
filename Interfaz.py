@@ -199,6 +199,29 @@ class Ui_MainWindow(object):
         label_titulo.setStyleSheet("font-size: 16pt; font-weight: bold; padding: 20px 10px; color: #4B0082;")
         menu_layout.addWidget(label_titulo)
 
+        # agregando botones de navegación interna (ver pagina 4 del canva)
+        self.btn_crear_usuario = QPushButton("CREAR USUARIO")
+        self.btn_modificar_usuarios = QPushButton("MODIFICAR USUARIOS")
+        self.btn_eliminar_usuarios = QPushButton("LISTAR Y ELIMINAR")
+
+        menu_btn_style = (
+            "QPushButton { background-color: transparent; color: black; "
+            "border: none; padding: 15px 5px; text-align: left; font-size: 12pt;}"
+            "QPushButton:hover { background-color: #E0E0E0; border-left: 5px solid #6A1B9A; }"
+        )
+        self.btn_crear_usuario.setStyleSheet(menu_btn_style)
+        self.btn_modificar_usuarios.setStyleSheet(menu_btn_style)
+        self.btn_eliminar_usuarios.setStyleSheet(menu_btn_style)
+
+        menu_layout.addWidget(self.btn_crear_usuario)
+        menu_layout.addWidget(self.btn_modificar_usuarios)
+        menu_layout.addWidget(self.btn_eliminar_usuarios)
+        menu_layout.addStretch()
+
+        # 2. Área de Contenido de Usuarios (Tercer QStackedWidget)
+        self.usuarios_stacked_widget = QStackedWidget()
+        self.usuarios_stacked_widget.setStyleSheet("background-color: white; padding: 10px;")
+
 
 
 
