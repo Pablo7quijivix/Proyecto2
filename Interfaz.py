@@ -198,13 +198,26 @@ class MainApp(QMainWindow):
         # nos referimos al login
         self.ui.btn_ingresar.clicked.connect(self.handle_login)
 
-        # Establecer la primera vista: Login
-        #self.ui.stackedWidget.setCurrentIndex(0)
-
         # Nuevas conexiones de navegacion del Dashboard, agregamos nuevas conexiones
         self.ui.btn_gestionar_usuarios.clicked.connect(lambda: self.navigate_dashboard(1))
         self.ui.btn_gestionar_empresa.clicked.connect(lambda: self.navigate_dashboard(2))
         self.ui.btn_ver_empresas.clicked.connect(lambda: self.navigate_dashboard(3))
+
+        # Establecer la primera vista: Login
+         self.ui.stackedWidget.setCurrentIndex(0)
+
+
+        # agregando nuevo método de navegacion
+    def navigate_dashboard(self, index):
+        """
+        Cambia la sub-página visible dentro del QStackedWidget del Dashboard.
+        """
+        self.ui.dashboard_stacked_widget.setCurrentIndex(index)
+
+
+
+
+
 
     def handle_login(self):
         """
