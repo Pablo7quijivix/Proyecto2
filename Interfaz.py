@@ -366,14 +366,21 @@ class MainApp(QMainWindow):
         # conexion del formulario CREAR USUARIO <---  APLICANDO CONEXION DE LÓGICA
         self.ui.btn_crear_usuario_submit.clicked.connect(self.handle_crear_usuario)
 
-        #Establecer la primera vista: login
-        self.ui.stackedWidget.setCurrentIndex(0)
-
         # Establecer la primera vista: Login
         self.ui.stackedWidget.setCurrentIndex(0)
 
 
         # agregando nuevo método de navegacion
+        # MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (AUDITOR)
+        def handle_crear_usuario(self):
+            """
+            Recoge datos del formulario y llama al método crear_usuario del Auditor.
+            """
+            # Verificación de auditor activo (esto solo debería ejecutarse si el rol es Admin)
+            if not self.auditor:
+                QMessageBox.critical(self, "Error de Permisos",
+                                     "Operación no permitida. Inicie sesión como Administrador.")
+                return
     def navigate_dashboard(self, index):
         """
         Cambia la sub-página visible dentro del QStackedWidget del Dashboard.
