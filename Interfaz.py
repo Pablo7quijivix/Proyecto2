@@ -163,6 +163,11 @@ class Ui_MainWindow(object):
         self.label_bienvenida.setStyleSheet("font-size: 30pt; color: #4B0082;")
         inicio_layout.addWidget(self.label_bienvenida, alignment=Qt.AlignCenter)
 
+        # Layout del area de contenido para contener el stacked widget
+        contenido_layout = QVBoxLayout(self.contenido_area)
+        contenido_layout.addWidget(self.dashboard_stacked_widget)
+
+
 
 
 
