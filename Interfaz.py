@@ -18,7 +18,8 @@ import sys
 # --- IMPORTACIÓN DE LA LÓGICA DE NEGOCIO ---
 # Importamos la función de login desde el archivo Proyecto_2.py
 # actualización 2, imoprtamos auditor para usar sus métodos
-from Proyecto_2 import inicio_sesio, Auditor, Usuario
+# añadiendo Cliente y empresa en la actualización '3'
+from Proyecto_2 import inicio_sesio, Auditor, Usuario, Cliente, Empresa
 
 
 # --- 1. SIMULACIÓN DE LA INTERFAZ GENERADA POR Qt Designer ---
