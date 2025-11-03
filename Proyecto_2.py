@@ -547,6 +547,147 @@ class Reporte:
         conn.close()
         return resultados
 
+    @staticmethod
+    def facturas_por_mes(empresa, año_deseado=None):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+
+        if año_deseado:
+            cursor.execute("""
+                SELECT 
+                    MONTH(fecha) as mes,
+                    COUNT(*) as cuantas_facturas,
+                    SUM(monto) as cuanto_dinero
+                FROM facturas_general 
+                WHERE empresa_nombre = %s AND YEAR(fecha) = %s
+                GROUP BY MONTH(fecha)
+                ORDER BY mes
+            """, (empresa, año_deseado))
+        else:
+            cursor.execute("""SELECT 
+                    YEAR(fecha) as año,
+                    MONTH(fecha) as mes,
+                    COUNT(*) as cuantas_facturas,
+                    SUM(monto) as cuanto_dinero
+                FROM facturas_general 
+                WHERE empresa_nombre = %s
+                GROUP BY YEAR(fecha), MONTH(fecha)
+                ORDER BY año, mes
+            """, (empresa,))
+
+        resultado = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return resultado
+
+    @staticmethod
+    def facturas_emitidas_mes(empresa, año=None):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+
+        if año:
+            cursor.execute("""SELECT 
+                    MONTH(fecha) as mes,
+                    COUNT(*) as cantidad,
+                    SUM(monto) as total
+                FROM facturas_general 
+                WHERE estado = 'Emitida' AND empresa_nombre = %s AND YEAR(fecha) = %s
+                GROUP BY MONTH(fecha)
+                ORDER BY mes
+            """,
+                           (empresa, año))
+        else:
+            cursor.execute("""SELECT 
+                    YEAR(fecha) as año,
+                    MONTH(fecha) as mes,
+                    COUNT(*) as cantidad,
+                    SUM(monto) as total
+                FROM facturas_general 
+                WHERE estado = 'Emitida' AND empresa_nombre = %s
+                GROUP BY YEAR(fecha), MONTH(fecha)
+                ORDER BY año, mes
+            """, (empresa,))
+        resultado = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return resultado
+
+    @staticmethod
+    def facturas_canceladas_mes(empresa, año=None):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+        if año:
+            cursor.execute("""SELECT 
+                    MONTH(fecha) as mes,
+                    COUNT(*) as cantidad,
+                    SUM(monto) as total
+                FROM facturas_general 
+                WHERE estado = 'Anulada' AND empresa_nombre = %s AND YEAR(fecha) = %s
+                GROUP BY MONTH(fecha)
+                ORDER BY mes""",
+                           (empresa, año))
+        else:
+            cursor.execute("""
+                SELECT 
+                    YEAR(fecha) as año,
+                    MONTH(fecha) as mes,
+                    COUNT(*) as cantidad,
+                    SUM(monto) as total
+                FROM facturas_general 
+                WHERE estado = 'Anulada' AND empresa_nombre = %s
+                GROUP BY YEAR(fecha), MONTH(fecha)
+                ORDER BY año, mes
+            """, (empresa,))
+        resultado = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return resultado
+
+    @staticmethod
+    def hacer_reporte_emitidas(empresa, año_seleccionado=None):
+        datos = Reporte.facturas_emitidas_por_mes(empresa, año_seleccionado)
+        if not datos:
+            return "No hay facturas emitidas"
+
+        nombres_meses = {
+            1: "ENERO", 2: "FEBRERO", 3: "MARZO", 4: "ABRIL",
+            5: "MAYO", 6: "JUNIO", 7: "JULIO", 8: "AGOSTO",
+            9: "SEPTIEMBRE", 10: "OCTUBRE", 11: "NOVIEMBRE", 12: "DICIEMBRE"
+        }
+
+        reporte = "FACTURAS EMITIDAS\n"
+        reporte += "=" * 30 + "\n\n"
+
+        for dato in datos:
+            año = dato.get("año", "2024")
+            mes_num = dato["mes"]
+            mes_nombre = nombres_meses.get(mes_num, f"MES {mes_num}")
+
+            reporte += f"{mes_nombre}: {dato["cantidad"]}\n"
+
+        return reporte
+
+
+    @staticmethod
+    def hacer_reporte_anuladas(empresa, año_seleccionado=None):
+        datos = Reporte.facturas_canceladas_mes(empresa, año_seleccionado)
+        if not datos:
+            return "No hay facturas anuladas"
+
+        nombres_meses = {
+            1: "ENERO", 2: "FEBRERO", 3: "MARZO", 4: "ABRIL",
+            5: "MAYO", 6: "JUNIO", 7: "JULIO", 8: "AGOSTO",
+            9: "SEPTIEMBRE", 10: "OCTUBRE", 11: "NOVIEMBRE", 12: "DICIEMBRE"
+        }
+        reporte = "FACTURAS ANULADAS\n"
+        reporte += "=" * 30+ "\n"
+        for dato in datos:
+            año = dato.get("año", "2024")
+            mes_num = dato["mes"]
+            mes_nombre = nombres_meses.get(mes_num, f"MES {mes_num}")
+            reporte += f"{mes_nombre}: {dato["cantidad"]}\n"
+        return reporte
+
 class Inventario:
     def __init__(self, empresa_nombre, producto, cantidad, precio):
         self._empresa_nombre = empresa_nombre
