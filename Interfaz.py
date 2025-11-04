@@ -533,6 +533,14 @@ class MainApp(QMainWindow):
             QMessageBox.critical(self, "Error de Permisos", "Operación no permitida. Inicie sesión como Administrador.")
             return
 
+        # 1. Recolección de datos del CLIENTE/PROPIETARIO (Lógica 1)
+        nit_cliente = self.ui.input_nit_cliente.text().strip()
+        nombre_jefe = self.ui.input_nombre_jefe.text().strip()
+        telefono = self.ui.input_telefono_propietario.text().strip()
+        correo = self.ui.input_correo_propietario.text().strip()
+        dpi = self.ui.input_dpi_propietario.text().strip()
+        fecha_nacimiento = self.ui.input_fecha_nacimiento_propietario.text().strip()
+
 
 
 
