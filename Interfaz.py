@@ -828,6 +828,19 @@ class MainApp(QMainWindow):
             QMessageBox.information(self, "Información", "No hay empresas registradas en el sistema.")
             return
 
+        # 1. Setup/Clear el Modelo
+        if not self.empresa_model:
+            self.empresa_model = QStandardItemModel()
+            self.ui.tabla_empresas.setModel(self.empresa_model)
+
+        self.empresa_model.clear()
+
+        # Define cabeceras (NIT es la clave)
+        headers = ["NIT Cliente", "Nombre Empresa", "Dirección", "Propietario"]
+        self.empresa_model.setHorizontalHeaderLabels(headers)
+
+        # 2. Poblar el modelo
+
 
 
 
