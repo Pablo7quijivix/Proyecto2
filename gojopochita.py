@@ -1788,7 +1788,7 @@ class DashboardPage(ctk.CTkFrame):
         default_frame.grid(row=0, column=0, sticky="nsew")
 
         user_role = self.controller.user_role if self.controller.user_role else "USUARIO"
-        welcome_text = f"Bienvenido al Dashboard\nRol: {user_role.upper()}"
+        welcome_text = f"Bienvenido al menu \nRol: {user_role.upper()}"
         ctk.CTkLabel(default_frame, text=welcome_text,
                      font=ctk.CTkFont(size=40, weight="bold"),
                      text_color=COLOR_MORADO_OSCURO).pack(pady=100)
