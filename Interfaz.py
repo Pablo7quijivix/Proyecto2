@@ -491,6 +491,17 @@ class Ui_MainWindow(object):
             "padding: 8px; border: 1px solid #CCC; border-radius: 5px; font-size: 11pt;")
         self.input_buscar_empresa.setMinimumWidth(300)
 
+        # Botón para simular la acción de VER EMPRESA (doble clic en la tabla)
+        self.btn_ver_empresa_seleccionada = QPushButton("Ver Opciones (Doble Clic)")
+        self.btn_ver_empresa_seleccionada.setStyleSheet(
+            "background-color: #4CAF50; color: white; padding: 10px; font-size: 12pt; font-weight: bold; border-radius: 5px;")
+
+        control_layout.addWidget(self.input_buscar_empresa)
+        control_layout.addStretch()
+        control_layout.addWidget(self.btn_ver_empresa_seleccionada)
+
+        main_layout.addWidget(control_frame)
+
 
 
 
