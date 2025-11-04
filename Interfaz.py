@@ -519,6 +519,9 @@ class MainApp(QMainWindow):
         # CONEXION DEL FORMULARIO DE CREAR EMPRESA, CONEXION NUEVA EN LA ACTUALIZACION 3
         self.ui.btn_crear_usuario_submit.clicked.connect(self.handle_crear_usuario)
 
+        # conexion de lsitar / eliminar usuarios
+        self.ui.btn_eliminar_seleccionado.clicked.connect(self.handle_eliminar_usuario)
+
         # Conexiones de Navegación del MÓDULO EMPRESAS <--- NUEVAS CONEXIONES
         self.ui.btn_crear_empresa.clicked.connect(lambda: self.navigate_empresas(1))
         self.ui.btn_modificar_empresa.clicked.connect(lambda: self.navigate_empresas(2))
