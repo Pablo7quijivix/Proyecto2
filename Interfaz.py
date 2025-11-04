@@ -472,6 +472,11 @@ class Ui_MainWindow(object):
         self.input_fecha_nacimiento_propietario.setPlaceholderText("AAAA-MM-DD")
         grid_layout.addWidget(self.input_fecha_nacimiento_propietario, 10, 1)
 
+        # Botón CREAR EMPRESA
+        self.btn_crear_empresa_submit = QPushButton("CREAR EMPRESA")
+        self.btn_crear_empresa_submit.setStyleSheet(
+            "background-color: #4B0082; color: white; padding: 12px; font-size: 14pt; font-weight: bold; border-radius: 5px; margin-top: 20px;")
+
 
 
 
