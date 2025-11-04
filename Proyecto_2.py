@@ -829,6 +829,35 @@ class Inventario:
         conn.close()
         return rows
 
+    @staticmethod
+    def eliminar_de_inventario(empresa_nombre, producto):
+        conn = None
+        cursor = None
+        try:
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor()
+
+            cursor.execute("""DELETE FROM inventario_general 
+                    WHERE empresa_nombre = %s AND producto = %s
+                """, (empresa_nombre, producto))
+
+            conn.commit()
+            if cursor.rowcount > 0:
+                print(f"Producto '{producto}' eliminado del inventario de {empresa_nombre}.")
+                return True
+            else:
+                print(f"Producto '{producto}' no encontrado en el inventario de {empresa_nombre}.")
+                return False
+
+        except mysql.connector.Error as e:
+            print(f"Error al eliminar producto: {e}")
+            return False
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
 
 def inicio_sesio(usuario,contrasena):
     try:
