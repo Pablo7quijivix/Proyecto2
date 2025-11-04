@@ -812,6 +812,24 @@ class MainApp(QMainWindow):
             QMessageBox.critical(self, "Error", "Debe iniciar sesión como Admin para ver esta lista.")
             return
 
+        try:
+            # Asumimos que listar_empresas() devuelve una lista de diccionarios con datos básicos de la empresa
+            lista_empresas = self.auditor.listar_empresas()
+        except AttributeError:
+            QMessageBox.critical(self, "Error de Lógica",
+                                 "El método listar_empresas() no está implementado en la clase Auditor.")
+            return
+        except Exception as e:
+            QMessageBox.critical(self, "Error de Lógica", f"Error al obtener empresas: {e}")
+            return
+
+        if not lista_empresas:
+            self.ui.tabla_empresas.setModel(None)
+            QMessageBox.information(self, "Información", "No hay empresas registradas en el sistema.")
+            return
+
+
+
 
 
 
