@@ -690,6 +690,8 @@ class MainApp(QMainWindow):
         self.rol_activo = None
         self.auditor = None # objeto que sirve para interactuar con la lógica de negocio
         self.user_model = None # modelo de datos para la tabla de usuarios
+        self.dpi_usuario_modificando = None
+        self.empresa_model = None  # <--- NUEVO: Modelo de datos para la tabla de empresas
 
         # Conexiones: Conectar el botón 'Ingresar' a la función de validación
         # nos referimos al login
@@ -698,7 +700,9 @@ class MainApp(QMainWindow):
         # Nuevas conexiones de navegacion del Dashboard, agregamos nuevas conexiones
         self.ui.btn_gestionar_usuarios.clicked.connect(lambda: self.navigate_dashboard(1))
         self.ui.btn_gestionar_empresa.clicked.connect(lambda: self.navigate_dashboard(2))
-        self.ui.btn_ver_empresas.clicked.connect(lambda: self.navigate_dashboard(3))
+
+        # boton actualizado para listar y navegar en ver empresas
+        self.ui.btn_ver_empresas.clicked.connect(lambda: self.handle_listar_empresas)
 
         # NUEVAS CONEXIONES --->Conexiones de Navegación del MÓDULO USUARIOS
         self.ui.btn_crear_usuario.clicked.connect(lambda: self.navigate_usuarios(1))
@@ -797,6 +801,24 @@ class MainApp(QMainWindow):
                 QMessageBox.critical(self, "Error",f"La empresa '{nombre_empresa}' ya existe o hubo un error al vincularla a la DB.")
         except Exception as e:
             QMessageBox.critical(self, "Error de Lógica", f"Ocurrió un error general: {e}")
+
+
+    # --- LÓGICA NUEVA: LISTAR EMPRESAS ---
+    def handle_listar_empresas(self):
+        """Muestra la lista de empresas en el QTableView y navega a la página (Index 3)."""
+        self.navigate_dashboard(3)  # Navega a la página de listar empresas
+
+        if not self.auditor:
+            QMessageBox.critical(self, "Error", "Debe iniciar sesión como Admin para ver esta lista.")
+            return
+
+
+
+
+
+
+
+
 
 
 
