@@ -54,6 +54,8 @@ class Ui_MainWindow(object):
         self.setup_dashboard_ui() # AGREGANDO NUEVA FUNCIÓN
         self.setup_gestion_usuarios_ui() # AGREGAMOS NUEVA FUNCIÓN EN ACTUALIZACIÓN 2
         self.setup_gestion_empresas_ui() # nueva funcion de empresa, A3
+        self.setup_listar_empresas() # agregando en actualizacion 6
+
 
     def setup_login_ui(self: QWidget):
         # --- Configuración Visual del Login (siguiendo PDF) ---
@@ -469,6 +471,52 @@ class Ui_MainWindow(object):
 
 
 
+    def setup_listar_empresas(self):
+        """CONFIGURA LA VISTA PRINCIPAL PARA VER LA LISTA DE EMPRESAS."""
+        main_layout = QVBoxLayout(self.dashboard_ver_empresas_page)
+        main_layout.setAlignment(Qt.AlignTop)
+        main_layout.setContentsMargins(30, 30, 30, 30)
+
+        # Título
+        titulo = QLabel("Listado de Empresas Registradas")
+        titulo.setStyleSheet("font-size: 28pt; color: #4B0082; margin-bottom: 20px; font-weight: bold;")
+        main_layout.addWidget(titulo, alignment=Qt.AlignCenter)
+
+        # Barra de Búsqueda y Control
+        control_frame = QFrame()
+        control_layout = QHBoxLayout(control_frame)
+        control_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.input_buscar_empresa = QLineEdit()
+        self.input_buscar_empresa.setPlaceholderText("Buscar por Nombre de Empresa o NIT...")
+        self.input_buscar_empresa.setStyleSheet(
+            "padding: 8px; border: 1px solid #CCC; border-radius: 5px; font-size: 11pt;")
+        self.input_buscar_empresa.setMinimumWidth(300)
+
+        # Botón para simular la acción de VER EMPRESA (doble clic en la tabla)
+        self.btn_ver_empresa_seleccionada = QPushButton("Ver Opciones (Doble Clic)")
+        self.btn_ver_empresa_seleccionada.setStyleSheet(
+            "background-color: #4CAF50; color: white; padding: 10px; font-size: 12pt; font-weight: bold; border-radius: 5px;")
+
+        control_layout.addWidget(self.input_buscar_empresa)
+        control_layout.addStretch()
+        control_layout.addWidget(self.btn_ver_empresa_seleccionada)
+
+        main_layout.addWidget(control_frame)
+
+        # QTableView para mostrar la lista
+        self.tabla_empresas = QTableView()
+        self.tabla_empresas.setSelectionBehavior(QTableView.SelectRows)
+        self.tabla_empresas.setSelectionMode(QTableView.SingleSelection)
+        self.tabla_empresas.setStyleSheet("QTableView { gridline-color: #CCC; font-size: 11pt; }")
+        main_layout.addWidget(self.tabla_empresas)
+
+        main_layout.addStretch()
+
+
+
+
+
 
 
 
@@ -642,6 +690,8 @@ class MainApp(QMainWindow):
         self.rol_activo = None
         self.auditor = None # objeto que sirve para interactuar con la lógica de negocio
         self.user_model = None # modelo de datos para la tabla de usuarios
+        self.dpi_usuario_modificando = None
+        self.empresa_model = None  # <--- NUEVO: Modelo de datos para la tabla de empresas
 
         # Conexiones: Conectar el botón 'Ingresar' a la función de validación
         # nos referimos al login
@@ -650,7 +700,9 @@ class MainApp(QMainWindow):
         # Nuevas conexiones de navegacion del Dashboard, agregamos nuevas conexiones
         self.ui.btn_gestionar_usuarios.clicked.connect(lambda: self.navigate_dashboard(1))
         self.ui.btn_gestionar_empresa.clicked.connect(lambda: self.navigate_dashboard(2))
-        self.ui.btn_ver_empresas.clicked.connect(lambda: self.navigate_dashboard(3))
+
+        # boton actualizado para listar y navegar en ver empresas
+        self.ui.btn_ver_empresas.clicked.connect(lambda: self.handle_listar_empresas)
 
         # NUEVAS CONEXIONES --->Conexiones de Navegación del MÓDULO USUARIOS
         self.ui.btn_crear_usuario.clicked.connect(lambda: self.navigate_usuarios(1))
@@ -749,6 +801,77 @@ class MainApp(QMainWindow):
                 QMessageBox.critical(self, "Error",f"La empresa '{nombre_empresa}' ya existe o hubo un error al vincularla a la DB.")
         except Exception as e:
             QMessageBox.critical(self, "Error de Lógica", f"Ocurrió un error general: {e}")
+
+
+    # --- LÓGICA NUEVA: LISTAR EMPRESAS ---
+    def handle_listar_empresas(self):
+        """Muestra la lista de empresas en el QTableView y navega a la página (Index 3)."""
+        self.navigate_dashboard(3)  # Navega a la página de listar empresas
+
+        if not self.auditor:
+            QMessageBox.critical(self, "Error", "Debe iniciar sesión como Admin para ver esta lista.")
+            return
+
+        try:
+            # Asumimos que listar_empresas() devuelve una lista de diccionarios con datos básicos de la empresa
+            lista_empresas = self.auditor.listar_empresas()
+        except AttributeError:
+            QMessageBox.critical(self, "Error de Lógica",
+                                 "El método listar_empresas() no está implementado en la clase Auditor.")
+            return
+        except Exception as e:
+            QMessageBox.critical(self, "Error de Lógica", f"Error al obtener empresas: {e}")
+            return
+
+        if not lista_empresas:
+            self.ui.tabla_empresas.setModel(None)
+            QMessageBox.information(self, "Información", "No hay empresas registradas en el sistema.")
+            return
+
+        # 1. Setup/Clear el Modelo
+        if not self.empresa_model:
+            self.empresa_model = QStandardItemModel()
+            self.ui.tabla_empresas.setModel(self.empresa_model)
+
+        self.empresa_model.clear()
+
+        # Define cabeceras (NIT es la clave)
+        headers = ["NIT Cliente", "Nombre Empresa", "Dirección", "Propietario"]
+        self.empresa_model.setHorizontalHeaderLabels(headers)
+
+        # 2. Poblar el modelo
+        for empresa_data in lista_empresas:
+            row_items = []
+            row_items.append(QStandardItem(str(empresa_data.get('nit_cliente', 'N/A'))))
+            row_items.append(QStandardItem(str(empresa_data.get('nombre_empresa', 'N/A'))))
+            row_items.append(QStandardItem(str(empresa_data.get('direccion', 'N/A'))))
+            row_items.append(QStandardItem(str(empresa_data.get('nombre_cliente', 'N/A'))))
+            self.empresa_model.appendRow(row_items)
+
+        # 3. Ajustar vista de la tabla
+        self.ui.tabla_empresas.horizontalHeader().setStretchLastSection(True)
+        self.ui.tabla_empresas.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.ui.tabla_empresas.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.ui.tabla_empresas.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+
+    def handle_ver_empresa_opciones(self):
+        """Simula la navegación a la página de opciones de una empresa específica (Pág. 15)."""
+        selected_indexes = self.ui.tabla_empresas.selectionModel().selectedRows()
+
+        if not selected_indexes:
+            QMessageBox.warning(self, "Advertencia", "Por favor, seleccione una empresa de la lista.")
+            return
+
+        selected_row = selected_indexes[0].row()
+        nit_item = self.empresa_model.item(selected_row, 0)
+        nombre_empresa_item = self.empresa_model.item(selected_row, 1)
+
+        nit_seleccionado = nit_item.text()
+        nombre_empresa = nombre_empresa_item.text()
+
+        # Aquí iría la lógica para cargar la siguiente página (Pág. 15),
+        # pero por ahora solo se muestra un mensaje.
+        QMessageBox.information(self, "Navegación",f"Navegando a las opciones de {nombre_empresa} (NIT: {nit_seleccionado}).\n"f"El siguiente paso es implementar esta vista (Gestión de Inventario, Reportes, Factura).")
 
 
 
