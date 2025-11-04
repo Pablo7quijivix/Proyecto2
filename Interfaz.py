@@ -516,12 +516,6 @@ class Ui_MainWindow(object):
 
 
 
-
-
-
-
-
-
     #-------------------------------------------------------
     # AGREGANDO FUNCION DE: DISEÑO GESTIONAR EMPRESAS (PAGINA 9 DLE BOCETO DEL CANVA)
     #-------------------------------------------------------
@@ -702,7 +696,7 @@ class MainApp(QMainWindow):
         self.ui.btn_gestionar_empresa.clicked.connect(lambda: self.navigate_dashboard(2))
 
         # boton actualizado para listar y navegar en ver empresas
-        self.ui.btn_ver_empresas.clicked.connect(lambda: self.handle_listar_empresas)
+        self.ui.btn_ver_empresas.clicked.connect(lambda: self.handle_listar_empresas())
 
         # NUEVAS CONEXIONES --->Conexiones de Navegación del MÓDULO USUARIOS
         self.ui.btn_crear_usuario.clicked.connect(lambda: self.navigate_usuarios(1))
@@ -720,8 +714,8 @@ class MainApp(QMainWindow):
         self.ui.btn_eliminar_seleccionado.clicked.connect(self.handle_eliminar_usuario)
 
         # --- CONEXIONES NUEVAS DE MODIFICAR USUARIOS ---
-        self.ui.btn_buscar_usuario_modificar.clicked.connect(self.handle_buscar_usuario)
-        self.ui.btn_guardar_modificacion.clicked.connect(self.handle_guardar_modificacion)
+        #self.ui.btn_buscar_usuario_modificar.clicked.connect(self.handle_buscar_usuario)
+        #self.ui.btn_guardar_modificacion.clicked.connect(self.handle_guardar_modificacion)
 
         # Conexiones de Navegación del MÓDULO EMPRESAS <--- NUEVAS CONEXIONES
         self.ui.btn_crear_empresa.clicked.connect(lambda: self.navigate_empresas(1))
@@ -1094,7 +1088,7 @@ class MainApp(QMainWindow):
         }
 
         # validacion simlple (nombre, usuario y contraseña)
-        if not all([datos_a_modificar["nombre", datos_a_modificar]["usuario"],datos_a_modificar["contrasena"]]):
+        if not all([datos_a_modificar["nombre"], datos_a_modificar["usuario"], datos_a_modificar["contrasena"]]):
             QMessageBox.warning(self, "Error de Entrada", "Nombre, Usuario y Contraseña son obligatorios.")
             return
 
