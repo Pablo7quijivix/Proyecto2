@@ -688,7 +688,7 @@ class MainApp(QMainWindow):
                         self.usuario_activo.get("dpi", ""),
                         self.usuario_activo.get("correo", ""),
                         self.usuario_activo.get("usuario", ""),
-                        self.usuario_activo.get("contrasenia", "")
+                        self.usuario_activo.get("contrasena", "")
                     )
             self.ui.username_input.clear()
             self.ui.password_input.clear()
