@@ -60,7 +60,7 @@ class BasedeDatos():
     @staticmethod
     def conectar():
         conn = mysql.connector.connect(
-            host="localhost",
+            host="192.168.1.127",
             user="root",
             password="Wilson200.",
             database="prueba_100",
@@ -151,6 +151,32 @@ class Usuario:
 
     def mostrar_info(self):
         print(f"{self.nombre} ({self.puesto}) - Rol:{self.rol}")
+
+    @staticmethod
+    def eliminar(usuario):
+        conn = None
+        cursor = None
+        try:
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT * FROM usuarios WHERE usuario = %s", (usuario,))
+            if not cursor.fetchone():
+                print(f"El usuario '{usuario}' no existe.")
+                return False
+
+            cursor.execute("DELETE FROM usuarios WHERE usuario = %s", (usuario,))
+            conn.commit()
+
+            print(f"Usuario {usuario} eliminado correctamente.")
+            return True
+
+        except mysql.connector.Error as e:
+            print(f"Error al eliminar usuario: {e}")
+            return False
+        finally:
+            if cursor: cursor.close()
+            if conn: conn.close()
 
 reportes = {}
 facturas = {}
@@ -311,6 +337,42 @@ class Cliente:
         conn.close()
         return rows
 
+    @staticmethod
+    def eliminar(nit):
+        conn = None
+        cursor = None
+        try:
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT * FROM clientes WHERE nit = %s", (nit,))
+            if not cursor.fetchone():
+                print(f" El cliente con NIT '{nit}' no existe.")
+                return False
+            cursor.execute("SELECT * FROM empresas WHERE nit_cliente = %s", (nit,))
+            if cursor.fetchone():
+                print(f"No se puede eliminar el cliente. Está asociado a una empresa.")
+                return False
+
+            cursor.execute("SELECT * FROM facturas_general WHERE nit_cliente = %s", (nit,))
+            if cursor.fetchone():
+                print(f" No se puede eliminar el cliente. Tiene facturas asociadas.")
+                return False
+            cursor.execute("DELETE FROM clientes WHERE nit = %s", (nit,))
+            conn.commit()
+
+            print(f"✅ Cliente con NIT '{nit}' eliminado correctamente.")
+            return True
+
+        except mysql.connector.Error as e:
+            print(f" Error al eliminar cliente: {e}")
+            return False
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
     def mostrar_informacion(self):
         print(f"{self.nit} - {self.nombre} ({self.nombre_negocio})")
 
@@ -402,6 +464,43 @@ class Empresa:
             return True
         except mysql.connector.Error as e:
             print(f"Error al guardar empresa: {e}")
+            return False
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
+    @staticmethod
+    def eliminar(nombre_empresa):
+        conn = None
+        cursor = None
+        try:
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM empresas WHERE nombre = %s", (nombre_empresa,))
+            if not cursor.fetchone():
+                print(f"La empresa '{nombre_empresa}' no existe.")
+                return False
+
+            cursor.execute("DELETE FROM inventario_general WHERE empresa_nombre = %s", (nombre_empresa,))
+
+            cursor.execute("DELETE FROM facturas_general WHERE empresa_nombre = %s", (nombre_empresa,))
+            cursor.execute("DELETE FROM empresas WHERE nombre = %s", (nombre_empresa,))
+
+            conn.commit()
+
+            if nombre_empresa in reportes:
+                del reportes[nombre_empresa]
+            if nombre_empresa in facturas:
+                del facturas[nombre_empresa]
+            if nombre_empresa in inventario:
+                del inventario[nombre_empresa]
+
+            print(f"✅ Empresa '{nombre_empresa}' y todos sus datos eliminados correctamente.")
+            return True
+        except mysql.connector.Error as e:
+            print(f"Error al eliminar empresa: {e}")
             return False
         finally:
             if cursor:
@@ -645,7 +744,7 @@ class Reporte:
 
     @staticmethod
     def hacer_reporte_emitidas(empresa, año_seleccionado=None):
-        datos = Reporte.facturas_emitidas_por_mes(empresa, año_seleccionado)
+        datos = Reporte.facturas_emitidas_mes(empresa, año_seleccionado)
         if not datos:
             return "No hay facturas emitidas"
 
