@@ -496,6 +496,7 @@ class MainApp(QMainWindow):
         self.usuario_activo = None
         self.rol_activo = None
         self.auditor = None # objeto que sirve para interactuar con la lógica de negocio
+        self.user_model = None # modelo de datos para la tabla de usuarios
 
         # Conexiones: Conectar el botón 'Ingresar' a la función de validación
         # nos referimos al login
@@ -509,10 +510,17 @@ class MainApp(QMainWindow):
         # NUEVAS CONEXIONES --->Conexiones de Navegación del MÓDULO USUARIOS
         self.ui.btn_crear_usuario.clicked.connect(lambda: self.navigate_usuarios(1))
         self.ui.btn_modificar_usuarios.clicked.connect(lambda: self.navigate_usuarios(2))
-        self.ui.btn_eliminar_usuarios.clicked.connect(lambda: self.navigate_usuarios(3))
+        #self.ui.btn_eliminar_usuarios.clicked.connect(lambda: self.navigate_usuarios(3))
+
+        #conexion especial: navegar y listar usuarios
+        self.ui.btn_eliminar_usuarios.clicked.connect(self.handle_listar_usuarios)
+
 
         # CONEXION DEL FORMULARIO DE CREAR EMPRESA, CONEXION NUEVA EN LA ACTUALIZACION 3
         self.ui.btn_crear_usuario_submit.clicked.connect(self.handle_crear_usuario)
+
+        # conexion de lsitar / eliminar usuarios
+        self.ui.btn_eliminar_seleccionado.clicked.connect(self.handle_eliminar_usuario)
 
         # Conexiones de Navegación del MÓDULO EMPRESAS <--- NUEVAS CONEXIONES
         self.ui.btn_crear_empresa.clicked.connect(lambda: self.navigate_empresas(1))
@@ -648,6 +656,91 @@ class MainApp(QMainWindow):
 
         except Exception as e:
             QMessageBox.critical(self, "Error de Lógica", f"Ocurrió un error al intentar crear el usuario: {e}")
+
+
+    def handle_listar_usuarios(self):
+        # muestra la lista de usuarios en el QTableview y navega a la pagina
+        self.navigate_usuarios(3)
+
+        if not self.auditor:
+            QMessageBox.critical(self, "Error", "Debe iniciar sesión como Admin para ver esta lista.")
+            return
+
+        try:
+            # Asumimos que listar_usuarios() devuelve una lista de diccionarios.
+            lista_usuarios = self.auditor.listar_usuarios()
+        except AttributeError:
+            QMessageBox.critical(self, "Error de Lógica","El método listar_usuarios() no está implementado en la clase Auditor.")
+            return
+        except Exception as e:
+            QMessageBox.critical(self, "Error de Lógica", f"Error al obtener usuarios: {e}")
+            return
+
+        if not lista_usuarios:
+            self.ui.tabla_usuarios.setModel(None)
+            QMessageBox.information(self, "Información", "No hay usuarios registrados en el sistema.")
+            return
+
+        # 1. Setup/Clear el Modelo
+        if not self.user_model:
+            self.user_model = QStandardItemModel()
+            self.ui.tabla_usuarios.setModel(self.user_model)
+
+        self.user_model.clear()
+
+        # Define cabeceras
+        headers = ["DPI", "Nombre Completo", "Usuario", "Rol", "Correo"]
+        self.user_model.setHorizontalHeaderLabels(headers)
+
+        # 2. Poblar el modelo
+        for user_data in lista_usuarios:
+            row_items = []
+            row_items.append(QStandardItem(str(user_data.get('dpi', 'N/A'))))
+            row_items.append(QStandardItem(str(user_data.get('nombre', 'N/A'))))
+            row_items.append(QStandardItem(str(user_data.get('usuario', 'N/A'))))
+            row_items.append(QStandardItem(str(user_data.get('rol', 'N/A'))))
+            row_items.append(QStandardItem(str(user_data.get('correo', 'N/A'))))
+            self.user_model.appendRow(row_items)
+
+        # 3. Ajustar vista de la tabla
+        self.ui.tabla_usuarios.horizontalHeader().setStretchLastSection(True)
+        self.ui.tabla_usuarios.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.ui.tabla_usuarios.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+
+
+    def handle_eliminar_usuario(self):
+        if not self.auditor:
+            QMessageBox.critical(self,"Error", "Debe iniciar sesión con Admin.")
+            return
+
+        # obtener el indice de la fila seleccionada
+        selected_indexes = self.ui.tabla_usuarios.selectionModel().selectedRows()
+
+        if not selected_indexes:
+            QMessageBox.warning(self."Advertencia", "Por favor seleccione un usuario de la lista para eliminar.")
+            return
+
+            # Obtener el DPI del usuario seleccionado (columna 0)
+            selected_row = selected_indexes[0].row()
+            dpi_item = self.user_model.item(selected_row, 0)
+            dpi_a_eliminar = dpi_item.text()
+
+            # Diálogo de confirmación
+            reply = QMessageBox.question(
+                self,
+                'Confirmar Eliminación',
+                f"¿Está seguro que desea eliminar al usuario con DPI: {dpi_a_eliminar}? Esta acción es irreversible.",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+
+
+
+
+
+
+
+
 
         # agregando nuevo método de navegacion DE USUARIOS
         # MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (AUDITOR)
