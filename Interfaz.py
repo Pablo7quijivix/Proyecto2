@@ -345,9 +345,15 @@ class Ui_MainWindow(object):
         control_layout = QHBoxLayout(control_frame)
         control_layout.setContentsMargins(0, 0, 0, 0)
 
+        self.input_buscar_usuario = QLineEdit()
+        self.input_buscar_usuario.setPlaceholderText("Buscar por Nombre, DPI o Usuario...")
+        self.input_buscar_usuario.setStyleSheet(
+            "padding: 8px; border: 1px solid #CCC; border-radius: 5px; font-size: 11pt;")
+        self.input_buscar_usuario.setMinimumWidth(300)
 
-
-
+        self.btn_eliminar_seleccionado = QPushButton("Eliminar Seleccionado")
+        self.btn_eliminar_seleccionado.setStyleSheet(
+            "background-color: #D32F2F; color: white; padding: 10px; font-size: 12pt; font-weight: bold; border-radius: 5px;")
 
 
 
