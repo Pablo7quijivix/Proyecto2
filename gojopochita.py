@@ -124,7 +124,8 @@ class App(ctk.CTk):
             ModifyCompanyPage: ModifyCompanyPage,
             DeleteCompanyPage: DeleteCompanyPage,
             ViewCompaniesPage: ViewCompaniesPage,
-            CompanyHomePage: CompanyHomePage  # Nueva página de inicio de empresa
+            CompanyHomePage: CompanyHomePage,  # Página de inicio de empresa
+            InventoryManagementPage: InventoryManagementPage  # NUEVA PÁGINA
         }
 
         self.show_frame(LoginPage)
@@ -276,8 +277,6 @@ class LoginPage(ctk.CTkFrame):
         else:
             self.error_label.configure(text="")
 
-
-# --- PÁGINAS DE GESTIÓN (CreateUserPage, ModifyUsersPage, DeleteUsersPage, CreateCompanyPage, ModifyCompanyPage, DeleteCompanyPage) (OMITIDAS PARA BREVEDAD, SE ASUME QUE ESTÁN EN EL ARCHIVO) ---
 
 # --- PANTALLA: CreateUserPage ---
 
@@ -517,7 +516,7 @@ class CreateCompanyPage(ctk.CTkFrame):
 
 class TableBasePage(ctk.CTkFrame):
     def __init__(self, parent, controller, action_text, action_color, action_hover_color, action_command,
-                 data_type="user"):
+                 data_type="user", title_text=""):
         super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)  # Fondo degradado oscuro
 
         self.controller = controller
@@ -526,8 +525,9 @@ class TableBasePage(ctk.CTkFrame):
         self.action_hover_color = action_hover_color
         self.action_command = action_command
         self.data_type = data_type
+        self.title_text = title_text
 
-        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)  # Fila 0: Título, Fila 1: Top Bar, Fila 2: Tabla
         self.grid_columnconfigure(0, weight=1)
 
         # Datos de ejemplo para Usuarios
@@ -546,25 +546,46 @@ class TableBasePage(ctk.CTkFrame):
             {"ID": "NIT3", "Nombre": "Comercializadora Zeta", "Teléfono": "12121212", "DIRECCIÓN": "Zona Industrial 7"},
         ]
 
+        # Datos de ejemplo para Inventario (NUEVOS)
+        self.inventory_data = [
+            {"ID_Producto": "P101", "Nombre": "Harina de Trigo", "Cantidad": 500, "Unidad": "kg", "Costo": 0.55},
+            {"ID_Producto": "P102", "Nombre": "Azúcar Refinada", "Cantidad": 200, "Unidad": "kg", "Costo": 0.80},
+            {"ID_Producto": "P201", "Nombre": "Bolsas Plástico (5kg)", "Cantidad": 1000, "Unidad": "unid",
+             "Costo": 0.05},
+            {"ID_Producto": "P305", "Nombre": "Etiquetas de Lote", "Cantidad": 5000, "Unidad": "unid", "Costo": 0.01},
+        ]
+
+        self._setup_title()  # Nuevo: Título
         self._setup_top_bar()
         self._setup_table()
 
+    def _setup_title(self):
+        """Configura el título grande de la página (Ej. GESTIÓN DE USUARIOS)."""
+        ctk.CTkLabel(self, text=self.title_text,
+                     font=ctk.CTkFont(size=30, weight="bold"),
+                     text_color="white").grid(row=0, column=0, pady=(40, 0), sticky="n")
+
     def _get_data(self):
-        """Retorna los datos apropiados (usuarios o empresas)."""
+        """Retorna los datos apropiados (usuarios, empresas o inventario)."""
         if self.data_type == "company":
             return self.company_data
+        elif self.data_type == "inventory":
+            return self.inventory_data
         return self.user_data
 
     def _get_columns(self):
         """Retorna las columnas apropiadas para el tipo de dato."""
         if self.data_type == "company":
             return ["NIT", "Nombre", "Teléfono", "DIRECCIÓN", "Acción"]
+        elif self.data_type == "inventory":
+            # Columnas basadas en la imagen de ejemplo
+            return ["ID PRODUCTO", "NOMBRE PRODUCTO", "CANTIDAD", "UNIDAD", "COSTO POR UNIDAD", "Acción"]
         return ["DPI", "Nombre", "Teléfono", "ROL", "Acción"]
 
     def _setup_top_bar(self):
         """Configura la barra superior con Ordenar, Buscar y Volver."""
         top_bar_frame = ctk.CTkFrame(self, fg_color="transparent", height=60)
-        top_bar_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(40, 20))
+        top_bar_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=(40, 20))
         top_bar_frame.grid_columnconfigure(1, weight=1)  # Columna del buscador se expande
 
         # Botón Ordenar (Forma de pastilla, borde blanco)
@@ -583,25 +604,41 @@ class TableBasePage(ctk.CTkFrame):
                      ).grid(row=0, column=1, sticky="ew", padx=15)
 
         # Botón Volver (Forma de pastilla, fondo blanco)
-        ctk.CTkButton(top_bar_frame, text="Volver",
-                      command=lambda: self.controller.show_default_dashboard(),
+        # Cambiado a "Regresar" para mantener consistencia
+        ctk.CTkButton(top_bar_frame, text="Regresar",
+                      # Si es inventario, debe volver a CompanyHomePage. Si es otra, a Dashboard
+                      command=lambda: self._handle_back_action(),
                       width=100, height=45, corner_radius=25,
                       fg_color="white", hover_color="#cccccc", text_color="black",
                       font=ctk.CTkFont(size=16, weight="bold")
                       ).grid(row=0, column=2, padx=(15, 0), sticky="e")
 
+    def _handle_back_action(self):
+        """Decide a dónde regresar según el tipo de página."""
+        if self.data_type == "inventory":
+            # Asume que el controller es DashboardPage y tiene la empresa seleccionada
+            if self.controller.controller.selected_company:
+                company_name = self.controller.controller.selected_company
+                # Re-instancia CompanyHomePage con la empresa seleccionada y navega
+                self.controller.controller.select_company_and_navigate(company_name)
+            else:
+                self.controller.show_default_dashboard()  # Fallback
+        else:
+            self.controller.show_default_dashboard()
+
     def _setup_table(self):
-        """Configura la tabla con los datos (usuarios o empresas)."""
+        """Configura la tabla con los datos (usuarios, empresas o inventario)."""
         table_container = ctk.CTkScrollableFrame(self, fg_color="transparent", label_text=None)
-        table_container.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+        table_container.grid(row=2, column=0, sticky="nsew", padx=20, pady=20)
 
         data = self._get_data()
         cols = self._get_columns()
 
         # Configuración de las columnas de la tabla (ajustar pesos)
-        for i in range(len(cols)):
+        num_cols = len(cols)
+        for i in range(num_cols):
             # Distribuir el espacio de manera uniforme
-            table_container.grid_columnconfigure(i, weight=1 if i < len(cols) - 1 else 1)
+            table_container.grid_columnconfigure(i, weight=1 if i < num_cols - 1 else 1)
 
             # --- Cabecera de la Tabla ---
         header_font = ctk.CTkFont(size=16, weight="bold")
@@ -616,11 +653,18 @@ class TableBasePage(ctk.CTkFrame):
         row_font = ctk.CTkFont(size=14)
 
         # Determinar las claves para extraer los valores de cada fila
-        # Excluimos "Acción" que es el botón, e "ID" que es la clave interna
-        display_keys = [c for c in cols if c not in ["Acción", "DPI", "NIT"]]
+        if self.data_type == "user":
+            display_keys = [c for c in cols if c not in ["Acción", "DPI", "NIT"]]
+            id_key = "ID"  # Mapped to DPI
+        elif self.data_type == "company":
+            display_keys = [c for c in cols if c not in ["Acción", "DPI", "NIT"]]
+            id_key = "ID"  # Mapped to NIT
+        elif self.data_type == "inventory":
+            # Para inventario, las claves son Nombre, Cantidad, Unidad, Costo
+            display_keys = ["Nombre", "Cantidad", "Unidad", "Costo"]
+            id_key = "ID_Producto"  # Clave de identificación
 
-        # La primera columna siempre es el ID visible (DPI o NIT)
-        id_key = "DPI" if self.data_type == "user" else "NIT"
+        # La columna inicial es siempre la clave de identificación (ID, DPI, NIT, ID_Producto)
 
         for r, item in enumerate(data):
             row_index = r + 1
@@ -628,26 +672,32 @@ class TableBasePage(ctk.CTkFrame):
             bg_color = COLOR_FILA_CLARA if r % 2 == 0 else COLOR_FILA_OSCURA
             text_color = COLOR_TEXTO_TABLA if r % 2 == 0 else "white"
 
-            # 1. Columna ID (DPI o NIT)
-            ctk.CTkLabel(table_container, text=item["ID"],
+            # 1. Columna ID (DPI, NIT, ID_Producto)
+            ctk.CTkLabel(table_container, text=item[id_key],
                          fg_color=bg_color, text_color=text_color,
                          font=row_font, height=60, corner_radius=0,
                          anchor="w", padx=15).grid(row=row_index, column=0, sticky="nsew", padx=(1, 1), pady=(1, 1))
 
             # 2. Las otras columnas de datos
-            data_values = [item.get(key) for key in display_keys]
+            # Asegura que las claves extraídas coincidan con el orden de las columnas de visualización
+            current_col = 1
+            for key in display_keys:
+                value = item.get(key)
+                # Formato de moneda para el costo
+                if key == "Costo":
+                    display_value = f"Q {value:.2f}"
+                else:
+                    display_value = str(value)
 
-            # Recorrer las columnas de datos a partir de la segunda columna (índice 1)
-            for c, value in enumerate(data_values):
-                col_idx = c + 1
-                cell = ctk.CTkLabel(table_container, text=str(value),
+                cell = ctk.CTkLabel(table_container, text=display_value,
                                     fg_color=bg_color, text_color=text_color,
                                     font=row_font, height=60, corner_radius=0,
                                     anchor="w", padx=15)
-                cell.grid(row=row_index, column=col_idx, sticky="nsew", padx=(1, 1), pady=(1, 1))
+                cell.grid(row=row_index, column=current_col, sticky="nsew", padx=(1, 1), pady=(1, 1))
+                current_col += 1
 
             # 3. Columna de Acción (Botón) - Última columna
-            action_col_idx = len(cols) - 1
+            action_col_idx = num_cols - 1
             edit_button_frame = ctk.CTkFrame(table_container, fg_color=bg_color, corner_radius=0)
             edit_button_frame.grid(row=row_index, column=action_col_idx, sticky="nsew", padx=(1, 1), pady=(1, 1))
             edit_button_frame.grid_columnconfigure(0, weight=1)
@@ -674,7 +724,8 @@ class ModifyUsersPage(TableBasePage):
             action_color=COLOR_BOTON_EDITAR,
             action_hover_color="#CBAACB",
             action_command=self.edit_user_action,
-            data_type="user"
+            data_type="user",
+            title_text="MODIFICAR USUARIOS"  # Título
         )
 
     def edit_user_action(self, user):
@@ -694,7 +745,8 @@ class DeleteUsersPage(TableBasePage):
             action_color=COLOR_BOTON_ELIMINAR,  # Color de acción cambiado a rojo
             action_hover_color="#B22222",  # Hover más oscuro para el rojo
             action_command=self.delete_user_action,
-            data_type="user"
+            data_type="user",
+            title_text="ELIMINAR USUARIOS"  # Título
         )
 
     def delete_user_action(self, user):
@@ -715,7 +767,8 @@ class ModifyCompanyPage(TableBasePage):
             action_color=COLOR_BOTON_EDITAR,
             action_hover_color="#CBAACB",
             action_command=self.edit_company_action,
-            data_type="company"  # Especifica que debe usar los datos de empresa
+            data_type="company",  # Especifica que debe usar los datos de empresa
+            title_text="MODIFICAR INFORMACIÓN EMPRESA"  # Título
         )
 
     def edit_company_action(self, company):
@@ -735,13 +788,179 @@ class DeleteCompanyPage(TableBasePage):
             action_color=COLOR_BOTON_ELIMINAR,
             action_hover_color="#B22222",
             action_command=self.delete_company_action,
-            data_type="company"  # Especifica que debe usar los datos de empresa
+            data_type="company",  # Especifica que debe usar los datos de empresa
+            title_text="ELIMINAR EMPRESA"  # Título
         )
 
     def delete_company_action(self, company):
         """Simula la acción de eliminar una empresa."""
         # Se podría pedir una confirmación aquí
         print(f"!!! ELIMINANDO EMPRESA: ID={company['ID']}, Nombre={company['Nombre']}")
+        # Lógica de eliminación...
+
+
+# --- NUEVA PANTALLA: InventoryManagementPage (Hereda de TableBasePage) ---
+
+class InventoryManagementPage(TableBasePage):
+    def __init__(self, parent, controller):
+        # La página de Inventario usa dos botones de acción: Editar y Eliminar
+        # Para simplificar, la TableBasePage solo admite uno. Usaremos "Editar" como principal
+        # y añadiremos el botón "Agregar" separado.
+        super().__init__(
+            parent,
+            controller,
+            action_text="EditaR",
+            action_color=COLOR_BOTON_EDITAR,
+            action_hover_color="#CBAACB",
+            action_command=self.edit_inventory_action,
+            data_type="inventory",  # Especifica que debe usar los datos de inventario
+            title_text="GESTIÓN DE INVENTARIO"  # Título
+        )
+
+        # Sobrescribir el Top Bar para añadir el botón "Agregar" (Ver imagen)
+        self._setup_inventory_top_bar()
+
+    def _setup_inventory_top_bar(self):
+        """Configura la barra superior con Agregar, Ordenar, Buscar y Regresar."""
+
+        # Eliminar el frame original si existe y crear uno nuevo para reconfigurar
+        for widget in self.grid_slaves():
+            if int(widget.grid_info()["row"]) == 1:
+                widget.destroy()
+
+        top_bar_frame = ctk.CTkFrame(self, fg_color="transparent", height=60)
+        top_bar_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=(40, 20))
+        top_bar_frame.grid_columnconfigure(2, weight=1)  # Columna del buscador se expande
+
+        # Botón AGREGAR (Color Morado Oscuro) - Nuevo en la imagen
+        ctk.CTkButton(top_bar_frame, text="Agregar",
+                      command=self.add_inventory_action,
+                      width=100, height=45, corner_radius=25,
+                      fg_color=COLOR_MORADO_OSCURO, hover_color="#5D3FD3", text_color="white",
+                      font=ctk.CTkFont(size=16, weight="bold")
+                      ).grid(row=0, column=0, padx=(0, 15), sticky="w")
+
+        # Botón Ordenar (Forma de pastilla, borde blanco) - Igual que antes, pero reubicado
+        ctk.CTkButton(top_bar_frame, text="Ordenar",
+                      width=100, height=45, corner_radius=25,
+                      fg_color="transparent", border_color="white", border_width=2,
+                      hover_color="#6A5ACD", text_color="white",
+                      font=ctk.CTkFont(size=16, weight="bold")
+                      ).grid(row=0, column=1, padx=(0, 15), sticky="w")
+
+        # Barra de Búsqueda (Forma de pastilla, fondo blanco)
+        ctk.CTkEntry(top_bar_frame, placeholder_text="Buscar",
+                     width=500, height=50, corner_radius=25,
+                     fg_color="white", text_color="black",
+                     font=ctk.CTkFont(size=16)
+                     ).grid(row=0, column=2, sticky="ew", padx=15)
+
+        # Botón Regresar (Forma de pastilla, fondo blanco)
+        ctk.CTkButton(top_bar_frame, text="Regresar",
+                      command=lambda: self._handle_back_action(),  # Usa el manejador de regreso
+                      width=100, height=45, corner_radius=25,
+                      fg_color="white", hover_color="#cccccc", text_color="black",
+                      font=ctk.CTkFont(size=16, weight="bold")
+                      ).grid(row=0, column=3, padx=(15, 0), sticky="e")
+
+    def add_inventory_action(self):
+        """Simula la acción de agregar un nuevo producto."""
+        print("Agregando nuevo producto al inventario...")
+        # Lógica de adición...
+
+    def edit_inventory_action(self, item):
+        """Simula la acción de editar un producto del inventario."""
+        print(f"Editando inventario: ID={item['ID_Producto']}, Nombre={item['Nombre']}")
+        # Lógica de edición...
+
+    # La TableBasePage ya implementa el botón "Eliminar" implícitamente a través de la acción
+    # pero para reflejar el diseño de la imagen, usaremos dos botones.
+    # Como TableBasePage solo soporta una acción, vamos a modificar la creación de botones en la tabla.
+    def _setup_table(self):
+        """Configura la tabla con los datos (usuarios, empresas o inventario)."""
+        table_container = ctk.CTkScrollableFrame(self, fg_color="transparent", label_text=None)
+        table_container.grid(row=2, column=0, sticky="nsew", padx=20, pady=20)
+
+        data = self._get_data()
+        cols = self._get_columns()
+
+        # Configuración de las columnas de la tabla (ajustar pesos)
+        num_cols = len(cols)
+        for i in range(num_cols):
+            # Distribuir el espacio de manera uniforme
+            table_container.grid_columnconfigure(i, weight=1 if i < num_cols - 1 else 1)
+
+            # --- Cabecera de la Tabla ---
+        header_font = ctk.CTkFont(size=16, weight="bold")
+        for i, col_name in enumerate(cols):
+            header_cell = ctk.CTkLabel(table_container, text=col_name.upper(),
+                                       fg_color=COLOR_CABECERA, text_color="white",
+                                       font=header_font, height=50, corner_radius=0)
+            header_cell.grid(row=0, column=i, sticky="nsew", padx=(1 if i > 0 else 0, 1), pady=(0, 1))
+
+        # --- Filas de Datos ---
+        row_font = ctk.CTkFont(size=14)
+
+        display_keys = ["Nombre", "Cantidad", "Unidad", "Costo"]
+        id_key = "ID_Producto"
+
+        for r, item in enumerate(data):
+            row_index = r + 1
+            bg_color = COLOR_FILA_CLARA if r % 2 == 0 else COLOR_FILA_OSCURA
+            text_color = COLOR_TEXTO_TABLA if r % 2 == 0 else "white"
+
+            # 1. Columna ID (ID_Producto)
+            ctk.CTkLabel(table_container, text=item[id_key],
+                         fg_color=bg_color, text_color=text_color,
+                         font=row_font, height=60, corner_radius=0,
+                         anchor="w", padx=15).grid(row=row_index, column=0, sticky="nsew", padx=(1, 1), pady=(1, 1))
+
+            # 2. Las otras columnas de datos
+            current_col = 1
+            for key in display_keys:
+                value = item.get(key)
+                if key == "Costo":
+                    display_value = f"Q {value:.2f}"
+                else:
+                    display_value = str(value)
+
+                cell = ctk.CTkLabel(table_container, text=display_value,
+                                    fg_color=bg_color, text_color=text_color,
+                                    font=row_font, height=60, corner_radius=0,
+                                    anchor="w", padx=15)
+                cell.grid(row=row_index, column=current_col, sticky="nsew", padx=(1, 1), pady=(1, 1))
+                current_col += 1
+
+            # 3. Columna de Acción (Botones Editar y Eliminar)
+            action_col_idx = num_cols - 1
+            action_frame = ctk.CTkFrame(table_container, fg_color=bg_color, corner_radius=0)
+            action_frame.grid(row=row_index, column=action_col_idx, sticky="nsew", padx=(1, 1), pady=(1, 1))
+            action_frame.grid_columnconfigure(0, weight=1)
+            action_frame.grid_columnconfigure(1, weight=1)
+
+            # Botón Editar
+            ctk.CTkButton(action_frame, text="EditaR",
+                          command=lambda u=item: self.edit_inventory_action(u),
+                          width=70, height=35, corner_radius=10,
+                          fg_color=COLOR_BOTON_EDITAR,
+                          hover_color="#CBAACB",
+                          text_color=COLOR_TEXTO_TABLA,
+                          font=ctk.CTkFont(size=14, weight="bold")
+                          ).grid(row=0, column=0, padx=(10, 5), pady=12)
+
+            # Botón Eliminar
+            ctk.CTkButton(action_frame, text="EliminaR",
+                          command=lambda u=item: self.delete_inventory_action(u),
+                          width=70, height=35, corner_radius=10,
+                          fg_color=COLOR_BOTON_ELIMINAR,
+                          hover_color="#B22222",
+                          text_color="white",
+                          font=ctk.CTkFont(size=14, weight="bold")
+                          ).grid(row=0, column=1, padx=(5, 10), pady=12)
+
+    def delete_inventory_action(self, item):
+        """Simula la acción de eliminar un producto del inventario."""
+        print(f"!!! ELIMINANDO PRODUCTO: ID={item['ID_Producto']}, Nombre={item['Nombre']}")
         # Lógica de eliminación...
 
 
@@ -936,8 +1155,13 @@ class CompanyHomePage(ctk.CTkFrame):
     def handle_option_selection(self, option_name):
         """Maneja la acción de seleccionar una opción de la empresa."""
         print(f"Opción seleccionada para {self.company_name}: {option_name}")
-        # Aquí se implementaría la navegación a la gestión de inventario, reportes, o facturas.
-        # Por ahora, solo muestra un mensaje temporal en la consola.
+
+        if option_name == "GESTIONAR INVENTARIO":
+            # Navegar a la nueva página de gestión de inventario
+            self.controller.show_content(InventoryManagementPage)
+        # Aquí se implementarían las otras navegaciones (REPORTES, FACTURA)
+        else:
+            print(f"La navegación para {option_name} aún no está implementada.")
 
 
 # --- DashboardPage Modificada (Asegurar que CompanyHomePage se pueda mostrar) ---
@@ -1091,7 +1315,7 @@ class DashboardPage(ctk.CTkFrame):
         elif content_frame_class == DashboardPage:
             self.current_content = ctk.CTkFrame(self.content_container, fg_color="transparent")
         else:
-            # Páginas de gestión (Creación/Modificación/Eliminación)
+            # Páginas de gestión (Creación/Modificación/Eliminación/Inventario)
             self.current_content = content_frame_class(self.content_container, self)
 
         if self.current_content:
@@ -1150,6 +1374,9 @@ class DashboardPage(ctk.CTkFrame):
         elif action == "VER EMPRESAS":
             # Aquí se asegura que la página de lista de empresas se muestre correctamente
             self.show_content(ViewCompaniesPage)
+        elif action == "GESTIONAR INVENTARIO":
+            # Esta acción la debería manejar CompanyHomePage, pero por si se llama directo
+            self.show_content(InventoryManagementPage)
         else:
             self.show_default_dashboard()
 
