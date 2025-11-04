@@ -485,17 +485,6 @@ class Ui_MainWindow(object):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 # --- 2. CLASE CONTROLADORA PRINCIPAL --- (Se conecta la lógica de navegación y formulario) ---
 class MainApp(QMainWindow):
     def __init__(self):
@@ -523,13 +512,22 @@ class MainApp(QMainWindow):
         self.ui.btn_modificar_usuarios.clicked.connect(lambda: self.navigate_usuarios(2))
         self.ui.btn_eliminar_usuarios.clicked.connect(lambda: self.navigate_usuarios(3))
 
+        # CONEXION DEL FORMULARIO DE CREAR EMPRESA, CONEXION NUEVA EN LA ACTUALIZACION 3
+        self.ui.btn_crear_empresa_submit.clicked.connect(self.handle_crear_empresa)
+
         # conexion del formulario CREAR USUARIO <---  APLICANDO CONEXION DE LÓGICA
         self.ui.btn_crear_usuario_submit.clicked.connect(self.handle_crear_usuario)
 
         # Establecer la primera vista: Login
         self.ui.stackedWidget.setCurrentIndex(0)
 
-    # agregando nuevo método de navegacion
+
+    # AGREGANDO NUEVO MÉTODO NAVEGACION INTERNA DE LAS EMPRESAS---------------
+    def navigate_emmpresas(self, index):
+        # Cambia la sub-página visible dentro del QStackedWidget de Gestión de Empresas.
+        self.ui.empresas_stacked_widget.setCurrentIndex(index)
+
+    # agregando nuevo método de navegacion DE USUARIOS
     # MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (AUDITOR)
     def navigate_usuarios(self, index):
         """
