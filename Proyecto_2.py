@@ -1,7 +1,8 @@
-import mysql.connector
+import mysql.connector #Se importa la libreria para oncertarse con la bse de datos
 from datetime import date
 
 DB_Sistema= "sistema_empresa.db"
+#Metodos de Busqueda
 def busqueda_binaria(lista, indice, valor):
     inicio = 0
     fin = len(lista) - 1
@@ -21,6 +22,7 @@ def busqueda_secuencial(lista,indice,valor):
             return x
     return -1
 
+#Metodos de ordenamiento
 def metodo_bubble_sort(lista, indice=1):
     datos = list(lista)
     numero = len(datos)
@@ -56,17 +58,19 @@ def meotod_selection_sort(lista, indice=1):
     return lista_ordenar
 
 Conexion= ()
+#Clase base de datos
 class BasedeDatos():
     @staticmethod
     def conectar():
         conn = mysql.connector.connect(
-            host="192.168.1.127",
+            host="localhost",
             user="root",
             password="Wilson200.",
-            database="prueba_100",
+            database="prueba_8",
             port= 3306
         )
         return conn
+#Clase base
 class Usuario:
     def __init__(self,nombre,dpi,correo,puesto,usuario,contrasena,rol):
         self.__nombre= nombre
@@ -402,6 +406,7 @@ class Cliente:
     def mostrar_informacion(self):
         print(f"{self.nit} - {self.nombre} ({self.nombre_negocio})")
 
+#Noramlizar nombre para guardar en base de datos
 def normalizar_nombre(nombre):
     nombre_empresa = nombre.strip().lower()
     nombre_empresa = "_".join(nombre_empresa.split())
@@ -422,6 +427,7 @@ class Empresa:
         self.tabla_facturas = "facturas_" + normalizar_nombre(nombre)
         self._crear_tabla()
 
+    #Se crea tanto tabla de empresas, como inventario y facturas
     def _crear_tabla(self):
         conn = None
         cursor = None
@@ -498,7 +504,7 @@ class Empresa:
                 conn.close()
 
     @staticmethod
-    def eliminar(nombre_empresa):
+    def eliminar(nombre_empresa): #Eliminar una empresa y con ella los datos como inventario y facturas
         conn = None
         cursor = None
         try:
@@ -523,7 +529,7 @@ class Empresa:
             if nombre_empresa in inventario:
                 del inventario[nombre_empresa]
 
-            print(f"✅ Empresa '{nombre_empresa}' y todos sus datos eliminados correctamente.")
+            print(f"Empresa '{nombre_empresa}' y todos sus datos eliminados correctamente.")
             return True
         except mysql.connector.Error as e:
             print(f"Error al eliminar empresa: {e}")
@@ -677,7 +683,7 @@ class Reporte:
         conn = BasedeDatos.conectar()
         cursor = conn.cursor(dictionary=True)
 
-        if año_deseado:
+        if año_deseado: #Si dan año
             cursor.execute("""
                 SELECT 
                     MONTH(fecha) as mes,
@@ -688,9 +694,9 @@ class Reporte:
                 GROUP BY MONTH(fecha)
                 ORDER BY mes
             """, (empresa, año_deseado))
-        else:
+        else:# Si no dan año y solo nombre de empresa
             cursor.execute("""SELECT 
-                    YEAR(fecha) as año,
+                    YEAR(fecha) as año, 
                     MONTH(fecha) as mes,
                     COUNT(*) as cuantas_facturas,
                     SUM(monto) as cuanto_dinero
@@ -710,7 +716,7 @@ class Reporte:
         conn = BasedeDatos.conectar()
         cursor = conn.cursor(dictionary=True)
 
-        if año:
+        if año: #si dan año
             cursor.execute("""SELECT 
                     MONTH(fecha) as mes,
                     COUNT(*) as cantidad,
@@ -721,7 +727,7 @@ class Reporte:
                 ORDER BY mes
             """,
                            (empresa, año))
-        else:
+        else: #si no dan año y solo nombre de empresa
             cursor.execute("""SELECT 
                     YEAR(fecha) as año,
                     MONTH(fecha) as mes,
@@ -908,3 +914,42 @@ def inicio_sesio(usuario,contrasena):
     except Exception as e:
         print(f"Ocurrio un error inesperado: {e}")
         return None
+
+
+# Agregar al final de Proyecto_2.py
+def crear_usuario_admin():
+    """Crea un usuario admin por defecto si no existe"""
+    try:
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+
+        # Verificar si ya existe
+        cursor.execute("SELECT * FROM usuarios WHERE usuario = 'admin'")
+        if cursor.fetchone():
+            print("Usuario admin ya existe")
+            return True
+
+        # Crear usuario admin
+        admin = Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "admin123")
+        success = admin.crear_usuario("Administrador", "123456789", "admin@empresa.com", "Administrador", "admin",
+                                      "admin123", "Admin")
+
+        if success:
+            print("✅ Usuario admin creado exitosamente")
+            print("📝 Credenciales: admin / admin123")
+        else:
+            print("❌ No se pudo crear el usuario admin")
+
+        return success
+
+    except Exception as e:
+        print(f"Error creando usuario admin: {e}")
+        return False
+    finally:
+        if 'conn' in locals() and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+
+# Ejecutar al importar el módulo
+crear_usuario_admin()
