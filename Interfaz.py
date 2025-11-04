@@ -335,6 +335,33 @@ class Ui_MainWindow(object):
         main_layout = QHBoxLayout(self.dashboard_empresas_page)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
+        # 1. Menú de Empresas (Sidebar interno)
+        menu_frame = QFrame()
+        menu_frame.setFixedWidth(200)
+        menu_frame.setStyleSheet("background-color: #F0F0F0; border-right: 1px solid #CCC;")
+
+        menu_layout = QVBoxLayout(menu_frame)
+        menu_layout.setAlignment(Qt.AlignTop)
+
+        # Título del Sub-menú
+        label_titulo = QLabel("Gestión de Empresas")
+        label_titulo.setStyleSheet("font-size: 16pt; font-weight: bold; padding: 20px 10px; color: #4B0082;")
+        menu_layout.addWidget(label_titulo)
+
+        # BOTONES DE NAVEGACION INTERNA (PAGINA 9 DEL BOCETO DE CANVA)
+        self.btn_crear_empresa = QPushButton("CREAR EMPRESA")
+        self.btn_modificar_empresa = QPushButton("MODIFICAR INFO")
+        self.btn_eliminar_empresa = QPushButton("ELIMINAR EMPRESA")
+
+        menu_btn_style = (
+            "QPushButton { background-color: transparent; color: black; "
+            "border: none; padding: 15px 5px; text-align: left; font-size: 12pt;}"
+            "QPushButton:hover { background-color: #E0E0E0; border-left: 5px solid #6A1B9A; }"
+        )
+
+
+
+
 
 
 # --- 2. CLASE CONTROLADORA PRINCIPAL --- (Se conecta la lógica de navegación y formulario) ---
