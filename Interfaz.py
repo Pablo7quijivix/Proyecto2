@@ -9,16 +9,18 @@ print(f"Agregando archivo adicional en donde se alojara la parte grafica")
 from PySide6.QtWidgets import (
     QMainWindow, QStackedWidget, QApplication, QWidget, QVBoxLayout, QLineEdit,
     QPushButton, QLabel, QMessageBox, QFrame, QHBoxLayout, QSizePolicy, QGridLayout,
-    QComboBox, QSpacerItem
+    QComboBox, QSpacerItem, QTableView, QHeaderView
 )
 
 from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QStandardItemModel, QStandardItem # accede y ayuda a manejar los datos de la tabla
 import sys
 
 # --- IMPORTACIÓN DE LA LÓGICA DE NEGOCIO ---
 # Importamos la función de login desde el archivo Proyecto_2.py
 # actualización 2, imoprtamos auditor para usar sus métodos
 # añadiendo Cliente y empresa en la actualización '3'
+
 from Proyecto_2 import inicio_sesio, Auditor, Usuario, Cliente, Empresa
 
 
@@ -244,6 +246,7 @@ class Ui_MainWindow(object):
 
         # Diseño del formulario de Crear Usuario (Página 5 del PDF)
         self.setup_formulario_crear_usuario()
+        self.setup_listar_eliminar_usuarios()  # Llamada al nuevo setup
 
     def setup_formulario_crear_usuario(self):
         form_layout =QVBoxLayout(self.usuarios_crear_page)
