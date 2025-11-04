@@ -904,7 +904,15 @@ class MainApp(QMainWindow):
 
 
 
+    def handle_buscar_usuario(self):
+        if not self.auditor:
+            QMessageBox.critical(self, "Error", "Debe iniciar sesión como Admin.")
+            return
 
+        busqueda = self.ui.input_buscar_modificar.text().strip()
+        if not busqueda:
+            QMessageBox.warning(self, "Advertencia", "Ingrese el DPI o Nombre de Usuario a buscar.")
+            return
 
 
 
