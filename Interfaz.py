@@ -657,6 +657,22 @@ class MainApp(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error de Lógica", f"Ocurrió un error al intentar crear el usuario: {e}")
 
+
+            def handle_listar_usuarios(self):
+                # muestra la lista de usuarios en el QTableview y navega a la pagina
+                self.navigate_usuarios(3)
+
+                if not self.auditor:
+                    QMessageBox.critical(self, "Error", "Debe iniciar sesión como Admin para ver esta lista.")
+                    return
+
+                try:
+                    # Asumimos que listar_usuarios() devuelve una lista de diccionarios.
+                    lista_usuarios = self.auditor.listar_usuarios()
+                except AttributeError:
+                    QMessageBox.critical(self, "Error de Lógica",
+                                         "El método listar_usuarios() no está implementado en la clase Auditor.")
+
         # agregando nuevo método de navegacion DE USUARIOS
         # MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (AUDITOR)
         #  Cambia la sub-página visible dentro del QStackedWidget de Gestión de Usuarios.
