@@ -527,6 +527,19 @@ class MainApp(QMainWindow):
         # Cambia la sub-página visible dentro del QStackedWidget de Gestión de Empresas.
         self.ui.empresas_stacked_widget.setCurrentIndex(index)
 
+    # CREANDO  METODO RESPECTIVO QUE CONECTA EL FORMULARIO DE EMPRESA A LA LOGICA EN PROYECTO_2.PY
+    def handle_crear_empresa(self):
+        if not self.auditor:
+            QMessageBox.critical(self, "Error de Permisos", "Operación no permitida. Inicie sesión como Administrador.")
+            return
+
+
+
+
+
+
+
+
     # agregando nuevo método de navegacion DE USUARIOS
     # MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (AUDITOR)
     def navigate_usuarios(self, index):
