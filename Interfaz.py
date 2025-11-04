@@ -869,13 +869,9 @@ class MainApp(QMainWindow):
         nit_seleccionado = nit_item.text()
         nombre_empresa = nombre_empresa_item.text()
 
-
-
-
-
-
-
-
+        # Aquí iría la lógica para cargar la siguiente página (Pág. 15),
+        # pero por ahora solo se muestra un mensaje.
+        QMessageBox.information(self, "Navegación",f"Navegando a las opciones de {nombre_empresa} (NIT: {nit_seleccionado}).\n"f"El siguiente paso es implementar esta vista (Gestión de Inventario, Reportes, Factura).")
 
 
 
