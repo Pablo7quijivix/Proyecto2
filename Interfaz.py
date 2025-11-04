@@ -681,6 +681,32 @@ class MainApp(QMainWindow):
             QMessageBox.information(self, "Información", "No hay usuarios registrados en el sistema.")
             return
 
+        # 1. Setup/Clear el Modelo
+        if not self.user_model:
+            self.user_model = QStandardItemModel()
+            self.ui.tabla_usuarios.setModel(self.user_model)
+
+        self.user_model.clear()
+
+        # Define cabeceras
+        headers = ["DPI", "Nombre Completo", "Usuario", "Rol", "Correo"]
+        self.user_model.setHorizontalHeaderLabels(headers)
+
+        # 2. Poblar el modelo
+        for user_data in lista_usuarios:
+            row_items = []
+            row_items.append(QStandardItem(str(user_data.get('dpi', 'N/A'))))
+            row_items.append(QStandardItem(str(user_data.get('nombre', 'N/A'))))
+            row_items.append(QStandardItem(str(user_data.get('usuario', 'N/A'))))
+            row_items.append(QStandardItem(str(user_data.get('rol', 'N/A'))))
+            row_items.append(QStandardItem(str(user_data.get('correo', 'N/A'))))
+            self.user_model.appendRow(row_items)
+
+        # 3. Ajustar vista de la tabla
+        self.ui.tabla_usuarios.horizontalHeader().setStretchLastSection(True)
+        self.ui.tabla_usuarios.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.ui.tabla_usuarios.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+
 
 
 
