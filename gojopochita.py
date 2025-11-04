@@ -88,6 +88,10 @@ class App(ctk.CTk):
         print(f"¿Existe PATH_FROG ({PATH_FROG})? {os.path.exists(PATH_FROG)}")
         print(f"Directorio actual: {os.getcwd()}")
 
+        # Variables de usuario
+        self.current_user = None
+        self.user_role = None
+
         self.title("Aplicación de Gestión")
         self.geometry("1000x700")
         self.minsize(700, 500)
@@ -109,7 +113,9 @@ class App(ctk.CTk):
 
         self.frames[LoginPage] = LoginPage(parent=container, controller=self,
                                            bg_image=self.original_bg_image, logo_image=self.original_logo_image)
-        self.frames[DashboardPage] = DashboardPage(parent=container, controller=self)
+
+        # DashboardPage se creará después de la autenticación
+        self.frames[DashboardPage] = None
 
         self.pages = {
             LoginPage: LoginPage,
@@ -130,13 +136,17 @@ class App(ctk.CTk):
         self.show_frame(LoginPage)
 
     def show_frame(self, cont):
-        if cont in self.frames:
+        if cont == DashboardPage and self.frames[cont] is None:
+            # Crear DashboardPage solo cuando sea necesario y después de la autenticación
+            self.frames[DashboardPage] = DashboardPage(parent=self.frames[LoginPage].master, controller=self)
+
+        if cont in self.frames and self.frames[cont] is not None:
             frame = self.frames[cont]
             frame.grid(row=0, column=0, sticky="nsew")
             frame.tkraise()
 
     def authenticate_user(self, username, password):
-        """Verifica las credenciales en la base de datos MySQL"""
+        """Verifica las credenciales en la base de datos MySQL y almacena el rol"""
         try:
             conn = Proyecto_2.BasedeDatos.conectar()
             cursor = conn.cursor(dictionary=True)
@@ -145,6 +155,12 @@ class App(ctk.CTk):
             result = cursor.fetchall()
 
             if result and len(result) > 0:
+                # Almacenar información del usuario, incluyendo el rol
+                self.current_user = result[0]
+                self.user_role = result[0].get('rol', 'empleado')  # Default a empleado si no existe
+
+                # Crear DashboardPage después de la autenticación
+                self.frames[DashboardPage] = DashboardPage(parent=self.frames[LoginPage].master, controller=self)
                 self.show_frame(DashboardPage)
                 return True
             return False
@@ -158,10 +174,15 @@ class App(ctk.CTk):
 
     def select_company_and_navigate(self, company_name):
         self.selected_company = company_name
-        self.frames[CompanyHomePage] = CompanyHomePage(parent=self.frames[DashboardPage].content_container,
-                                                       controller=self.frames[DashboardPage],
-                                                       company_name=company_name)
-        self.frames[DashboardPage].show_content(CompanyHomePage)
+        if self.frames[DashboardPage]:
+            self.frames[CompanyHomePage] = CompanyHomePage(parent=self.frames[DashboardPage].content_container,
+                                                           controller=self.frames[DashboardPage],
+                                                           company_name=company_name)
+            self.frames[DashboardPage].show_content(CompanyHomePage)
+
+    def is_admin(self):
+        """Verifica si el usuario actual es administrador"""
+        return self.user_role and self.user_role.lower() in ['admin', 'administrador']
 
 
 class LoginPage(ctk.CTkFrame):
@@ -298,14 +319,14 @@ class CreateUserPage(ctk.CTkFrame):
                      font=ctk.CTkFont(size=48, weight="bold"), text_color="white",
                      justify="left").grid(row=1, column=0, sticky="nw", pady=(30, 20))
 
-        ctk.CTkLabel(left_frame, text="olaa",
+        ctk.CTkLabel(left_frame, text="Aquí puedes crear un nuevo usuario para el sistema.",
                      font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=2, column=0, sticky="nw")
 
         ctk.CTkLabel(left_frame, text="—",
                      font=ctk.CTkFont(size=30, weight="bold"), text_color="white",
                      justify="left").grid(row=3, column=0, sticky="nw", pady=5)
 
-        ctk.CTkLabel(left_frame, text="wasssa",
+        ctk.CTkLabel(left_frame, text="Completa todos los campos requeridos.",
                      font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=4, column=0, sticky="nw")
 
         ctk.CTkButton(left_frame, text="Regresar",
@@ -318,9 +339,8 @@ class CreateUserPage(ctk.CTkFrame):
 
         right_frame = ctk.CTkFrame(main_container, fg_color="transparent")
         right_frame.grid(row=0, column=1, sticky="nse", padx=20, pady=20)
-
-        form_frame = ctk.CTkFrame(right_frame, corner_radius=30,
-                                  fg_color=COLOR_FORM_FRAME, width=350)
+        form_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=30,
+                                            fg_color=COLOR_FORM_FRAME, width=350)
         form_frame.pack(expand=False, fill="y", side="right")
 
         ctk.CTkLabel(form_frame, text="Usuario",
@@ -329,11 +349,11 @@ class CreateUserPage(ctk.CTkFrame):
         fields = [
             ("DPI", "text"),
             ("NOMBRE_COMPLETO", "text"),
+            ("CORREO", "text"),
+            ("PUESTO", "text"),
             ("USUARIO", "text"),
             ("CONTRASEÑA", "password"),
-            ("ROL", "text"),
-            ("CORREO", "text"),
-            ("TELEFONO", "text")
+            ("ROL", "text")
         ]
 
         self.entries = {}
@@ -353,7 +373,7 @@ class CreateUserPage(ctk.CTkFrame):
             entry.pack(fill="x", padx=40)
             self.entries[field] = entry
 
-        ctk.CTkButton(form_frame, text="Crear\nusuario",
+        ctk.CTkButton(form_frame, text="CREAR\nUSUARIO",
                       command=self.create_user_action,
                       width=180, height=60, corner_radius=15,
                       fg_color=COLOR_MORADO_OSCURO,
@@ -363,19 +383,16 @@ class CreateUserPage(ctk.CTkFrame):
     def create_user_action(self):
         dpi = self.entries["DPI"].get()
         nombre = self.entries["NOMBRE_COMPLETO"].get()
+        correo = self.entries["CORREO"].get()
+        puesto = self.entries["PUESTO"].get()  # Cambié telefono por puesto
         usuario = self.entries["USUARIO"].get()
         contrasena = self.entries["CONTRASEÑA"].get()
         rol = self.entries["ROL"].get()
-        correo = self.entries["CORREO"].get()
-        telefono = self.entries["TELEFONO"].get()
-
-        if not all([dpi, nombre, usuario, contrasena, rol]):
+        if not all([dpi, nombre, usuario, contrasena, rol, correo, puesto]):
             messagebox.showerror("Error", "Por favor complete todos los campos obligatorios")
             return
-
-        # CORREGIDO: Orden correcto de parámetros
         auditor = Proyecto_2.Auditor(nombre, dpi, correo, usuario, contrasena)
-        success = auditor.crear_usuario(nombre, dpi, correo, telefono, usuario, contrasena, rol)
+        success = auditor.crear_usuario(nombre, dpi, correo, puesto, usuario, contrasena, rol)
 
         if success:
             messagebox.showinfo("Éxito", f"Usuario {usuario} creado correctamente")
@@ -1512,16 +1529,26 @@ class DashboardPage(ctk.CTkFrame):
         self.nav_frame = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
         self.nav_frame.grid(row=1, column=0, sticky="nwe", padx=0, pady=(0, 20))
 
-        ctk.CTkLabel(self.nav_frame, text="BIENVENIDO!", font=ctk.CTkFont(size=20, weight="bold"),
-                     text_color="white").pack(pady=(20, 30), padx=10, anchor="w")
+        # Mostrar información del usuario de forma segura
+        user_role = self.controller.user_role if self.controller.user_role else "USUARIO"
+        user_info = f"BIENVENIDO!\n({user_role.upper()})"
+        ctk.CTkLabel(self.nav_frame, text=user_info, font=ctk.CTkFont(size=16, weight="bold"),
+                     text_color="white", justify="left").pack(pady=(20, 30), padx=10, anchor="w")
 
         self._setup_navigation()
 
-        ctk.CTkButton(self.sidebar_frame, text="Cerrar Sesión", command=lambda: controller.show_frame(LoginPage),
+        ctk.CTkButton(self.sidebar_frame, text="Cerrar Sesión", command=self.logout_action,
                       fg_color="red", hover_color="#8B0000").grid(row=2, column=0, sticky="s", padx=20, pady=20)
 
         self.current_content = None
         self.show_default_dashboard()
+
+    def logout_action(self):
+        # Limpiar datos de usuario al cerrar sesión
+        self.controller.current_user = None
+        self.controller.user_role = None
+        self.controller.selected_company = None
+        self.controller.show_frame(LoginPage)
 
     def _create_nav_button(self, text, command):
         return ctk.CTkButton(
@@ -1552,22 +1579,27 @@ class DashboardPage(ctk.CTkFrame):
         )
 
     def _setup_navigation(self):
-        self.btn_usuarios = self._create_nav_button("GESTIONAR USUARIOS ▾",
-                                                    lambda: self.toggle_menu('user'))
-        self.btn_usuarios.pack(fill="x", padx=0, pady=(10, 0))
-        self.user_menu_frame = ctk.CTkFrame(self.nav_frame, fg_color="transparent")
-        self._create_sub_menu(self.user_menu_frame, "CREAR USUARIO").pack(fill="x")
-        self._create_sub_menu(self.user_menu_frame, "MODIFICAR USUARIOS").pack(fill="x")
-        self._create_sub_menu(self.user_menu_frame, "ELIMINAR USUARIOS").pack(fill="x")
+        # Solo mostrar gestión de usuarios si es administrador
+        if self.controller.is_admin():
+            self.btn_usuarios = self._create_nav_button("GESTIONAR USUARIOS ▾",
+                                                        lambda: self.toggle_menu('user'))
+            self.btn_usuarios.pack(fill="x", padx=0, pady=(10, 0))
+            self.user_menu_frame = ctk.CTkFrame(self.nav_frame, fg_color="transparent")
+            self._create_sub_menu(self.user_menu_frame, "CREAR USUARIO").pack(fill="x")
+            self._create_sub_menu(self.user_menu_frame, "MODIFICAR USUARIOS").pack(fill="x")
+            self._create_sub_menu(self.user_menu_frame, "ELIMINAR USUARIOS").pack(fill="x")
 
-        self.btn_empresa = self._create_nav_button("GESTIONAR EMPRESA ▾",
-                                                   lambda: self.toggle_menu('company'))
-        self.btn_empresa.pack(fill="x", padx=0, pady=(10, 0))
-        self.company_menu_frame = ctk.CTkFrame(self.nav_frame, fg_color="transparent")
-        self._create_sub_menu(self.company_menu_frame, "CREAR EMPRESA").pack(fill="x")
-        self._create_sub_menu(self.company_menu_frame, "MODIFICAR INFORMACIÓN EMPRESA").pack(fill="x")
-        self._create_sub_menu(self.company_menu_frame, "ELIMINAR EMPRESA").pack(fill="x")
+        # Solo mostrar gestión de empresa si es administrador
+        if self.controller.is_admin():
+            self.btn_empresa = self._create_nav_button("GESTIONAR EMPRESA ▾",
+                                                       lambda: self.toggle_menu('company'))
+            self.btn_empresa.pack(fill="x", padx=0, pady=(10, 0))
+            self.company_menu_frame = ctk.CTkFrame(self.nav_frame, fg_color="transparent")
+            self._create_sub_menu(self.company_menu_frame, "CREAR EMPRESA").pack(fill="x")
+            self._create_sub_menu(self.company_menu_frame, "MODIFICAR INFORMACIÓN EMPRESA").pack(fill="x")
+            self._create_sub_menu(self.company_menu_frame, "ELIMINAR EMPRESA").pack(fill="x")
 
+        # Todos los usuarios pueden ver empresas
         self.btn_view_companies = self._create_nav_button("VER EMPRESAS",
                                                           lambda: self.nav_action("VER EMPRESAS"))
         self.btn_view_companies.pack(fill="x", padx=0, pady=(10, 0))
@@ -1575,37 +1607,49 @@ class DashboardPage(ctk.CTkFrame):
         self.repack_navigation()
 
     def repack_navigation(self):
-        self.btn_usuarios.pack_forget()
-        self.user_menu_frame.pack_forget()
-        self.btn_empresa.pack_forget()
-        self.company_menu_frame.pack_forget()
-        self.btn_view_companies.pack_forget()
+        # Limpiar todos los widgets
+        for widget in self.nav_frame.winfo_children():
+            widget.pack_forget()
 
-        self.btn_usuarios.pack(fill="x", padx=0, pady=(10, 0))
-        if self.user_menu_open:
-            self.user_menu_frame.pack(fill="x", padx=20, pady=(0, 10))
-        self.btn_empresa.pack(fill="x", padx=0, pady=(10, 0))
-        if self.company_menu_open:
-            self.company_menu_frame.pack(fill="x", padx=20, pady=(0, 10))
-        self.btn_view_companies.pack(fill="x", padx=0, pady=(10, 0))
+        # Mostrar información del usuario de forma segura
+        user_role = self.controller.user_role if self.controller.user_role else "USUARIO"
+        user_info = f"BIENVENIDO!\n({user_role.upper()})"
+        ctk.CTkLabel(self.nav_frame, text=user_info, font=ctk.CTkFont(size=16, weight="bold"),
+                     text_color="white", justify="left").pack(pady=(20, 30), padx=10, anchor="w")
+
+        # Reconstruir navegación según permisos
+        if self.controller.is_admin() and hasattr(self, 'btn_usuarios'):
+            self.btn_usuarios.pack(fill="x", padx=0, pady=(10, 0))
+            if self.user_menu_open:
+                self.user_menu_frame.pack(fill="x", padx=20, pady=(0, 10))
+
+        if self.controller.is_admin() and hasattr(self, 'btn_empresa'):
+            self.btn_empresa.pack(fill="x", padx=0, pady=(10, 0))
+            if self.company_menu_open:
+                self.company_menu_frame.pack(fill="x", padx=20, pady=(0, 10))
+
+        if hasattr(self, 'btn_view_companies'):
+            self.btn_view_companies.pack(fill="x", padx=0, pady=(10, 0))
 
         self.nav_frame.update_idletasks()
 
     def toggle_menu(self, menu_type):
-        if menu_type == 'user':
+        if menu_type == 'user' and self.controller.is_admin():
             self.user_menu_open = not self.user_menu_open
             if self.user_menu_open:
                 self.company_menu_open = False
                 self.btn_usuarios.configure(text="GESTIONAR USUARIOS ▴")
-                self.btn_empresa.configure(text="GESTIONAR EMPRESA ▾")
+                if hasattr(self, 'btn_empresa'):
+                    self.btn_empresa.configure(text="GESTIONAR EMPRESA ▾")
             else:
                 self.btn_usuarios.configure(text="GESTIONAR USUARIOS ▾")
-        elif menu_type == 'company':
+        elif menu_type == 'company' and self.controller.is_admin():
             self.company_menu_open = not self.company_menu_open
             if self.company_menu_open:
                 self.user_menu_open = False
                 self.btn_empresa.configure(text="GESTIONAR EMPRESA ▴")
-                self.btn_usuarios.configure(text="GESTIONAR USUARIOS ▾")
+                if hasattr(self, 'btn_usuarios'):
+                    self.btn_usuarios.configure(text="GESTIONAR USUARIOS ▾")
             else:
                 self.btn_empresa.configure(text="GESTIONAR EMPRESA ▾")
 
@@ -1623,7 +1667,8 @@ class DashboardPage(ctk.CTkFrame):
             page_class = self.controller.pages.get(content_frame_class) or content_frame_class
             self.current_content = page_class(self.content_container, self)
 
-        self.current_content.grid(row=0, column=0, sticky="nsew")
+        if self.current_content:
+            self.current_content.grid(row=0, column=0, sticky="nsew")
 
     def show_default_dashboard(self):
         if self.current_content:
@@ -1631,7 +1676,10 @@ class DashboardPage(ctk.CTkFrame):
 
         default_frame = ctk.CTkFrame(self.content_container, fg_color="white")
         default_frame.grid(row=0, column=0, sticky="nsew")
-        ctk.CTkLabel(default_frame, text=f"Bienvenido al Dashboard",
+
+        user_role = self.controller.user_role if self.controller.user_role else "USUARIO"
+        welcome_text = f"Bienvenido al Dashboard\nRol: {user_role.upper()}"
+        ctk.CTkLabel(default_frame, text=welcome_text,
                      font=ctk.CTkFont(size=40, weight="bold"),
                      text_color=COLOR_MORADO_OSCURO).pack(pady=100)
 
@@ -1639,6 +1687,14 @@ class DashboardPage(ctk.CTkFrame):
 
     def nav_action(self, action):
         print(f"Navegando a: {action}")
+
+        # Verificar permisos para acciones de administrador
+        if action in ["CREAR USUARIO", "MODIFICAR USUARIOS", "ELIMINAR USUARIOS",
+                      "CREAR EMPRESA", "MODIFICAR INFORMACIÓN EMPRESA", "ELIMINAR EMPRESA"]:
+            if not self.controller.is_admin():
+                messagebox.showwarning("Acceso Denegado",
+                                       "No tienes permisos para acceder a esta función.")
+                return
 
         if action == "CREAR USUARIO":
             self.show_content(CreateUserPage)

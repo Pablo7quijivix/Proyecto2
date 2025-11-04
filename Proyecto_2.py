@@ -916,14 +916,13 @@ def inicio_sesio(usuario,contrasena):
         return None
 
 
-# Agregar al final de Proyecto_2.py
 def crear_usuario_admin():
     """Crea un usuario admin por defecto si no existe"""
     try:
         conn = BasedeDatos.conectar()
         cursor = conn.cursor(dictionary=True)
 
-        # Verificar si ya existe
+        # Verificar si ya existe usuario
         cursor.execute("SELECT * FROM usuarios WHERE usuario = 'admin'")
         if cursor.fetchone():
             print("Usuario admin ya existe")
@@ -935,10 +934,10 @@ def crear_usuario_admin():
                                       "admin123", "Admin")
 
         if success:
-            print("✅ Usuario admin creado exitosamente")
-            print("📝 Credenciales: admin / admin123")
+            print(" Usuario admin creado exitosamente")
+            print(" Credenciales: admin / admin123")
         else:
-            print("❌ No se pudo crear el usuario admin")
+            print(" No se pudo crear el usuario admin")
 
         return success
 
@@ -951,5 +950,4 @@ def crear_usuario_admin():
             conn.close()
 
 
-# Ejecutar al importar el módulo
 crear_usuario_admin()
