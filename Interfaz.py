@@ -370,8 +370,24 @@ class Ui_MainWindow(object):
 
         main_layout.addStretch()
 
+    # --- NUEVA IMPLEMENTACIÓN: MODIFICAR USUARIOS ---
+    def setup_modificar_usuarios(self):
+        main_layout = QVBoxLayout(self.usuarios_modificar_page)
+        main_layout.setAlignment(Qt.AlignTop | Qt.AlignCenter)
 
+        titulo = QLabel("Modificar Información de Usuario")
+        titulo.setStyleSheet("font-size: 24pt; color: #4B0082; margin-bottom: 20px; font-weight: bold;")
+        main_layout.addWidget(titulo, alignment=Qt.AlignCenter)
 
+        # 1. SECCIÓN DE BÚSQUEDA
+        busqueda_frame = QFrame()
+        busqueda_layout = QHBoxLayout(busqueda_frame)
+        busqueda_frame.setMinimumWidth(600)
+        busqueda_frame.setStyleSheet("background-color: #E0E0E0; border-radius: 10px; padding: 15px;")
+
+        self.input_buscar_modificar = QLineEdit()
+        self.input_buscar_modificar.setPlaceholderText("Ingresar DPI o Usuario a modificar...")
+        self.btn_buscar_usuario_modificar = QPushButton("Buscar Usuario")
 
     #-------------------------------------------------------
     # AGREGANDO FUNCION DE: DISEÑO GESTIONAR EMPRESAS (PAGINA 9 DLE BOCETO DEL CANVA)
