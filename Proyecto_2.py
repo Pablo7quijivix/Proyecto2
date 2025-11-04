@@ -153,6 +153,23 @@ class Usuario:
         print(f"{self.nombre} ({self.puesto}) - Rol:{self.rol}")
 
     @staticmethod
+    def listar_todos():
+        conn = None
+        cursor = None
+        try:
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("SELECT id, nombre, usuario, rol, puesto FROM usuarios")
+            usuarios = cursor.fetchall()
+            return usuarios
+        except mysql.connector.Error as e:
+            print(f"Error al listar usuarios: {e}")
+            return []
+        finally:
+            if cursor: cursor.close()
+            if conn: conn.close()
+
+    @staticmethod
     def eliminar(usuario):
         conn = None
         cursor = None
@@ -240,6 +257,15 @@ class Auditor(Usuario):
                 facturas[empresa_nombre] = []
             facturas[empresa_nombre].append(factura)
         return guardar
+
+    def eliminar_usuario(self, usuario):
+        return Usuario.eliminar(usuario)
+
+    def eliminar_empresa(self, nombre_empresa):
+        return Empresa.eliminar(nombre_empresa)
+
+    def listar_usuarios(self):
+        return Usuario.listar_todos()
 
 class Empleado(Usuario):
     def __init__(self,nombre,dpi,correo,usuario,contrasena):
