@@ -398,7 +398,7 @@ class Ui_MainWindow(object):
         '''
 
         form_layout = QVBoxLayout(self.empresas_crear_page)
-        form_layout.setAlignment(Qt.AligTop | Qt.AlignCenter)
+        form_layout.setAlignment(Qt.AlignTop | Qt.AlignCenter)
 
         titulo = QLabel("Crear nueva empresa")
         titulo.setStyleSheet("font-size: 24pt; color: #4B0082; margin-bottom: 20px; font-weight: bold;")
