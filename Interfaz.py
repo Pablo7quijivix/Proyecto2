@@ -987,12 +987,9 @@ class MainApp(QMainWindow):
                 QMessageBox.critical(self, "Error",
                                      "Error al intentar guardar la modificación. El usuario pudo no existir.")
         except AttributeError:
-
-
-
-
-
-
+            QMessageBox.critical(self, "Error de Lógica","El método modificar_usuario() no está implementado en la clase Auditor.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error de Lógica", f"Ocurrió un error al modificar el usuario: {e}")
 
 
 
