@@ -477,6 +477,10 @@ class Ui_MainWindow(object):
         self.btn_crear_empresa_submit.setStyleSheet(
             "background-color: #4B0082; color: white; padding: 12px; font-size: 14pt; font-weight: bold; border-radius: 5px; margin-top: 20px;")
 
+        # Agregamos el formulario a la página
+        form_layout.addWidget(formulario_frame, alignment=Qt.AlignCenter)
+        form_layout.addWidget(self.btn_crear_empresa_submit, alignment=Qt.AlignCenter)
+        form_layout.addStretch()
 
 
 
