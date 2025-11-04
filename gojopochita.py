@@ -14,6 +14,12 @@ COLOR_DEGRADADO_BASE = "#28074d"  # Fondo más oscuro para simular el degradado 
 COLOR_CAMPO_CLARO = "#9c79c9"  # Morado claro para campos de entrada (similar a #A38DD0)
 COLOR_BOTON_REGRESAR = "#7D3C98"  # Color del botón Regresar
 COLOR_FORM_FRAME = "#5800a3"  # Morado más claro para el frame del formulario
+COLOR_BOTON_EDITAR = "#E0BBE4"  # Botón Editar (Morado claro del ejemplo)
+COLOR_BOTON_ELIMINAR = "#DC3545"  # Rojo para el botón Eliminar
+COLOR_TEXTO_TABLA = "#301934"  # Texto oscuro para las celdas claras de la tabla
+COLOR_FILA_OSCURA = "#4b0082"  # Fondo de las filas oscuras
+COLOR_FILA_CLARA = "#9c79c9"  # Fondo de las filas claras (similar al input)
+COLOR_CABECERA = "#301934"  # Color de la cabecera de la tabla
 CREDENCIALES_VALIDAS = {"admin": "contador"}
 
 # ATENCIÓN: Se asume que esta imagen existe en el mismo directorio
@@ -129,6 +135,7 @@ class LoginPage(ctk.CTkFrame):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
+        # Configuración del Fondo (usando el degradado de fallback)
         self.background_label = ctk.CTkLabel(self, text="")
         self.background_label.grid(row=0, column=0, sticky="nsew")
 
@@ -136,6 +143,7 @@ class LoginPage(ctk.CTkFrame):
 
         self._setup_header()
 
+        # El frame de login ahora debe ser blanco para contrastar con el fondo
         self.login_frame = ctk.CTkFrame(
             self, width=350, height=350, corner_radius=15,
             fg_color="white", bg_color="transparent", border_width=0)
@@ -223,8 +231,9 @@ class LoginPage(ctk.CTkFrame):
                      font=ctk.CTkFont(size=16, weight="normal"),
                      text_color="white", bg_color="transparent").place(x=20, y=10)
 
+        # Logo (oculto en el Login de la imagen de referencia)
         if self.original_logo_image:
-            pass
+            pass  # No mostrar logo en la esquina superior derecha del Login
 
     def login_action(self):
         username = self.username_entry.get()
@@ -236,6 +245,7 @@ class LoginPage(ctk.CTkFrame):
             self.error_label.configure(text="")
 
 
+# --- PANTALLA: CreateUserPage ---
 
 class CreateUserPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -256,7 +266,7 @@ class CreateUserPage(ctk.CTkFrame):
         # 2. Lado Izquierdo (Título, textos y Botón Regresar)
         left_frame = ctk.CTkFrame(main_container, fg_color="transparent")
         left_frame.grid(row=0, column=0, sticky="nsw", padx=20, pady=20)
-        left_frame.grid_rowconfigure(4, weight=1)  # El botón regresas estará en la fila 5
+        left_frame.grid_rowconfigure(5, weight=1)  # Ajustar el peso para el botón Regresar
 
         # "Nombre empresa"
         ctk.CTkLabel(left_frame, text="Nombre empresa",
@@ -267,16 +277,17 @@ class CreateUserPage(ctk.CTkFrame):
                      font=ctk.CTkFont(size=48, weight="bold"), text_color="white",
                      justify="left").grid(row=1, column=0, sticky="nw", pady=(30, 20))
 
-        # "texto"
-        ctk.CTkLabel(left_frame, text="Ingrese infromación de usuario",
+        # "olaa"
+        ctk.CTkLabel(left_frame, text="olaa",
                      font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=2, column=0, sticky="nw")
 
+        # Separador (simulado con un CTkLabel con guiones)
         ctk.CTkLabel(left_frame, text="—",
                      font=ctk.CTkFont(size=30, weight="bold"), text_color="white",
                      justify="left").grid(row=3, column=0, sticky="nw", pady=5)
 
         # "wasssa"
-        ctk.CTkLabel(left_frame, text=":D",
+        ctk.CTkLabel(left_frame, text="wasssa",
                      font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=4, column=0, sticky="nw")
 
         # Botón Regresar
@@ -348,6 +359,158 @@ class CreateUserPage(ctk.CTkFrame):
         # Lógica para crear el usuario
         print("Intentando crear nuevo usuario...")
         # Aquí iría la lógica de validación y guardado
+
+
+# --- PANTALLA BASE PARA TABLAS: TableBasePage ---
+
+class TableBasePage(ctk.CTkFrame):
+    def __init__(self, parent, controller, action_text, action_color, action_hover_color, action_command):
+        super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)  # Fondo degradado oscuro
+
+        self.controller = controller
+        self.action_text = action_text
+        self.action_color = action_color
+        self.action_hover_color = action_hover_color
+        self.action_command = action_command
+
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        self.user_data = [
+            {"DPI": "DPI1", "Nombre": "HOLAAA", "Teléfono": "12345678", "ROL": "ENCARGADO CONTA DE BIMBO"},
+            {"DPI": "DPI2", "Nombre": "Maria Garcia", "Teléfono": "87654321", "ROL": "ADMINISTRADOR"},
+            {"DPI": "DPI3", "Nombre": "Pedro Lopez", "Teléfono": "11223344", "ROL": "CONTADOR"},
+            {"DPI": "DPI4", "Nombre": "Ana Martinez", "Teléfono": "44332211", "ROL": "GESTOR DE VENTAS"},
+            {"DPI": "DPI5", "Nombre": "Juan Pérez", "Teléfono": "55551234", "ROL": "OPERADOR"},
+        ]
+
+        self._setup_top_bar()
+        self._setup_table()
+
+    def _setup_top_bar(self):
+        """Configura la barra superior con Ordenar, Buscar y Volver."""
+        top_bar_frame = ctk.CTkFrame(self, fg_color="transparent", height=60)
+        top_bar_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(40, 20))
+        top_bar_frame.grid_columnconfigure(1, weight=1)  # Columna del buscador se expande
+
+        # Botón Ordenar (Forma de pastilla, borde blanco)
+        ctk.CTkButton(top_bar_frame, text="Ordenar",
+                      width=100, height=45, corner_radius=25,
+                      fg_color="transparent", border_color="white", border_width=2,
+                      hover_color="#6A5ACD", text_color="white",
+                      font=ctk.CTkFont(size=16, weight="bold")
+                      ).grid(row=0, column=0, padx=(0, 15), sticky="w")
+
+        # Barra de Búsqueda (Forma de pastilla, fondo blanco)
+        ctk.CTkEntry(top_bar_frame, placeholder_text="Buscar",
+                     width=500, height=50, corner_radius=25,
+                     fg_color="white", text_color="black",
+                     font=ctk.CTkFont(size=16)
+                     ).grid(row=0, column=1, sticky="ew", padx=15)
+
+        # Botón Volver (Forma de pastilla, fondo blanco)
+        ctk.CTkButton(top_bar_frame, text="Volver",
+                      command=lambda: self.controller.show_default_dashboard(),
+                      width=100, height=45, corner_radius=25,
+                      fg_color="white", hover_color="#cccccc", text_color="black",
+                      font=ctk.CTkFont(size=16, weight="bold")
+                      ).grid(row=0, column=2, padx=(15, 0), sticky="e")
+
+    def _setup_table(self):
+        """Configura la tabla con la lista de usuarios."""
+        # Usar CTkFrame normal para que el scroll se maneje automáticamente
+        table_container = ctk.CTkScrollableFrame(self, fg_color="transparent", label_text=None)
+        table_container.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+
+        # Configuración de las columnas de la tabla (ajustar pesos)
+        cols = ["DPI", "Nombre", "Teléfono", "ROL", "Acción"]
+        table_container.grid_columnconfigure(0, weight=1)  # DPI
+        table_container.grid_columnconfigure(1, weight=3)  # Nombre
+        table_container.grid_columnconfigure(2, weight=2)  # Teléfono
+        table_container.grid_columnconfigure(3, weight=3)  # ROL
+        table_container.grid_columnconfigure(4, weight=1)  # Acción (Botón)
+
+        # --- Cabecera de la Tabla ---
+        header_font = ctk.CTkFont(size=16, weight="bold")
+        for i, col_name in enumerate(cols):
+            # Usar color de cabecera oscuro
+            header_cell = ctk.CTkLabel(table_container, text=col_name.upper(),
+                                       fg_color=COLOR_CABECERA, text_color="white",
+                                       font=header_font, height=50, corner_radius=0)
+            header_cell.grid(row=0, column=i, sticky="nsew", padx=(1 if i > 0 else 0, 1), pady=(0, 1))
+
+        # --- Filas de Datos ---
+        row_font = ctk.CTkFont(size=14)
+
+        for r, user in enumerate(self.user_data):
+            row_index = r + 1
+            # Alternar colores de fondo (claro/oscuro)
+            bg_color = COLOR_FILA_CLARA if r % 2 == 0 else COLOR_FILA_OSCURA
+            text_color = COLOR_TEXTO_TABLA if r % 2 == 0 else "white"
+
+            # Datos de las columnas
+            user_values = [user["DPI"], user["Nombre"], user["Teléfono"], user["ROL"]]
+
+            for c, value in enumerate(user_values):
+                cell = ctk.CTkLabel(table_container, text=str(value),
+                                    fg_color=bg_color, text_color=text_color,
+                                    font=row_font, height=60, corner_radius=0,
+                                    anchor="w", padx=15)
+                # Aplicar relleno sutil para separar celdas
+                cell.grid(row=row_index, column=c, sticky="nsew", padx=(1 if c > 0 else 0, 1), pady=(1, 1))
+
+            # Columna de Acción (Botón)
+            edit_button_frame = ctk.CTkFrame(table_container, fg_color=bg_color, corner_radius=0)
+            edit_button_frame.grid(row=row_index, column=len(cols) - 1, sticky="nsew", padx=(1, 1), pady=(1, 1))
+            edit_button_frame.grid_columnconfigure(0, weight=1)
+
+            ctk.CTkButton(edit_button_frame, text=self.action_text,
+                          command=lambda u=user: self.action_command(u),
+                          width=80, height=35, corner_radius=10,
+                          fg_color=self.action_color,
+                          hover_color=self.action_hover_color,
+                          text_color=COLOR_CABECERA if bg_color == COLOR_BOTON_EDITAR else "white",
+                          font=ctk.CTkFont(size=14, weight="bold")
+                          ).place(relx=0.5, rely=0.5, anchor=tk.CENTER)  # Centrar el botón
+
+
+# --- PANTALLA: ModifyUsersPage (Hereda de TableBasePage) ---
+
+class ModifyUsersPage(TableBasePage):
+    def __init__(self, parent, controller):
+        super().__init__(
+            parent,
+            controller,
+            action_text="EditaR",
+            action_color=COLOR_BOTON_EDITAR,
+            action_hover_color="#CBAACB",
+            action_command=self.edit_user_action
+        )
+
+    def edit_user_action(self, user):
+        """Simula la acción de editar un usuario."""
+        print(f"Editando usuario: DPI={user['DPI']}, Nombre={user['Nombre']}")
+        # Aquí se implementaría la navegación a la página de edición
+
+
+# --- PANTALLA: DeleteUsersPage (Hereda de TableBasePage) ---
+
+class DeleteUsersPage(TableBasePage):
+    def __init__(self, parent, controller):
+        super().__init__(
+            parent,
+            controller,
+            action_text="EliminaR",  # Texto de acción cambiado
+            action_color=COLOR_BOTON_ELIMINAR,  # Color de acción cambiado a rojo
+            action_hover_color="#B22222",  # Hover más oscuro para el rojo
+            action_command=self.delete_user_action
+        )
+
+    def delete_user_action(self, user):
+        """Simula la acción de eliminar un usuario."""
+        # Se podría pedir una confirmación aquí
+        print(f"!!! ELIMINANDO USUARIO: DPI={user['DPI']}, Nombre={user['Nombre']}")
+        # Lógica de eliminación...
 
 
 # --- DashboardPage Modificada ---
@@ -488,7 +651,10 @@ class DashboardPage(ctk.CTkFrame):
         if self.current_content:
             self.current_content.destroy()
 
-        if content_frame_class != DashboardPage:
+        # Las páginas de creación, modificación y eliminación manejan su propio fondo
+        if content_frame_class in [ModifyUsersPage, CreateUserPage, DeleteUsersPage]:
+            self.current_content = content_frame_class(self.content_container, self)
+        elif content_frame_class != DashboardPage:
             self.current_content = content_frame_class(self.content_container, self)
         else:
             self.current_content = ctk.CTkFrame(self.content_container, fg_color="transparent")
@@ -535,9 +701,17 @@ class DashboardPage(ctk.CTkFrame):
 
         if action == "CREAR USUARIO":
             self.show_content(CreateUserPage)
+        elif action == "MODIFICAR USUARIOS":
+            self.show_content(ModifyUsersPage)
+        elif action == "ELIMINAR USUARIOS":
+            self.show_content(DeleteUsersPage)  # Nueva página de eliminación
         else:
             self.show_default_dashboard()
 
+
+# ==================================================================
+## 🏃 Ejecución
+# ==================================================================
 
 if __name__ == "__main__":
     print(f"\n--- INICIO DE APLICACIÓN ---")
@@ -545,3 +719,5 @@ if __name__ == "__main__":
 
     app = App()
     app.mainloop()
+
+
