@@ -414,6 +414,9 @@ class Ui_MainWindow(object):
         grid_layout.setHorizontalSpacing(20)
         grid_layout.setVerticalSpacing(15)
 
+        # Estilo común para inputs
+        input_style = "QLineEdit { padding: 8px; border: 1px solid #CCC; border-radius: 5px; font-size: 11pt; }"
+
 
 # --- 2. CLASE CONTROLADORA PRINCIPAL --- (Se conecta la lógica de navegación y formulario) ---
 class MainApp(QMainWindow):
