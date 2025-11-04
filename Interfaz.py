@@ -427,6 +427,11 @@ class Ui_MainWindow(object):
         self.input_nombre_empresa.setPlaceholderText("Ej: Panadería El Sol")
         grid_layout.addWidget(self.input_nombre_empresa, 1, 1)
 
+        grid_layout.addWidget(QLabel("Dirección de la Empresa:"), 2, 0)
+        self.input_direccion_empresa = QLineEdit()
+        self.input_direccion_empresa.setStyleSheet(input_style)
+        grid_layout.addWidget(self.input_direccion_empresa, 2, 1)
+
 # --- 2. CLASE CONTROLADORA PRINCIPAL --- (Se conecta la lógica de navegación y formulario) ---
 class MainApp(QMainWindow):
     def __init__(self):
