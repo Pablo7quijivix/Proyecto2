@@ -469,6 +469,32 @@ class Ui_MainWindow(object):
 
 
 
+    def setup_listar_empresas(self):
+        """CONFIGURA LA VISTA PRINCIPAL PARA VER LA LISTA DE EMPRESAS."""
+        main_layout = QVBoxLayout(self.dashboard_ver_empresas_page)
+        main_layout.setAlignment(Qt.AlignTop)
+        main_layout.setContentsMargins(30, 30, 30, 30)
+
+        # Título
+        titulo = QLabel("Listado de Empresas Registradas")
+        titulo.setStyleSheet("font-size: 28pt; color: #4B0082; margin-bottom: 20px; font-weight: bold;")
+        main_layout.addWidget(titulo, alignment=Qt.AlignCenter)
+
+        # Barra de Búsqueda y Control
+        control_frame = QFrame()
+        control_layout = QHBoxLayout(control_frame)
+        control_layout.setContentsMargins(0, 0, 0, 0)
+
+        self.input_buscar_empresa = QLineEdit()
+        self.input_buscar_empresa.setPlaceholderText("Buscar por Nombre de Empresa o NIT...")
+        self.input_buscar_empresa.setStyleSheet(
+            "padding: 8px; border: 1px solid #CCC; border-radius: 5px; font-size: 11pt;")
+        self.input_buscar_empresa.setMinimumWidth(300)
+
+
+
+
+
 
 
 
