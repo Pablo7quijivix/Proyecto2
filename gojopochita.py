@@ -6,17 +6,24 @@ import os
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
-
-COLOR_MORADO_OSCURO = "#301934"
+# --- CONFIGURACIÓN DE RUTAS Y COLORES ---
+# Colores basados en el diseño de la imagen:
+COLOR_MORADO_OSCURO = "#301934"  # Morado casi negro (Sidebar)
+COLOR_FONDO_PRINCIPAL = "#4b0082"  # Morado oscuro (Fondo general y Hover)
+COLOR_DEGRADADO_BASE = "#28074d"  # Fondo más oscuro para simular el degradado principal
+COLOR_CAMPO_CLARO = "#9c79c9"  # Morado claro para campos de entrada (similar a #A38DD0)
+COLOR_BOTON_REGRESAR = "#7D3C98"  # Color del botón Regresar
+COLOR_FORM_FRAME = "#5800a3"  # Morado más claro para el frame del formulario
 CREDENCIALES_VALIDAS = {"admin": "contador"}
 
-
-PATH_BG = "fondo_degradado.png"
-PATH_LOGO = "doraemon.jpeg"
-PATH_FROG = "doraemon.jpeg"
+# ATENCIÓN: Se asume que esta imagen existe en el mismo directorio
+PATH_BG = "image_7365ba.jpg"
+PATH_LOGO = "image_7365ba.jpg"
+PATH_FROG = "image_7365ba.jpg"  # Imagen para el Dashboard
 
 
 def create_default_image(width, height, color1, color2, text=""):
+    """Crea una imagen de degradado de colores sólida como fallback."""
     image = Image.new("RGB", (width, height), color1)
     draw = ImageDraw.Draw(image)
 
@@ -44,12 +51,15 @@ def create_default_image(width, height, color1, color2, text=""):
 
 
 def load_pil_image(path, default_width=800, default_height=600):
-    FALLBACK_COLOR_1 = "#2c2130"
-    FALLBACK_COLOR_2 = "#4b0082"
+    """Carga una imagen o crea un degradado de fallback si el archivo no existe."""
+    # Colores oscuros de fallback para el Login (simulando el degradado de la imagen)
+    FALLBACK_COLOR_1 = COLOR_DEGRADADO_BASE
+    FALLBACK_COLOR_2 = COLOR_FONDO_PRINCIPAL
 
     if not os.path.exists(path):
         print(f"[ADVERTENCIA] Archivo '{path}' no encontrado. Creando imagen por defecto.")
         print(f"Directorio actual: {os.getcwd()}")
+        # Usar el degradado del usuario
         return create_default_image(
             default_width, default_height,
             FALLBACK_COLOR_1, FALLBACK_COLOR_2,
@@ -65,6 +75,7 @@ def load_pil_image(path, default_width=800, default_height=600):
             FALLBACK_COLOR_1, FALLBACK_COLOR_2,
             f"Error_{os.path.basename(path)}")
 
+
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
@@ -75,15 +86,21 @@ class App(ctk.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        container = ctk.CTkFrame(self, fg_color="transparent")
+        # Crear un contenedor que usará el color de fondo para la simulación del degradado
+        container = ctk.CTkFrame(self, fg_color=COLOR_FONDO_PRINCIPAL)
         container.grid(row=0, column=0, sticky="nsew")
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
 
-        # Crear las páginas
-        self.frames[LoginPage] = LoginPage(parent=container, controller=self)
+        # Cargar imágenes de fondo para el LoginPage (ahora con el degradado correcto)
+        self.original_bg_image = load_pil_image(PATH_BG, 1000, 700)
+        self.original_logo_image = load_pil_image(PATH_LOGO, 50, 30)
+
+        # Crear las páginas, pasando las imágenes necesarias
+        self.frames[LoginPage] = LoginPage(parent=container, controller=self,
+                                           bg_image=self.original_bg_image, logo_image=self.original_logo_image)
         self.frames[DashboardPage] = DashboardPage(parent=container, controller=self)
 
         self.show_frame(LoginPage)
@@ -101,17 +118,16 @@ class App(ctk.CTk):
             return True
         return False
 
+
 class LoginPage(ctk.CTkFrame):
-    def __init__(self, parent, controller):
+    def __init__(self, parent, controller, bg_image, logo_image):
         super().__init__(parent, fg_color="transparent")
         self.controller = controller
+        self.original_bg_image = bg_image
+        self.original_logo_image = logo_image
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
-
-        # Cargar imágenes
-        self.original_bg_image = load_pil_image(PATH_BG, 1000, 700)
-        self.original_logo_image = load_pil_image(PATH_LOGO, 50, 30)
 
         self.background_label = ctk.CTkLabel(self, text="")
         self.background_label.grid(row=0, column=0, sticky="nsew")
@@ -119,6 +135,7 @@ class LoginPage(ctk.CTkFrame):
         self.setup_background()
 
         self._setup_header()
+
         self.login_frame = ctk.CTkFrame(
             self, width=350, height=350, corner_radius=15,
             fg_color="white", bg_color="transparent", border_width=0)
@@ -129,7 +146,13 @@ class LoginPage(ctk.CTkFrame):
                      font=ctk.CTkFont(size=24, weight="bold"),
                      text_color=COLOR_MORADO_OSCURO).pack(pady=(40, 30), padx=10)
 
-        self.username_entry = ctk.CTkEntry(self.login_frame,placeholder_text="Usuario",width=250, height=40,corner_radius=10,fg_color="#f0f0f0",text_color="black",border_width=0)
+        self.username_entry = ctk.CTkEntry(self.login_frame,
+                                           placeholder_text="Usuario",
+                                           width=250, height=40,
+                                           corner_radius=10,
+                                           fg_color="#f0f0f0",
+                                           text_color="black",
+                                           border_width=0)
         self.username_entry.pack(pady=10)
         self.username_entry.insert(0, "admin")
 
@@ -159,7 +182,7 @@ class LoginPage(ctk.CTkFrame):
     def setup_background(self):
         """Configura la imagen de fondo y el listener de redimensionamiento."""
         if self.original_bg_image:
-
+            # Inicializa la imagen con el tamaño actual o por defecto
             initial_width = self.winfo_width() if self.winfo_width() > 1 else 1000
             initial_height = self.winfo_height() if self.winfo_height() > 1 else 700
 
@@ -171,41 +194,37 @@ class LoginPage(ctk.CTkFrame):
         else:
             self.background_label.configure(fg_color=COLOR_MORADO_OSCURO)
 
+        # Asegura que el fondo se redimensione
         self.bind("<Configure>", self.on_resize)
 
     def on_resize(self, event):
         """Redimensiona la imagen de fondo cuando cambia el tamaño de la ventana."""
         if hasattr(self, 'original_bg_image') and self.original_bg_image:
-
+            # Solo redimensionar si el ancho/alto ha cambiado significativamente
             if event.width > 0 and event.height > 0:
                 try:
-                    resized_image = self.original_bg_image.resize((event.width, event.height))
-                    self.ctk_bg_image.configure(light_image=resized_image,
-                                                dark_image=resized_image,
-                                                size=(event.width, event.height))
+                    # Usar el degradado personalizado para simular el fondo de la imagen
+                    degraded_bg = create_default_image(
+                        event.width, event.height,
+                        COLOR_DEGRADADO_BASE, COLOR_FONDO_PRINCIPAL
+                    )
+
+                    self.ctk_bg_image = ctk.CTkImage(light_image=degraded_bg,
+                                                     dark_image=degraded_bg,
+                                                     size=(event.width, event.height))
+                    self.background_label.configure(image=self.ctk_bg_image)
+
                 except Exception as e:
                     print(f"Error al redimensionar fondo: {e}")
 
     def _setup_header(self):
         # Nombre de la empresa
-        ctk.CTkLabel(self, text="Empres SK",
-                     font=ctk.CTkFont(size=20, weight="bold"),
+        ctk.CTkLabel(self, text="Nombre empresa",
+                     font=ctk.CTkFont(size=16, weight="normal"),
                      text_color="white", bg_color="transparent").place(x=20, y=10)
 
-        # Logo
         if self.original_logo_image:
-            ctk_logo_image = ctk.CTkImage(
-                light_image=self.original_logo_image,
-                dark_image=self.original_logo_image,
-                size=(50, 30)
-            )
-            logo_label = ctk.CTkLabel(self, text="", image=ctk_logo_image,
-                                      compound="center", bg_color="transparent")
-            logo_label.place(relx=1.0, x=-20, y=10, anchor=tk.NE)
-        else:
-            ctk.CTkLabel(self, text="LOGO",
-                         font=ctk.CTkFont(size=14, weight="bold"),
-                         text_color="white", bg_color="transparent").place(relx=1.0, x=-20, y=10, anchor=tk.NE)
+            pass
 
     def login_action(self):
         username = self.username_entry.get()
@@ -217,15 +236,136 @@ class LoginPage(ctk.CTkFrame):
             self.error_label.configure(text="")
 
 
+
+class CreateUserPage(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)  # Fondo del diseño (Morado oscuro)
+
+        self.controller = controller
+
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        # 1. Contenedor principal centrado
+        main_container = ctk.CTkFrame(self, fg_color="transparent")
+        main_container.grid(row=0, column=0, sticky="nsew", padx=40, pady=40)
+        main_container.grid_rowconfigure(0, weight=1)
+        main_container.grid_columnconfigure(0, weight=1)
+        main_container.grid_columnconfigure(1, weight=1)
+
+        # 2. Lado Izquierdo (Título, textos y Botón Regresar)
+        left_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        left_frame.grid(row=0, column=0, sticky="nsw", padx=20, pady=20)
+        left_frame.grid_rowconfigure(4, weight=1)  # El botón regresas estará en la fila 5
+
+        # "Nombre empresa"
+        ctk.CTkLabel(left_frame, text="Nombre empresa",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=0, column=0, sticky="nw")
+
+        # Título Grande
+        ctk.CTkLabel(left_frame, text="Crear nuevo\nusuario",
+                     font=ctk.CTkFont(size=48, weight="bold"), text_color="white",
+                     justify="left").grid(row=1, column=0, sticky="nw", pady=(30, 20))
+
+        # "texto"
+        ctk.CTkLabel(left_frame, text="Ingrese infromación de usuario",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=2, column=0, sticky="nw")
+
+        ctk.CTkLabel(left_frame, text="—",
+                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white",
+                     justify="left").grid(row=3, column=0, sticky="nw", pady=5)
+
+        # "wasssa"
+        ctk.CTkLabel(left_frame, text=":D",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=4, column=0, sticky="nw")
+
+        # Botón Regresar
+        ctk.CTkButton(left_frame, text="Regresar",
+                      command=lambda: self.controller.show_default_dashboard(),
+                      width=150, height=45, corner_radius=10,
+                      fg_color=COLOR_BOTON_REGRESAR,
+                      hover_color="#A948C9",  # Color del botón Regresar en hover
+                      font=ctk.CTkFont(size=16, weight="normal"),
+                      text_color="white").grid(row=5, column=0, sticky="sw", pady=(100, 0))
+
+        # 3. Lado Derecho (Formulario de Usuario)
+        right_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        right_frame.grid(row=0, column=1, sticky="nse", padx=20, pady=20)
+
+        # El formulario estará en un sub-frame morado con esquinas muy redondeadas
+        form_frame = ctk.CTkFrame(right_frame, corner_radius=30,
+                                  fg_color=COLOR_FORM_FRAME, width=350)
+        form_frame.pack(expand=False, fill="y", side="right")
+
+        # Título del Formulario
+        ctk.CTkLabel(form_frame, text="Usuario",
+                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white").pack(pady=(40, 20), padx=40)
+
+        # CAMPOS DE LA IMAGEN DE REFERENCIA:
+        fields = ["NOMBRE_COMPLETO", "USUARIO", "CONTRASEÑA", "ROL", "CORREO", "TELEFONO", "FECHA DE NACIMIENTO"]
+
+        for field in fields:
+            # Etiqueta (Ejemplo del diseño: NOMBRE_COMPLETO)
+            ctk.CTkLabel(form_frame, text=field.replace("_", " "),  # Reemplazar _ por espacio para mejor lectura
+                         font=ctk.CTkFont(size=12, weight="normal"), text_color="white", anchor="w").pack(fill="x",
+                                                                                                          padx=40,
+                                                                                                          pady=(15, 0))
+
+            # Campo de entrada
+            if field == "FECHA DE NACIMIENTO":
+                # Simulación de Dropdown/Combobox para Fecha
+                entry = ctk.CTkEntry(form_frame, placeholder_text="Seleccionar fecha", height=40,
+                                     corner_radius=10,
+                                     fg_color=COLOR_CAMPO_CLARO,
+                                     border_width=0,
+                                     text_color="white")
+                entry.pack(fill="x", padx=40)
+
+                # Simular flecha de dropdown usando un label con el carácter unicode
+                ctk.CTkLabel(entry, text="⌄", font=ctk.CTkFont(size=20, weight="bold"), text_color="white",
+                             fg_color="transparent").place(relx=0.9, rely=0.5, anchor=tk.CENTER)
+            else:
+                entry = ctk.CTkEntry(form_frame, placeholder_text="", height=40,
+                                     corner_radius=10,
+                                     fg_color=COLOR_CAMPO_CLARO,
+                                     border_width=0,
+                                     text_color="white")
+                entry.pack(fill="x", padx=40)
+
+            # Placeholder/Ejemplo (Solo para el primer campo como en la imagen)
+            if field == "NOMBRE_COMPLETO":
+                entry.insert(0, "Francois Mercer")
+
+        # Botón Crear Usuario (Color morado oscuro)
+        ctk.CTkButton(form_frame, text="Crear\nusuario",
+                      command=self.create_user_action,
+                      width=180, height=60, corner_radius=15,
+                      fg_color=COLOR_MORADO_OSCURO,
+                      hover_color="#5D3FD3",  # Un color más claro para el hover
+                      font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(30, 40))
+
+    def create_user_action(self):
+        # Lógica para crear el usuario
+        print("Intentando crear nuevo usuario...")
+        # Aquí iría la lógica de validación y guardado
+
+
+# --- DashboardPage Modificada ---
+
 class DashboardPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
+        # El dashboard usa fondo blanco/claro
         super().__init__(parent, fg_color="white")
         self.controller = controller
+
+        self.content_container = ctk.CTkFrame(self, fg_color="transparent")
+        self.content_container.grid(row=0, column=1, sticky="nsew")
+        self.content_container.grid_rowconfigure(0, weight=1)
+        self.content_container.grid_columnconfigure(0, weight=1)
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
-        # Inicializar estado de los menús
         self.user_menu_open = False
         self.company_menu_open = False
 
@@ -243,25 +383,20 @@ class DashboardPage(ctk.CTkFrame):
         self.nav_frame = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
         self.nav_frame.grid(row=1, column=0, sticky="nwe", padx=0, pady=(0, 20))
 
-        # El nav_frame usará 'pack' para que los botones y submenús fluyan
         ctk.CTkLabel(self.nav_frame, text="BIENVENIDO!",
                      font=ctk.CTkFont(size=20, weight="bold"),
                      text_color="white").pack(pady=(20, 30), padx=10, anchor="w")
 
-
         self._setup_navigation()
 
-
+        # Botón Cerrar Sesión (Se pega al fondo de la barra lateral)
         ctk.CTkButton(self.sidebar_frame, text="Cerrar Sesión",
                       command=lambda: controller.show_frame(LoginPage),
                       fg_color="red", hover_color="#8B0000").grid(row=2, column=0, sticky="s", padx=20, pady=20)
 
-        self.main_content_frame = ctk.CTkFrame(self, fg_color="white")
-        self.main_content_frame.grid(row=0, column=1, sticky="nsew")
-
-        self.main_content_frame.grid_columnconfigure(0, weight=1)
-
-        self._setup_main_content()
+        # --- Columna 1: Área de Contenido Principal (Derecha) ---
+        self.current_content = None
+        self.show_default_dashboard()
 
     def _create_nav_button(self, text, command):
         """Función auxiliar para crear botones de navegación con estilo uniforme."""
@@ -276,6 +411,7 @@ class DashboardPage(ctk.CTkFrame):
         )
 
     def _create_sub_menu(self, parent_frame, sub_item_text):
+        """Función auxiliar para crear botones de submenú."""
         return ctk.CTkButton(
             parent_frame, text=f"• {sub_item_text}",
             command=lambda val=sub_item_text: self.nav_action(val),
@@ -286,6 +422,7 @@ class DashboardPage(ctk.CTkFrame):
         )
 
     def _setup_navigation(self):
+        """Configura los botones de navegación y los menús desplegables."""
         # 1. Botones Principales
         self.btn_usuarios = self._create_nav_button("GESTIONAR USUARIOS ▾", lambda: self.toggle_menu('user'))
         self.btn_empresa = self._create_nav_button("GESTIONAR EMPRESA ▾", lambda: self.toggle_menu('company'))
@@ -297,19 +434,18 @@ class DashboardPage(ctk.CTkFrame):
         for sub_item in user_submenu_items:
             self._create_sub_menu(self.user_menu_frame, sub_item).pack(fill="x", padx=(20, 0), pady=1)
 
-
+        # 3. Submenu Frame EMPRESA
         self.company_menu_frame = ctk.CTkFrame(self.nav_frame, fg_color="#4B0082", corner_radius=0)
         company_submenu_items = ["CREAR EMPRESA", "MODIFICAR INFORMACIÓN EMPRESA", "ELIMINAR EMPRESA"]
         for sub_item in company_submenu_items:
             self._create_sub_menu(self.company_menu_frame, sub_item).pack(fill="x", padx=(20, 0), pady=1)
 
+        # 4. Empaquetar los botones principales
         self.repack_navigation()
 
     def repack_navigation(self):
         """Reordena todos los elementos del nav_frame en función del estado de los menús."""
-
         for widget in self.nav_frame.winfo_children():
-
             if widget.winfo_class() != 'CTkLabel' or widget.cget('text') != "BIENVENIDO!":
                 widget.pack_forget()
 
@@ -326,11 +462,9 @@ class DashboardPage(ctk.CTkFrame):
     def toggle_menu(self, menu_type):
         """Muestra u oculta el submenú solicitado y cierra el otro."""
 
-
         if menu_type == 'user':
             self.user_menu_open = not self.user_menu_open
             if self.user_menu_open:
-                # Si se abre, cerrar el otro
                 self.company_menu_open = False
                 self.btn_usuarios.configure(text="GESTIONAR USUARIOS ▴")
                 self.btn_empresa.configure(text="GESTIONAR EMPRESA ▾")
@@ -340,34 +474,50 @@ class DashboardPage(ctk.CTkFrame):
         elif menu_type == 'company':
             self.company_menu_open = not self.company_menu_open
             if self.company_menu_open:
-
                 self.user_menu_open = False
                 self.btn_empresa.configure(text="GESTIONAR EMPRESA ▴")
                 self.btn_usuarios.configure(text="GESTIONAR USUARIOS ▾")
             else:
                 self.btn_empresa.configure(text="GESTIONAR EMPRESA ▾")
 
-
         self.repack_navigation()
-
         self.nav_action(self.btn_usuarios.cget("text") if menu_type == 'user' else self.btn_empresa.cget("text"))
 
-    def _setup_main_content(self):
+    def show_content(self, content_frame_class):
+        """Destruye el contenido actual y muestra la nueva página."""
+        if self.current_content:
+            self.current_content.destroy()
 
-        FROG_SIZE = (200, 200)
+        if content_frame_class != DashboardPage:
+            self.current_content = content_frame_class(self.content_container, self)
+        else:
+            self.current_content = ctk.CTkFrame(self.content_container, fg_color="transparent")
+
+        self.current_content.grid(row=0, column=0, sticky="nsew")
+
+    def show_default_dashboard(self):
+        """Muestra la vista por defecto (la imagen de la rana o placeholder)."""
+
+        if self.current_content:
+            self.current_content.destroy()
+
+        # Frame que contiene la rana (para heredar el estilo blanco/compacto)
+        main_content_frame = ctk.CTkFrame(self.content_container, fg_color="white")
+        main_content_frame.grid(row=0, column=0, sticky="nsew")
+        main_content_frame.grid_columnconfigure(0, weight=1)
+        main_content_frame.grid_rowconfigure(0, weight=1)
+
+        self.current_content = main_content_frame  # Asignar el nuevo frame como contenido actual
+
+        # Carga la imagen (Sigue siendo la imagen de Doraemon si PATH_FROG no existe)
+        FROG_SIZE = (300, 150)  # TAMAÑO MODIFICADO: Más ancho (300) y menos largo (150)
         frog_image = load_pil_image(PATH_FROG, FROG_SIZE[0], FROG_SIZE[1])
 
-        for widget in self.main_content_frame.winfo_children():
-            widget.destroy()
-
-        # Contenedor para centrar la imagen
-        content_wrapper = ctk.CTkFrame(self.main_content_frame, fg_color="white", height=300,
-                                       width=400)
+        # Contenedor de la rana (más compacto)
+        content_wrapper = ctk.CTkFrame(main_content_frame, fg_color="white",
+                                       width=FROG_SIZE[0] + 40, height=FROG_SIZE[1] + 40)
+        # Centrar el wrapper
         content_wrapper.grid(row=0, column=0, padx=20, pady=20)
-
-        # Centrar el content_wrapper dentro del main_content_frame
-        self.main_content_frame.grid_rowconfigure(0, weight=1)
-        self.main_content_frame.grid_columnconfigure(0, weight=1)
 
         if frog_image:
             ctk_frog_image = ctk.CTkImage(light_image=frog_image, dark_image=frog_image, size=FROG_SIZE)
@@ -380,9 +530,13 @@ class DashboardPage(ctk.CTkFrame):
                          font=ctk.CTkFont(size=16, weight="bold")).place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
     def nav_action(self, action):
-        """Maneja la acción de navegación (imprime por ahora)."""
+        """Maneja la acción de navegación (imprime por ahora y cambia de pantalla)."""
         print(f"Navegando a: {action}")
 
+        if action == "CREAR USUARIO":
+            self.show_content(CreateUserPage)
+        else:
+            self.show_default_dashboard()
 
 
 if __name__ == "__main__":
