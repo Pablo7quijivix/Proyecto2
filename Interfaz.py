@@ -708,6 +708,31 @@ class MainApp(QMainWindow):
         self.ui.tabla_usuarios.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
 
 
+    def handle_eliminar_usuario(self):
+        if not self.auditor:
+            QMessageBox.critical(self,"Error", "Debe iniciar sesión con Admin.")
+            return
+
+        # obtener el indice de la fila seleccionada
+        selected_indexes = self.ui.tabla_usuarios.selectionModel().selectedRows()
+
+        if not selected_indexes:
+            QMessageBox.warning(self."Advertencia", "Por favor seleccione un usuario de la lista para eliminar.")
+            return
+
+            # Obtener el DPI del usuario seleccionado (columna 0)
+            selected_row = selected_indexes[0].row()
+            dpi_item = self.user_model.item(selected_row, 0)
+            dpi_a_eliminar = dpi_item.text()
+
+            # Diálogo de confirmación
+            reply = QMessageBox.question(
+                self,
+                'Confirmar Eliminación',
+                f"¿Está seguro que desea eliminar al usuario con DPI: {dpi_a_eliminar}? Esta acción es irreversible.",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
 
 
 
