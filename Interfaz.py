@@ -466,6 +466,12 @@ class Ui_MainWindow(object):
         self.input_correo_propietario.setStyleSheet(input_style)
         grid_layout.addWidget(self.input_correo_propietario, 9, 1)
 
+        grid_layout.addWidget(QLabel("Fecha de Nacimiento:"), 10, 0)
+        self.input_fecha_nacimiento_propietario = QLineEdit()
+        self.input_fecha_nacimiento_propietario.setStyleSheet(input_style)
+        self.input_fecha_nacimiento_propietario.setPlaceholderText("AAAA-MM-DD")
+        grid_layout.addWidget(self.input_fecha_nacimiento_propietario, 10, 1)
+
 
 
 
