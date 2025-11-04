@@ -658,20 +658,38 @@ class MainApp(QMainWindow):
             QMessageBox.critical(self, "Error de Lógica", f"Ocurrió un error al intentar crear el usuario: {e}")
 
 
-            def handle_listar_usuarios(self):
-                # muestra la lista de usuarios en el QTableview y navega a la pagina
-                self.navigate_usuarios(3)
+    def handle_listar_usuarios(self):
+        # muestra la lista de usuarios en el QTableview y navega a la pagina
+        self.navigate_usuarios(3)
 
-                if not self.auditor:
-                    QMessageBox.critical(self, "Error", "Debe iniciar sesión como Admin para ver esta lista.")
-                    return
+        if not self.auditor:
+            QMessageBox.critical(self, "Error", "Debe iniciar sesión como Admin para ver esta lista.")
+            return
 
-                try:
-                    # Asumimos que listar_usuarios() devuelve una lista de diccionarios.
-                    lista_usuarios = self.auditor.listar_usuarios()
-                except AttributeError:
-                    QMessageBox.critical(self, "Error de Lógica",
-                                         "El método listar_usuarios() no está implementado en la clase Auditor.")
+        try:
+            # Asumimos que listar_usuarios() devuelve una lista de diccionarios.
+            lista_usuarios = self.auditor.listar_usuarios()
+        except AttributeError:
+            QMessageBox.critical(self, "Error de Lógica","El método listar_usuarios() no está implementado en la clase Auditor.")
+            return
+        except Exception as e:
+            QMessageBox.critical(self, "Error de Lógica", f"Error al obtener usuarios: {e}")
+            return
+
+        if not lista_usuarios:
+            self.ui.tabla_usuarios.setModel(None)
+            QMessageBox.information(self, "Información", "No hay usuarios registrados en el sistema.")
+            return
+
+
+
+
+
+
+
+
+
+
 
         # agregando nuevo método de navegacion DE USUARIOS
         # MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (AUDITOR)
