@@ -410,10 +410,51 @@ class Ui_MainWindow(object):
         grid_layout.setHorizontalSpacing(20)
         grid_layout.setVerticalSpacing(15)
 
+        # CAMPOS DE MODIFICACIÓN (Nuevos nombres para evitar conflicto con Crear Usuario)
+        self.mod_nombre_completo = QLineEdit()
+        self.mod_dpi = QLineEdit()  # Campo clave
+        self.mod_dpi.setReadOnly(True)  # El DPI no debe ser modificable, solo se muestra
+        self.mod_correo = QLineEdit()
+        self.mod_puesto = QLineEdit()
+        self.mod_usuario = QLineEdit()
+        self.mod_contrasena = QLineEdit()
+        self.mod_telefono = QLineEdit()
+        self.mod_fecha_nacimiento = QLineEdit()
+        self.mod_combo_rol = QComboBox()
+        self.mod_combo_rol.addItems(["Admin", "Usuario"])
 
+        # Estilo
+        mod_input_style = "QLineEdit:not([readOnly='true']), QComboBox { padding: 8px; border: 1px solid #CCC; border-radius: 5px; font-size: 11pt; } QLineEdit[readOnly='true'] { background-color: #E9ECEF; color: #6C757D; }"
+        self.mod_nombre_completo.setStyleSheet(mod_input_style)
+        self.mod_dpi.setStyleSheet(mod_input_style)
+        self.mod_correo.setStyleSheet(mod_input_style)
+        self.mod_puesto.setStyleSheet(mod_input_style)
+        self.mod_usuario.setStyleSheet(mod_input_style)
+        self.mod_contrasena.setStyleSheet(mod_input_style)
+        self.mod_telefono.setStyleSheet(mod_input_style)
+        self.mod_fecha_nacimiento.setStyleSheet(mod_input_style)
+        self.mod_combo_rol.setStyleSheet(mod_input_style)
 
-
-
+        # Etiquetas y campos en la grilla
+        grid_layout.addWidget(QLabel("DPI (Clave):"), 0, 0)
+        grid_layout.addWidget(self.mod_dpi, 0, 1)
+        grid_layout.addWidget(QLabel("Nombre Completo:"), 1, 0)
+        grid_layout.addWidget(self.mod_nombre_completo, 1, 1)
+        grid_layout.addWidget(QLabel("Usuario (Login):"), 2, 0)
+        grid_layout.addWidget(self.mod_usuario, 2, 1)
+        grid_layout.addWidget(QLabel("Contraseña:"), 3, 0)
+        self.mod_contrasena.setEchoMode(QLineEdit.Password)
+        grid_layout.addWidget(self.mod_contrasena, 3, 1)
+        grid_layout.addWidget(QLabel("Rol:"), 4, 0)
+        grid_layout.addWidget(self.mod_combo_rol, 4, 1)
+        grid_layout.addWidget(QLabel("Correo:"), 5, 0)
+        grid_layout.addWidget(self.mod_correo, 5, 1)
+        grid_layout.addWidget(QLabel("Puesto:"), 6, 0)
+        grid_layout.addWidget(self.mod_puesto, 6, 1)
+        grid_layout.addWidget(QLabel("Teléfono:"), 7, 0)
+        grid_layout.addWidget(self.mod_telefono, 7, 1)
+        grid_layout.addWidget(QLabel("Fecha Nacimiento:"), 8, 0)
+        grid_layout.addWidget(self.mod_fecha_nacimiento, 8, 1)
 
 
 
