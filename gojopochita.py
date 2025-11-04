@@ -20,6 +20,7 @@ COLOR_TEXTO_TABLA = "#301934"  # Texto oscuro para las celdas claras de la tabla
 COLOR_FILA_OSCURA = "#4b0082"  # Fondo de las filas oscuras
 COLOR_FILA_CLARA = "#9c79c9"  # Fondo de las filas claras (similar al input)
 COLOR_CABECERA = "#301934"  # Color de la cabecera de la tabla
+COLOR_FONDO_LISTA = "#eeeeee"  # Color de fondo de la lista de empresas
 CREDENCIALES_VALIDAS = {"admin": "contador"}
 
 # ATENCIÓN: Se asume que esta imagen existe en el mismo directorio
@@ -505,7 +506,7 @@ class TableBasePage(ctk.CTkFrame):
             {"ID": "DPI5", "Nombre": "Juan Pérez", "Teléfono": "55551234", "ROL": "OPERADOR"},
         ]
 
-        # Datos de ejemplo para Empresas (NUEVOS DATOS)
+        # Datos de ejemplo para Empresas (Mismos datos usados en ViewCompaniesPage)
         self.company_data = [
             {"ID": "NIT1", "Nombre": "Tecno Soluciones SA", "Teléfono": "99887766", "DIRECCIÓN": "Av. Principal 123"},
             {"ID": "NIT2", "Nombre": "Inversiones del Sur", "Teléfono": "22334455", "DIRECCIÓN": "Calle Falsa 456"},
@@ -670,7 +671,7 @@ class DeleteUsersPage(TableBasePage):
         # Lógica de eliminación...
 
 
-# --- NUEVA PANTALLA: ModifyCompanyPage (Hereda de TableBasePage) ---
+# --- PANTALLA: ModifyCompanyPage (Hereda de TableBasePage) ---
 
 class ModifyCompanyPage(TableBasePage):
     def __init__(self, parent, controller):
@@ -690,7 +691,7 @@ class ModifyCompanyPage(TableBasePage):
         # Aquí se implementaría la navegación a la página de edición de empresa
 
 
-# --- NUEVA PANTALLA: DeleteCompanyPage (Hereda de TableBasePage) ---
+# --- PANTALLA: DeleteCompanyPage (Hereda de TableBasePage) ---
 
 class DeleteCompanyPage(TableBasePage):
     def __init__(self, parent, controller):
@@ -709,6 +710,86 @@ class DeleteCompanyPage(TableBasePage):
         # Se podría pedir una confirmación aquí
         print(f"!!! ELIMINANDO EMPRESA: ID={company['ID']}, Nombre={company['Nombre']}")
         # Lógica de eliminación...
+
+
+# --- NUEVA PANTALLA: ViewCompaniesPage (Lista simple de empresas) ---
+
+class ViewCompaniesPage(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)  # Fondo degradado oscuro
+
+        self.controller = controller
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        # Datos de ejemplo específicos para esta lista (incluye las de la imagen)
+        self.companies = ["BIMBO", "PANADERIA HOLA MUNDO", "PAW PATROL", "Tecno Soluciones SA", "Inversiones del Sur"]
+
+        self._setup_header()
+        self._setup_company_list()
+
+    def _setup_header(self):
+        """Configura el encabezado (LOGOTIPO, Buscar, EMPRESAS)."""
+
+        # --- Barra Superior ---
+        header_frame = ctk.CTkFrame(self, fg_color=COLOR_MORADO_OSCURO, corner_radius=0, height=60)
+        header_frame.grid(row=0, column=0, sticky="new")
+        header_frame.grid_columnconfigure(0, weight=1)  # LOGOTIPO a la izquierda
+        header_frame.grid_columnconfigure(1, weight=1)  # Barra de búsqueda a la derecha
+
+        ctk.CTkLabel(header_frame, text="LOGOTIPO",
+                     font=ctk.CTkFont(size=18, weight="bold"),
+                     text_color="white").grid(row=0, column=0, padx=20, pady=10, sticky="w")
+
+        # Barra de Búsqueda (Similar a la barra superior del Dashboard)
+        ctk.CTkEntry(header_frame, placeholder_text="Buscar",
+                     width=250, height=35, corner_radius=15,
+                     fg_color="white", text_color="black",
+                     font=ctk.CTkFont(size=14)
+                     ).grid(row=0, column=1, padx=20, sticky="e")
+
+        # --- Título EMPRESAS ---
+        ctk.CTkLabel(self, text="EMPRESAS",
+                     font=ctk.CTkFont(size=30, weight="bold"),
+                     text_color="white").grid(row=1, column=0, pady=(40, 30), sticky="n")
+
+    def _setup_company_list(self):
+        """Configura el contenedor central con la lista de empresas."""
+
+        # Contenedor central (Color claro de la imagen)
+        list_frame = ctk.CTkFrame(self, fg_color=COLOR_FONDO_LISTA, corner_radius=15)
+        list_frame.grid(row=2, column=0, sticky="nsew", padx=100,
+                        pady=50)  # Padding amplio para centrar y reducir el tamaño
+        list_frame.grid_columnconfigure(0, weight=1)
+
+        # Contenedor para el Scrollbar (dentro del list_frame)
+        scrollable_list = ctk.CTkScrollableFrame(list_frame, fg_color="transparent")
+        scrollable_list.pack(fill="both", expand=True, padx=40, pady=40)
+        scrollable_list.grid_columnconfigure(0, weight=1)
+
+        # Título de la lista
+        ctk.CTkLabel(scrollable_list, text="LISTA DE EMPRESAS",
+                     font=ctk.CTkFont(family="Courier", size=24, weight="bold"),
+                     text_color="black").grid(row=0, column=0, pady=(20, 30), sticky="n")
+
+        # Listado de empresas
+        list_font = ctk.CTkFont(family="Courier", size=20)
+        for i, company_name in enumerate(self.companies):
+            # Formato "1. EMPRESA"
+
+            # Usar 'BIMBO' en negrita como se muestra en la imagen de referencia.
+            if company_name == "BIMBO":
+                text_display = f"{i + 1}. {company_name}"
+                label = ctk.CTkLabel(scrollable_list, text=text_display,
+                                     font=ctk.CTkFont(family="Courier", size=20, weight="bold"),
+                                     text_color="black", anchor="w")
+            else:
+                text_display = f"{i + 1}. {company_name}"
+                label = ctk.CTkLabel(scrollable_list, text=text_display,
+                                     font=list_font,
+                                     text_color="black", anchor="w")
+
+            label.grid(row=i + 1, column=0, padx=20, pady=5, sticky="w")
 
 
 # --- DashboardPage Modificada ---
@@ -787,7 +868,8 @@ class DashboardPage(ctk.CTkFrame):
         # 1. Botones Principales
         self.btn_usuarios = self._create_nav_button("GESTIONAR USUARIOS ▾", lambda: self.toggle_menu('user'))
         self.btn_empresa = self._create_nav_button("GESTIONAR EMPRESA ▾", lambda: self.toggle_menu('company'))
-        self.btn_ver = self._create_nav_button("VER EMPRESAS", lambda: self.nav_action("VER EMPRESAS"))
+        self.btn_ver = self._create_nav_button("VER EMPRESAS",
+                                               lambda: self.nav_action("VER EMPRESAS"))  # Este ahora tiene un mapeo
 
         # 2. Submenu Frame USUARIOS
         self.user_menu_frame = ctk.CTkFrame(self.nav_frame, fg_color="#4B0082", corner_radius=0)
@@ -852,7 +934,8 @@ class DashboardPage(ctk.CTkFrame):
 
         # Las páginas de creación, modificación y eliminación manejan su propio fondo
         if content_frame_class in [ModifyUsersPage, CreateUserPage, DeleteUsersPage, CreateCompanyPage,
-                                   ModifyCompanyPage, DeleteCompanyPage]:  # Clases añadidas
+                                   ModifyCompanyPage, DeleteCompanyPage,
+                                   ViewCompaniesPage]:  # ViewCompaniesPage añadida
             self.current_content = content_frame_class(self.content_container, self)
         elif content_frame_class != DashboardPage:
             self.current_content = content_frame_class(self.content_container, self)
@@ -907,10 +990,12 @@ class DashboardPage(ctk.CTkFrame):
             self.show_content(DeleteUsersPage)  # Nueva página de eliminación
         elif action == "CREAR EMPRESA":
             self.show_content(CreateCompanyPage)
-        elif action == "MODIFICAR INFORMACIÓN EMPRESA":  # NUEVA ACCIÓN
+        elif action == "MODIFICAR INFORMACIÓN EMPRESA":
             self.show_content(ModifyCompanyPage)
-        elif action == "ELIMINAR EMPRESA":  # NUEVA ACCIÓN
+        elif action == "ELIMINAR EMPRESA":
             self.show_content(DeleteCompanyPage)
+        elif action == "VER EMPRESAS":  # NUEVA ACCIÓN
+            self.show_content(ViewCompaniesPage)
         else:
             self.show_default_dashboard()
 
