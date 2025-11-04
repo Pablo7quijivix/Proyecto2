@@ -2,8 +2,6 @@ import customtkinter as ctk
 import tkinter as tk
 from PIL import Image, ImageDraw
 import os
-import mysql.connector
-from mysql.connector import Error
 import tkinter.messagebox as messagebox
 
 # IMPORTAR TU ARCHIVO DE BASE DE DATOS
@@ -31,9 +29,9 @@ COLOR_FONDO_GENERAL = "#f5f5f5"
 COLOR_TEXTO_ETIQUETA = "#301934"
 COLOR_BOTON_PRIMARIO = "#4b0082"
 
-PATH_BG = "image_7365ba.jpg"
-PATH_LOGO = "image_7365ba.jpg"
-PATH_FROG = "image_7365ba.jpg"
+PATH_BG = "fondo_degradado.png"
+PATH_LOGO = "fondo_degradado.png"
+PATH_FROG = "fondo_degradado.png"
 
 
 def create_default_image(width, height, color1, color2, text=""):
@@ -338,7 +336,7 @@ class CreateUserPage(ctk.CTkFrame):
                       text_color="white").grid(row=5, column=0, sticky="sw", pady=(100, 0))
 
         right_frame = ctk.CTkFrame(main_container, fg_color="transparent")
-        right_frame.grid(row=0, column=1, sticky="nse", padx=20, pady=20)
+        right_frame.grid(row=0, column=1, sticky="nse", padx=150, pady=50)
         form_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=30,
                                             fg_color=COLOR_FORM_FRAME, width=350)
         form_frame.pack(expand=False, fill="y", side="right")
