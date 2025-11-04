@@ -432,6 +432,55 @@ class Ui_MainWindow(object):
         self.input_direccion_empresa.setStyleSheet(input_style)
         grid_layout.addWidget(self.input_direccion_empresa, 2, 1)
 
+        # Separador para claridad
+        grid_layout.addItem(QSpacerItem(20, 20), 3, 0)
+
+
+        #------------------------SECCION DE CLIENTE / PROPIETARIO (COLUMNA 2)-------------
+        grid_layout.addWidget(
+            QLabel("### Datos del Cliente/Propietario", styleSheet="font-weight: bold; color: #4B0082;"), 4, 0, 1, 2)
+
+        grid_layout.addWidget(QLabel("NIT del Cliente:"), 5, 0)
+        self.input_nit_cliente = QLineEdit()
+        self.input_nit_cliente.setStyleSheet(input_style)
+        self.input_nit_cliente.setPlaceholderText("NIT del dueño (Clave para empresa)")
+        grid_layout.addWidget(self.input_nit_cliente, 5, 1)
+
+        grid_layout.addWidget(QLabel("Nombre del Propietario/Jefe:"), 6, 0)
+        self.input_nombre_jefe = QLineEdit()
+        self.input_nombre_jefe.setStyleSheet(input_style)
+        grid_layout.addWidget(self.input_nombre_jefe, 6, 1)
+
+        grid_layout.addWidget(QLabel("DPI del Propietario:"), 7, 0)
+        self.input_dpi_propietario = QLineEdit()
+        self.input_dpi_propietario.setStyleSheet(input_style)
+        grid_layout.addWidget(self.input_dpi_propietario, 7, 1)
+
+        grid_layout.addWidget(QLabel("Teléfono:"), 8, 0)
+        self.input_telefono_propietario = QLineEdit()
+        self.input_telefono_propietario.setStyleSheet(input_style)
+        grid_layout.addWidget(self.input_telefono_propietario, 8, 1)
+
+        grid_layout.addWidget(QLabel("Correo:"), 9, 0)
+        self.input_correo_propietario = QLineEdit()
+        self.input_correo_propietario.setStyleSheet(input_style)
+        grid_layout.addWidget(self.input_correo_propietario, 9, 1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # --- 2. CLASE CONTROLADORA PRINCIPAL --- (Se conecta la lógica de navegación y formulario) ---
 class MainApp(QMainWindow):
     def __init__(self):
