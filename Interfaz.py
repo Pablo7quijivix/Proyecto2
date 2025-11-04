@@ -382,10 +382,37 @@ class Ui_MainWindow(object):
         self.empresas_stacked_widget.addWidget(self.empresas_modificar_page)
         self.empresas_stacked_widget.addWidget(self.empresas_eliminar_page)
 
+        # 3. Ensamblaje Final
+        main_layout.addWidget(menu_frame)
+        main_layout.addWidget(self.empresas_stacked_widget)
 
+        # Iniciar mostrando la página de crear empresa por defecto
+        self.empresas_stacked_widget.setCurrentIndex(1)
 
+        # Diseño del formulario de Crear Empresa
+        self.setup_formulario_crear_empresa()
 
+    def setup_formulario_crear_empresa(self):
+        '''
+        Diseño del formulario de crear empresa (página 10 del boceto de canva)
+        Combina los campos de cliente (dueño) y empresa.
+        '''
 
+        form_layout = QVBoxLayout(self.empresas_crear_page)
+        form_layout.setAlignment(Qt.AligTop | Qt.AlignCenter)
+
+        titulo = QLabel("Crear nueva empresa")
+        titulo.setStyleSheet("font-size: 24pt; color: #4B0082; margin-bottom: 20px; font-weight: bold;")
+        form_layout.addWidget(titulo, alignment=Qt.AlignCenter)
+
+        # Marco del Formulario
+        formulario_frame = QFrame()
+        formulario_frame.setMinimumWidth(650)
+        formulario_frame.setStyleSheet("background-color: #F8F8F8; border-radius: 10px; padding: 25px;")
+
+        grid_layout = QGridLayout(formulario_frame)
+        grid_layout.setHorizontalSpacing(20)
+        grid_layout.setVerticalSpacing(15)
 
 
 # --- 2. CLASE CONTROLADORA PRINCIPAL --- (Se conecta la lógica de navegación y formulario) ---
