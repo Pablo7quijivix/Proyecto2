@@ -667,6 +667,10 @@ class MainApp(QMainWindow):
         # conexion de lsitar / eliminar usuarios
         self.ui.btn_eliminar_seleccionado.clicked.connect(self.handle_eliminar_usuario)
 
+        # --- CONEXIONES NUEVAS DE MODIFICAR USUARIOS ---
+        self.ui.btn_buscar_usuario_modificar.clicked.connect(self.handle_buscar_usuario)
+        self.ui.btn_guardar_modificacion.clicked.connect(self.handle_guardar_modificacion)
+
         # Conexiones de Navegación del MÓDULO EMPRESAS <--- NUEVAS CONEXIONES
         self.ui.btn_crear_empresa.clicked.connect(lambda: self.navigate_empresas(1))
         self.ui.btn_modificar_empresa.clicked.connect(lambda: self.navigate_empresas(2))
