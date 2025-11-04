@@ -573,6 +573,22 @@ class MainApp(QMainWindow):
                 direccion=direccion_empresa
             )
 
+            if empresa_creada:
+                QMessageBox.information(self, "Éxito",f"Empresa '{nombre_empresa}' creada y vinculada al cliente NIT {nit_cliente} correctamente.")
+                # Limpiar el formulario
+                self.ui.input_nombre_empresa.clear()
+                self.ui.input_direccion_empresa.clear()
+                self.ui.input_nit_cliente.clear()
+                self.ui.input_nombre_jefe.clear()
+                self.ui.input_dpi_propietario.clear()
+                self.ui.input_telefono_propietario.clear()
+                self.ui.input_correo_propietario.clear()
+                self.ui.input_fecha_nacimiento_propietario.clear()
+            else:
+                QMessageBox.critical(self, "Error",f"La empresa '{nombre_empresa}' ya existe o hubo un error al vincularla a la DB.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error de Lógica", f"Ocurrió un error general: {e}")
+
 
 
 
