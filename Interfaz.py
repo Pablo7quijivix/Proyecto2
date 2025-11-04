@@ -329,6 +329,30 @@ class Ui_MainWindow(object):
         form_layout.addWidget(self.btn_crear_usuario_submit, alignment=Qt.AlignCenter)
         form_layout.addStretch()
 
+    def setup_listar_eliminar_usuarios(self):
+        # codigo de listar y eliminar sin cambios
+        main_layout = QVBoxLayout(self.usuarios_eliminar_page)
+        main_layout.setAlignment(Qt.AlignTop)
+        main_layout.setContentsMargins(30, 30, 30, 30)
+
+        # Título
+        titulo = QLabel("Listado y Eliminación de Usuarios")
+        titulo.setStyleSheet("font-size: 24pt; color: #4B0082; margin-bottom: 20px; font-weight: bold;")
+        main_layout.addWidget(titulo, alignment=Qt.AlignCenter)
+
+        # Barra de Búsqueda y Control
+        control_frame = QFrame()
+        control_layout = QHBoxLayout(control_frame)
+        control_layout.setContentsMargins(0, 0, 0, 0)
+
+
+
+
+
+
+
+
+
     #-------------------------------------------------------
     # AGREGANDO FUNCION DE: DISEÑO GESTIONAR EMPRESAS (PAGINA 9 DLE BOCETO DEL CANVA)
     #-------------------------------------------------------
