@@ -389,6 +389,42 @@ class Ui_MainWindow(object):
         self.input_buscar_modificar.setPlaceholderText("Ingresar DPI o Usuario a modificar...")
         self.btn_buscar_usuario_modificar = QPushButton("Buscar Usuario")
 
+        input_style = "QLineEdit { padding: 8px; border: 1px solid #CCC; border-radius: 5px; font-size: 11pt; }"
+        self.input_buscar_modificar.setStyleSheet(input_style)
+        self.btn_buscar_usuario_modificar.setStyleSheet(
+            "background-color: #007BFF; color: white; padding: 8px; border-radius: 5px;")
+
+        busqueda_layout.addWidget(QLabel("DPI/Usuario:"))
+        busqueda_layout.addWidget(self.input_buscar_modificar)
+        busqueda_layout.addWidget(self.btn_buscar_usuario_modificar)
+        main_layout.addWidget(busqueda_frame)
+
+        # 2. SECCIÓN DE FORMULARIO DE MODIFICACIÓN
+        self.form_modificar_frame = QFrame()
+        self.form_modificar_frame.setMinimumWidth(600)
+        self.form_modificar_frame.setStyleSheet(
+            "background-color: #F8F8F8; border-radius: 10px; padding: 25px; margin-top: 20px;")
+        self.form_modificar_frame.setHidden(True)  # Se oculta hasta que se encuentre un usuario
+
+        grid_layout = QGridLayout(self.form_modificar_frame)
+        grid_layout.setHorizontalSpacing(20)
+        grid_layout.setVerticalSpacing(15)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     #-------------------------------------------------------
     # AGREGANDO FUNCION DE: DISEÑO GESTIONAR EMPRESAS (PAGINA 9 DLE BOCETO DEL CANVA)
     #-------------------------------------------------------
