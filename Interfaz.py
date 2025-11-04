@@ -862,6 +862,13 @@ class MainApp(QMainWindow):
             QMessageBox.warning(self, "Advertencia", "Por favor, seleccione una empresa de la lista.")
             return
 
+        selected_row = selected_indexes[0].row()
+        nit_item = self.empresa_model.item(selected_row, 0)
+        nombre_empresa_item = self.empresa_model.item(selected_row, 1)
+
+        nit_seleccionado = nit_item.text()
+        nombre_empresa = nombre_empresa_item.text()
+
 
 
 
