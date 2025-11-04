@@ -417,6 +417,15 @@ class Ui_MainWindow(object):
         # Estilo común para inputs
         input_style = "QLineEdit { padding: 8px; border: 1px solid #CCC; border-radius: 5px; font-size: 11pt; }"
 
+        #--------------------seccion de empresa columna 1 ---------------------------------------------------------
+        grid_layout.addWidget(QLabel("### Datos de la Empresa", styleSheet="font-weight: bold; color: #4B0082;"), 0, 0,
+                              1, 2)
+
+        grid_layout.addWidget(QLabel("Nombre de la Empresa:"), 1, 0)
+        self.input_nombre_empresa = QLineEdit()
+        self.input_nombre_empresa.setStyleSheet(input_style)
+        self.input_nombre_empresa.setPlaceholderText("Ej: Panadería El Sol")
+        grid_layout.addWidget(self.input_nombre_empresa, 1, 1)
 
 # --- 2. CLASE CONTROLADORA PRINCIPAL --- (Se conecta la lógica de navegación y formulario) ---
 class MainApp(QMainWindow):
