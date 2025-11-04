@@ -93,6 +93,9 @@ class App(ctk.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
+        # Estado para almacenar la empresa seleccionada
+        self.selected_company = None
+
         # Crear un contenedor que usará el color de fondo para la simulación del degradado
         container = ctk.CTkFrame(self, fg_color=COLOR_FONDO_PRINCIPAL)
         container.grid(row=0, column=0, sticky="nsew")
@@ -105,18 +108,34 @@ class App(ctk.CTk):
         self.original_bg_image = load_pil_image(PATH_BG, 1000, 700)
         self.original_logo_image = load_pil_image(PATH_LOGO, 50, 30)
 
-        # Crear las páginas, pasando las imágenes necesarias
+        # Crear las páginas iniciales
         self.frames[LoginPage] = LoginPage(parent=container, controller=self,
                                            bg_image=self.original_bg_image, logo_image=self.original_logo_image)
         self.frames[DashboardPage] = DashboardPage(parent=container, controller=self)
+
+        # Mapear las nuevas páginas para poder instanciarlas al navegar
+        self.pages = {
+            LoginPage: LoginPage,
+            DashboardPage: DashboardPage,
+            CreateUserPage: CreateUserPage,
+            ModifyUsersPage: ModifyUsersPage,
+            DeleteUsersPage: DeleteUsersPage,
+            CreateCompanyPage: CreateCompanyPage,
+            ModifyCompanyPage: ModifyCompanyPage,
+            DeleteCompanyPage: DeleteCompanyPage,
+            ViewCompaniesPage: ViewCompaniesPage,
+            CompanyHomePage: CompanyHomePage  # Nueva página de inicio de empresa
+        }
 
         self.show_frame(LoginPage)
 
     def show_frame(self, cont):
         """Muestra el frame (pantalla) solicitado."""
-        frame = self.frames[cont]
-        frame.grid(row=0, column=0, sticky="nsew")
-        frame.tkraise()
+        # Se asume que el frame ya fue instanciado o se instanciará en DashboardPage.show_content
+        if cont in self.frames:
+            frame = self.frames[cont]
+            frame.grid(row=0, column=0, sticky="nsew")
+            frame.tkraise()
 
     def authenticate_user(self, username, password):
         """Verifica las credenciales y navega."""
@@ -124,6 +143,18 @@ class App(ctk.CTk):
             self.show_frame(DashboardPage)
             return True
         return False
+
+    def select_company_and_navigate(self, company_name):
+        """
+        Almacena la empresa seleccionada y navega a la página de inicio de esa empresa.
+        Llamado desde ViewCompaniesPage.
+        """
+        self.selected_company = company_name
+        # Instancia la CompanyHomePage y la muestra
+        self.frames[CompanyHomePage] = CompanyHomePage(parent=self.frames[DashboardPage].content_container,
+                                                       controller=self.frames[DashboardPage],
+                                                       company_name=company_name)
+        self.frames[DashboardPage].show_content(CompanyHomePage)
 
 
 class LoginPage(ctk.CTkFrame):
@@ -245,6 +276,8 @@ class LoginPage(ctk.CTkFrame):
         else:
             self.error_label.configure(text="")
 
+
+# --- PÁGINAS DE GESTIÓN (CreateUserPage, ModifyUsersPage, DeleteUsersPage, CreateCompanyPage, ModifyCompanyPage, DeleteCompanyPage) (OMITIDAS PARA BREVEDAD, SE ASUME QUE ESTÁN EN EL ARCHIVO) ---
 
 # --- PANTALLA: CreateUserPage ---
 
@@ -718,7 +751,10 @@ class ViewCompaniesPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)  # Fondo degradado oscuro
 
-        self.controller = controller
+        # El controller aquí es el DashboardPage, pero necesitamos acceder al App principal
+        self.dashboard_controller = controller
+        self.app_controller = controller.controller  # Accede a la instancia de App
+
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
@@ -772,27 +808,139 @@ class ViewCompaniesPage(ctk.CTkFrame):
                      font=ctk.CTkFont(family="Courier", size=24, weight="bold"),
                      text_color="black").grid(row=0, column=0, pady=(20, 30), sticky="n")
 
-        # Listado de empresas
+        # Listado de empresas (Ahora son botones interactivos)
         list_font = ctk.CTkFont(family="Courier", size=20)
+
         for i, company_name in enumerate(self.companies):
-            # Formato "1. EMPRESA"
+            text_display = f"{i + 1}. {company_name}"
 
-            # Usar 'BIMBO' en negrita como se muestra en la imagen de referencia.
-            if company_name == "BIMBO":
-                text_display = f"{i + 1}. {company_name}"
-                label = ctk.CTkLabel(scrollable_list, text=text_display,
-                                     font=ctk.CTkFont(family="Courier", size=20, weight="bold"),
-                                     text_color="black", anchor="w")
-            else:
-                text_display = f"{i + 1}. {company_name}"
-                label = ctk.CTkLabel(scrollable_list, text=text_display,
-                                     font=list_font,
-                                     text_color="black", anchor="w")
+            # Determinar el peso de la fuente (BIMBO en negrita)
+            font_weight = "bold" if company_name == "BIMBO" else "normal"
 
-            label.grid(row=i + 1, column=0, padx=20, pady=5, sticky="w")
+            # Usar CTkButton para que sea seleccionable
+            button = ctk.CTkButton(
+                scrollable_list,
+                text=text_display,
+                command=lambda name=company_name: self.select_company(name),  # Llama a la acción de selección
+                font=ctk.CTkFont(family="Courier", size=20, weight=font_weight),
+                text_color="black",
+                fg_color="transparent",  # Transparente para parecer un Label
+                hover_color="#cccccc",  # Un ligero cambio al pasar el mouse
+                anchor="w",
+                height=35
+            )
+            button.grid(row=i + 1, column=0, padx=20, pady=5, sticky="w")
+
+    def select_company(self, company_name):
+        """Maneja la selección de la empresa y navega a la página de inicio de la empresa."""
+        print(f"Empresa seleccionada: {company_name}")
+        # Llama a la función del App principal para cambiar la vista
+        self.app_controller.select_company_and_navigate(company_name)
 
 
-# --- DashboardPage Modificada ---
+# --- NUEVA PANTALLA: CompanyHomePage (Página de inicio después de seleccionar empresa) ---
+
+class CompanyHomePage(ctk.CTkFrame):
+    def __init__(self, parent, controller, company_name):
+        super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)  # Fondo degradado oscuro
+
+        self.controller = controller
+        self.company_name = company_name
+
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        self._setup_header()
+        self._setup_options_list()
+
+    def _setup_header(self):
+        """Configura el encabezado (LOGOTIPO, Buscar, Título de la empresa)."""
+
+        # --- Barra Superior (Igual que ViewCompaniesPage) ---
+        header_frame = ctk.CTkFrame(self, fg_color=COLOR_MORADO_OSCURO, corner_radius=0, height=60)
+        header_frame.grid(row=0, column=0, sticky="new")
+        header_frame.grid_columnconfigure(0, weight=1)  # LOGOTIPO a la izquierda
+        header_frame.grid_columnconfigure(1, weight=1)  # Barra de búsqueda a la derecha
+
+        ctk.CTkLabel(header_frame, text="LOGOTIPO",
+                     font=ctk.CTkFont(size=18, weight="bold"),
+                     text_color="white").grid(row=0, column=0, padx=20, pady=10, sticky="w")
+
+        # Barra de Búsqueda (Similar a la barra superior del Dashboard)
+        ctk.CTkEntry(header_frame, placeholder_text="Buscar",
+                     width=250, height=35, corner_radius=15,
+                     fg_color="white", text_color="black",
+                     font=ctk.CTkFont(size=14)
+                     ).grid(row=0, column=1, padx=20, sticky="e")
+
+        # --- Título de la Empresa: BIMBO CONTA ---
+        # Se asume que el título es 'NOMBRE_EMPRESA CONTA'
+        title_text = f"{self.company_name} CONTA"
+        ctk.CTkLabel(self, text=title_text,
+                     font=ctk.CTkFont(size=30, weight="bold"),
+                     text_color="white").grid(row=1, column=0, pady=(40, 30), sticky="n")
+
+    def _setup_options_list(self):
+        """Configura el contenedor central con las opciones de la empresa."""
+
+        # Contenedor central (Color claro de la imagen)
+        list_frame = ctk.CTkFrame(self, fg_color=COLOR_FONDO_LISTA, corner_radius=15)
+        list_frame.grid(row=2, column=0, sticky="nsew", padx=100, pady=50)  # Padding amplio para centrar
+        list_frame.grid_columnconfigure(0, weight=1)
+
+        # Contenedor para el Scrollbar (dentro del list_frame)
+        scrollable_list = ctk.CTkScrollableFrame(list_frame, fg_color="transparent")
+        scrollable_list.pack(fill="both", expand=True, padx=40, pady=40)
+        scrollable_list.grid_columnconfigure(0, weight=1)
+
+        # Título de las opciones
+        ctk.CTkLabel(scrollable_list, text="OPCIONES",
+                     font=ctk.CTkFont(family="Courier", size=24, weight="normal"),
+                     text_color="black").grid(row=0, column=0, pady=(20, 30), sticky="n")
+
+        options = ["GESTIONAR INVENTARIO", "VER REPORTES", "REGISTRAR FACTURA"]
+
+        # Listado de opciones (son botones invisibles que simulan la lista)
+        list_font_normal = ctk.CTkFont(family="Courier", size=20)
+        list_font_bold = ctk.CTkFont(family="Courier", size=20, weight="bold", underline=True)
+
+        for i, option_name in enumerate(options):
+            text_display = f"{i + 1}. {option_name}"
+
+            # Usar negrita y subrayado para las opciones
+            current_font = list_font_bold if option_name != "VER REPORTES" else list_font_normal
+
+            # Usar CTkButton para que sea interactivo
+            button = ctk.CTkButton(
+                scrollable_list,
+                text=text_display,
+                command=lambda name=option_name: self.handle_option_selection(name),
+                font=current_font,
+                text_color="black",
+                fg_color="transparent",  # Transparente para parecer un Label
+                hover_color="#cccccc",  # Un ligero cambio al pasar el mouse
+                anchor="w",
+                height=35
+            )
+            button.grid(row=i + 1, column=0, padx=20, pady=5, sticky="w")
+
+        # Botón para regresar a la lista de empresas
+        ctk.CTkButton(list_frame, text="Volver a Empresas",
+                      command=lambda: self.controller.nav_action("VER EMPRESAS"),
+                      width=200, height=40, corner_radius=10,
+                      fg_color=COLOR_BOTON_REGRESAR,
+                      hover_color="#A948C9",
+                      font=ctk.CTkFont(size=16, weight="normal"),
+                      text_color="white").pack(pady=(40, 20))
+
+    def handle_option_selection(self, option_name):
+        """Maneja la acción de seleccionar una opción de la empresa."""
+        print(f"Opción seleccionada para {self.company_name}: {option_name}")
+        # Aquí se implementaría la navegación a la gestión de inventario, reportes, o facturas.
+        # Por ahora, solo muestra un mensaje temporal en la consola.
+
+
+# --- DashboardPage Modificada (Asegurar que CompanyHomePage se pueda mostrar) ---
 
 class DashboardPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -932,17 +1080,22 @@ class DashboardPage(ctk.CTkFrame):
         if self.current_content:
             self.current_content.destroy()
 
-        # Las páginas de creación, modificación y eliminación manejan su propio fondo
-        if content_frame_class in [ModifyUsersPage, CreateUserPage, DeleteUsersPage, CreateCompanyPage,
-                                   ModifyCompanyPage, DeleteCompanyPage,
-                                   ViewCompaniesPage]:  # ViewCompaniesPage añadida
-            self.current_content = content_frame_class(self.content_container, self)
-        elif content_frame_class != DashboardPage:
-            self.current_content = content_frame_class(self.content_container, self)
-        else:
+        # Instancia la nueva página
+        if content_frame_class == CompanyHomePage:
+            # CompanyHomePage ya fue instanciada y tiene la empresa correcta en App.select_company_and_navigate
+            # Solo la re-asigna si ya existe o la obtiene si fue creada antes
+            self.current_content = self.controller.frames.get(CompanyHomePage)
+        elif content_frame_class == ViewCompaniesPage:
+            # Re-instancia ViewCompaniesPage cada vez para asegurar la interactividad
+            self.current_content = ViewCompaniesPage(self.content_container, self)
+        elif content_frame_class == DashboardPage:
             self.current_content = ctk.CTkFrame(self.content_container, fg_color="transparent")
+        else:
+            # Páginas de gestión (Creación/Modificación/Eliminación)
+            self.current_content = content_frame_class(self.content_container, self)
 
-        self.current_content.grid(row=0, column=0, sticky="nsew")
+        if self.current_content:
+            self.current_content.grid(row=0, column=0, sticky="nsew")
 
     def show_default_dashboard(self):
         """Muestra la vista por defecto (la imagen de la rana o placeholder)."""
@@ -987,14 +1140,15 @@ class DashboardPage(ctk.CTkFrame):
         elif action == "MODIFICAR USUARIOS":
             self.show_content(ModifyUsersPage)
         elif action == "ELIMINAR USUARIOS":
-            self.show_content(DeleteUsersPage)  # Nueva página de eliminación
+            self.show_content(DeleteUsersPage)
         elif action == "CREAR EMPRESA":
             self.show_content(CreateCompanyPage)
         elif action == "MODIFICAR INFORMACIÓN EMPRESA":
             self.show_content(ModifyCompanyPage)
         elif action == "ELIMINAR EMPRESA":
             self.show_content(DeleteCompanyPage)
-        elif action == "VER EMPRESAS":  # NUEVA ACCIÓN
+        elif action == "VER EMPRESAS":
+            # Aquí se asegura que la página de lista de empresas se muestre correctamente
             self.show_content(ViewCompaniesPage)
         else:
             self.show_default_dashboard()
