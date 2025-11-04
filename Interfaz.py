@@ -456,6 +456,14 @@ class Ui_MainWindow(object):
         grid_layout.addWidget(QLabel("Fecha Nacimiento:"), 8, 0)
         grid_layout.addWidget(self.mod_fecha_nacimiento, 8, 1)
 
+        # Botón GUARDAR MODIFICACIÓN
+        self.btn_guardar_modificacion = QPushButton("GUARDAR MODIFICACIÓN")
+        self.btn_guardar_modificacion.setStyleSheet(
+            "background-color: #FFA500; color: white; padding: 12px; font-size: 14pt; font-weight: bold; border-radius: 5px; margin-top: 20px;")
+        grid_layout.addWidget(self.btn_guardar_modificacion, 9, 0, 1, 2)
+
+        main_layout.addWidget(self.form_modificar_frame)
+        main_layout.addStretch()
 
 
 
