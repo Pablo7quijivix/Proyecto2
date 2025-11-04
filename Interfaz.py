@@ -9,16 +9,18 @@ print(f"Agregando archivo adicional en donde se alojara la parte grafica")
 from PySide6.QtWidgets import (
     QMainWindow, QStackedWidget, QApplication, QWidget, QVBoxLayout, QLineEdit,
     QPushButton, QLabel, QMessageBox, QFrame, QHBoxLayout, QSizePolicy, QGridLayout,
-    QComboBox, QSpacerItem
+    QComboBox, QSpacerItem, QTableView, QHeaderView
 )
 
 from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QStandardItemModel, QStandardItem # accede y ayuda a manejar los datos de la tabla
 import sys
 
 # --- IMPORTACIÓN DE LA LÓGICA DE NEGOCIO ---
 # Importamos la función de login desde el archivo Proyecto_2.py
 # actualización 2, imoprtamos auditor para usar sus métodos
 # añadiendo Cliente y empresa en la actualización '3'
+
 from Proyecto_2 import inicio_sesio, Auditor, Usuario, Cliente, Empresa
 
 
@@ -53,7 +55,7 @@ class Ui_MainWindow(object):
         self.setup_gestion_usuarios_ui() # AGREGAMOS NUEVA FUNCIÓN EN ACTUALIZACIÓN 2
         self.setup_gestion_empresas_ui() # nueva funcion de empresa, A3
 
-    def setup_login_ui(self):
+    def setup_login_ui(self: QWidget):
         # --- Configuración Visual del Login (siguiendo PDF) ---
         # en la actualización 2, el login siguie igual (aclaración)
 
@@ -167,7 +169,7 @@ class Ui_MainWindow(object):
         inicio_layout = QVBoxLayout(self.dashboard_inicio_page)
         self.label_bienvenida = QLabel("Bienvenido al Panel de Administrador")
         self.label_bienvenida.setStyleSheet("font-size: 30pt; color: #4B0082;")
-        inicio_layout.addWidget(self.label_bienvenida, alignment=Qt.AlignCenter)
+        inicio_layout.addWidget(self.label_bienvenida, alignment = Qt.AlignCenter)
 
         # Layout del area de contenido para contener el stacked widget
         contenido_layout = QVBoxLayout(self.contenido_area)
@@ -244,6 +246,7 @@ class Ui_MainWindow(object):
 
         # Diseño del formulario de Crear Usuario (Página 5 del PDF)
         self.setup_formulario_crear_usuario()
+        self.setup_listar_eliminar_usuarios()  # Llamada al nuevo setup
 
     def setup_formulario_crear_usuario(self):
         form_layout =QVBoxLayout(self.usuarios_crear_page)
@@ -319,11 +322,10 @@ class Ui_MainWindow(object):
 
         # Botón CREAR USUARIO
         self.btn_crear_usuario_submit = QPushButton("CREAR USUARIO")
-        self.btn_crear_usuario_submit.setStyleSheet(
-            "background-color: #4CAF50; color: white; padding: 12px; font-size: 14pt; font-weight: bold; border-radius: 5px; margin-top: 20px;")
+        self.btn_crear_usuario_submit.setStyleSheet("background-color: #4CAF50; color: white; padding: 12px; font-size: 14pt; font-weight: bold; border-radius: 5px; margin-top: 20px;")
 
         # Agregamos el formulario a la página
-        form_layout.addWidget(formulario_frame, alignment=Qt.AlignCenter)
+        form_layout.addWidget(formulario_frame, alignment = Qt.AlignCenter)
         form_layout.addWidget(self.btn_crear_usuario_submit, alignment=Qt.AlignCenter)
         form_layout.addStretch()
 
@@ -399,7 +401,7 @@ class Ui_MainWindow(object):
         '''
 
         form_layout = QVBoxLayout(self.empresas_crear_page)
-        form_layout.setAlignment(Qt.AligTop | Qt.AlignCenter)
+        form_layout.setAlignment(Qt.AlignTop | Qt.AlignCenter)
 
         titulo = QLabel("Crear nueva empresa")
         titulo.setStyleSheet("font-size: 24pt; color: #4B0082; margin-bottom: 20px; font-weight: bold;")
@@ -418,8 +420,7 @@ class Ui_MainWindow(object):
         input_style = "QLineEdit { padding: 8px; border: 1px solid #CCC; border-radius: 5px; font-size: 11pt; }"
 
         #--------------------seccion de empresa columna 1 ---------------------------------------------------------
-        grid_layout.addWidget(QLabel("### Datos de la Empresa", styleSheet="font-weight: bold; color: #4B0082;"), 0, 0,
-                              1, 2)
+        grid_layout.addWidget(QLabel("### Datos de la Empresa", styleSheet="font-weight: bold; color: #4B0082;"), 0, 0, 1, 2)
 
         grid_layout.addWidget(QLabel("Nombre de la Empresa:"), 1, 0)
         self.input_nombre_empresa = QLineEdit()
@@ -437,8 +438,7 @@ class Ui_MainWindow(object):
 
 
         #------------------------SECCION DE CLIENTE / PROPIETARIO (COLUMNA 2)-------------
-        grid_layout.addWidget(
-            QLabel("### Datos del Cliente/Propietario", styleSheet="font-weight: bold; color: #4B0082;"), 4, 0, 1, 2)
+        grid_layout.addWidget(QLabel("### Datos del Cliente/Propietario", styleSheet="font-weight: bold; color: #4B0082;"), 4, 0, 1, 2)
 
         grid_layout.addWidget(QLabel("NIT del Cliente:"), 5, 0)
         self.input_nit_cliente = QLineEdit()
@@ -474,8 +474,7 @@ class Ui_MainWindow(object):
 
         # Botón CREAR EMPRESA
         self.btn_crear_empresa_submit = QPushButton("CREAR EMPRESA")
-        self.btn_crear_empresa_submit.setStyleSheet(
-            "background-color: #4B0082; color: white; padding: 12px; font-size: 14pt; font-weight: bold; border-radius: 5px; margin-top: 20px;")
+        self.btn_crear_empresa_submit.setStyleSheet("background-color: #4B0082; color: white; padding: 12px; font-size: 14pt; font-weight: bold; border-radius: 5px; margin-top: 20px;")
 
         # Agregamos el formulario a la página
         form_layout.addWidget(formulario_frame, alignment=Qt.AlignCenter)
@@ -513,17 +512,22 @@ class MainApp(QMainWindow):
         self.ui.btn_eliminar_usuarios.clicked.connect(lambda: self.navigate_usuarios(3))
 
         # CONEXION DEL FORMULARIO DE CREAR EMPRESA, CONEXION NUEVA EN LA ACTUALIZACION 3
-        self.ui.btn_crear_empresa_submit.clicked.connect(self.handle_crear_empresa)
+        self.ui.btn_crear_usuario_submit.clicked.connect(self.handle_crear_usuario)
+
+        # Conexiones de Navegación del MÓDULO EMPRESAS <--- NUEVAS CONEXIONES
+        self.ui.btn_crear_empresa.clicked.connect(lambda: self.navigate_empresas(1))
+        self.ui.btn_modificar_empresa.clicked.connect(lambda: self.navigate_empresas(2))
+        self.ui.btn_eliminar_empresa.clicked.connect(lambda: self.navigate_empresas(3))
 
         # conexion del formulario CREAR USUARIO <---  APLICANDO CONEXION DE LÓGICA
-        self.ui.btn_crear_usuario_submit.clicked.connect(self.handle_crear_usuario)
+        self.ui.btn_crear_empresa_submit.clicked.connect(self.handle_crear_empresa)
 
         # Establecer la primera vista: Login
         self.ui.stackedWidget.setCurrentIndex(0)
 
 
     # AGREGANDO NUEVO MÉTODO NAVEGACION INTERNA DE LAS EMPRESAS---------------
-    def navigate_emmpresas(self, index):
+    def navigate_empresas(self, index):
         # Cambia la sub-página visible dentro del QStackedWidget de Gestión de Empresas.
         self.ui.empresas_stacked_widget.setCurrentIndex(index)
 
@@ -592,27 +596,12 @@ class MainApp(QMainWindow):
 
 
 
-
-
-
-
-    # agregando nuevo método de navegacion DE USUARIOS
-    # MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (AUDITOR)
-    def navigate_usuarios(self, index):
-        """
-        Cambia la sub-página visible dentro del QStackedWidget de Gestión de Usuarios.
-        """
-        self.ui.usuarios_stacked_widget.setCurrentIndex(index)
-
     # --- MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (Auditor) ---
+    # Recoge datos del formulario y llama al método crear_usuario del Auditor.
+    # Verificación de auditor activo (esto solo debería ejecutarse si el rol es Admin)
     def handle_crear_usuario(self):
-        """
-        Recoge datos del formulario y llama al método crear_usuario del Auditor.
-        """
-        # Verificación de auditor activo (esto solo debería ejecutarse si el rol es Admin)
         if not self.auditor:
-            QMessageBox.critical(self, "Error de Permisos",
-                                    "Operación no permitida. Inicie sesión como Administrador.")
+            QMessageBox.critical(self, "Error de Permisos","Operación no permitida. Inicie sesión como Administrador.")
             return
 
         # REcoleccion de datos
@@ -621,18 +610,19 @@ class MainApp(QMainWindow):
         correo = self.ui.input_correo.text()
         puesto = self.ui.input_puesto.text()
         usuario = self.ui.input_usuario.text()
-        contrasenia = self.ui.input_contrasenia.text()
+        contrasena = self.ui.input_contrasena.text()
         rol = self.ui.combo_rol.currentText()
         telefono = self.ui.input_telefono.text()
         fecha_nacimiento = self.ui.input_fecha_nacimiento.text()  # Nota: La validación de formato debe ser implementada
 
         # Simple validación de campos obligatorios
-        if not all([nombre, dpi, usuario, contrasenia]):
+        if not all([nombre, dpi, usuario, contrasena]):
             QMessageBox.warning(self, "Error de Entrada","Los campos Nombre, DPI, Usuario y Contraseña son obligatorios.")
             return
 
         # Llama a tu lógica de negocio
         try:
+            exito = self.auditor.crear_usuario(nombre=nombre, dpi=dpi, correo=correo, puesto=puesto, usuario=usuario,contrasena=contrasena, rol=rol)
             # Tu clase Auditor requiere 5 argumentos en el init. Para crear un usuario,
             # llamamos al método crear_usuario que ya definiste en tu lógica.
 
@@ -640,15 +630,7 @@ class MainApp(QMainWindow):
             # si la usamos para todas las operaciones. En tu código, la clase Auditor
             # hereda de Usuario y tiene un constructor.
             # Como ya tenemos una instancia (self.auditor), la usamos:
-            exito = self.auditor.crear_usuario(
-                nombre=nombre,
-                dpi=dpi,
-                correo=correo,
-                puesto=puesto,
-                usuario=usuario,
-                contrasena=contrasenia,
-                rol=rol
-            )
+
             if exito:
                 QMessageBox.information(self, "Éxito", f"Usuario '{usuario}' creado correctamente.")
                 # Limpiar el formulario después del éxito
@@ -667,16 +649,19 @@ class MainApp(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error de Lógica", f"Ocurrió un error al intentar crear el usuario: {e}")
 
-    #def navigate_dashboard(self, index):
-        """
-        Cambia la sub-página visible dentro del QStackedWidget del Dashboard.
-        """
-       # self.ui.dashboard_stacked_widget.setCurrentIndex(index)
+        # agregando nuevo método de navegacion DE USUARIOS
+        # MÉTODO PARA CONECTAR EL FORMULARIO A LA LÓGICA (AUDITOR)
+        #  Cambia la sub-página visible dentro del QStackedWidget de Gestión de Usuarios.
+
+    def navigate_usuarios(self, index):
+        self.ui.usuarios_stacked_widget.setCurrentIndex(index)
+
+    def navigate_dashboard(self, index):
+        #Cambia la sub-página visible dentro del QStackedWidget del Dashboard.
+        self.ui.dashboard_stacked_widget.setCurrentIndex(index)
 
     def handle_login(self):
-        """
-        Maneja el evento del botón Ingresar, llama a la lógica y gestiona la transición de la UI.
-        """
+        #Maneja el evento del botón Ingresar, llama a la lógica y gestiona la transición de la UI.
         username = self.ui.username_input.text()
         password = self.ui.password_input.text()
 
