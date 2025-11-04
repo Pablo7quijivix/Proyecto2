@@ -496,6 +496,7 @@ class MainApp(QMainWindow):
         self.usuario_activo = None
         self.rol_activo = None
         self.auditor = None # objeto que sirve para interactuar con la lógica de negocio
+        self.user_model = None # modelo de datos para la tabla de usuarios
 
         # Conexiones: Conectar el botón 'Ingresar' a la función de validación
         # nos referimos al login
@@ -509,7 +510,11 @@ class MainApp(QMainWindow):
         # NUEVAS CONEXIONES --->Conexiones de Navegación del MÓDULO USUARIOS
         self.ui.btn_crear_usuario.clicked.connect(lambda: self.navigate_usuarios(1))
         self.ui.btn_modificar_usuarios.clicked.connect(lambda: self.navigate_usuarios(2))
-        self.ui.btn_eliminar_usuarios.clicked.connect(lambda: self.navigate_usuarios(3))
+        #self.ui.btn_eliminar_usuarios.clicked.connect(lambda: self.navigate_usuarios(3))
+
+        #conexion especial: navegar y listar usuarios
+        self.ui.btn_eliminar_usuarios.clicked.connect(self.handle_listar_usuarios)
+
 
         # CONEXION DEL FORMULARIO DE CREAR EMPRESA, CONEXION NUEVA EN LA ACTUALIZACION 3
         self.ui.btn_crear_usuario_submit.clicked.connect(self.handle_crear_usuario)
