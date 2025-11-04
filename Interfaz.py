@@ -358,6 +358,14 @@ class Ui_MainWindow(object):
             "border: none; padding: 15px 5px; text-align: left; font-size: 12pt;}"
             "QPushButton:hover { background-color: #E0E0E0; border-left: 5px solid #6A1B9A; }"
         )
+        self.btn_crear_empresa.setStyleSheet(menu_btn_style)
+        self.btn_modificar_empresa.setStyleSheet(menu_btn_style)
+        self.btn_eliminar_empresa.setStyleSheet(menu_btn_style)
+
+        menu_layout.addWidget(self.btn_crear_empresa)
+        menu_layout.addWidget(self.btn_modificar_empresa)
+        menu_layout.addWidget(self.btn_eliminar_empresa)
+        menu_layout.addStretch()
 
 
 
