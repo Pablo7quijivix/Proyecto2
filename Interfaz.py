@@ -914,6 +914,36 @@ class MainApp(QMainWindow):
             QMessageBox.warning(self, "Advertencia", "Ingrese el DPI o Nombre de Usuario a buscar.")
             return
 
+        try:
+            # Asume que buscar_usuario devuelve un diccionario con los datos del usuario
+            datos_usuario = self.auditor.buscar_usuario(busqueda)
+        except AttributeError:
+            QMessageBox.critical(self, "Error de Lógica",
+                                 "El método buscar_usuario() no está implementado en la clase Auditor.")
+            return
+        except Exception as e:
+            QMessageBox.critical(self, "Error de Búsqueda", f"Ocurrió un error: {e}")
+            return
+
+        if datos_usuario:
+            self.dpi_usuario_modificando = datos_usuario.get("dpi")
+
+            # Rellenar formulario
+            self.ui.mod_dpi.setText(datos_usuario.get("dpi", ""))
+            self.ui.mod_nombre_completo.setText(datos_usuario.get("nombre", ""))
+            self.ui.mod_correo.setText(datos_usuario.get("correo", ""))
+            self.ui.mod_puesto.setText(datos_usuario.get("puesto", ""))
+            self.ui.mod_usuario.setText(datos_usuario.get("usuario", ""))
+            self.ui.mod_contrasena.setText(datos_usuario.get("contrasena", ""))
+            self.ui.mod_telefono.setText(datos_usuario.get("telefono", ""))
+            self.ui.mod_fecha_nacimiento.setText(datos_usuario.get("fecha_nacimiento", ""))
+
+            # Seleccionar el ROL
+            rol = datos_usuario.get("rol", "Usuario")
+            index = self.ui.mod_combo_rol.findText(rol, Qt.MatchFixedString)
+            if index >= 0:
+                self.ui.mod_combo_rol.setCurrentIndex(index)
+
 
 
 
