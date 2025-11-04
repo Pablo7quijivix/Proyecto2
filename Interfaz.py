@@ -545,6 +545,23 @@ class MainApp(QMainWindow):
         nombre_empresa = self.ui.input_nombre_empresa.text().strip()
         direccion_empresa = self.ui.input_direccion_empresa.text().strip()
 
+        # Validación mínima
+        if not all([nombre_empresa, nit_cliente, nombre_jefe]):
+            QMessageBox.warning(self, "Error de Entrada","El Nombre de Empresa, NIT del Cliente y Nombre del Propietario son obligatorios.")
+            return
+
+        try:
+            # PRIMER PASO: Crear el cliente/propietario (si no existe)
+            # Nota: El método crear_cliente en la parte lógica de (Proyecto_2.py) retorna False si ya existe.
+            cliente_creado = self.auditor.crear_cliente(
+                nit=nit_cliente,
+                nombre=nombre_jefe,
+                telefono=telefono,
+                correo=correo,
+                dpi=dpi,
+                fecha_nacimiento=fecha_nacimiento
+            )
+
 
 
 
