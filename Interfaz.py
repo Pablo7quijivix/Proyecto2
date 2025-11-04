@@ -355,6 +355,20 @@ class Ui_MainWindow(object):
         self.btn_eliminar_seleccionado.setStyleSheet(
             "background-color: #D32F2F; color: white; padding: 10px; font-size: 12pt; font-weight: bold; border-radius: 5px;")
 
+        control_layout.addWidget(self.input_buscar_usuario)
+        control_layout.addStretch()
+        control_layout.addWidget(self.btn_eliminar_seleccionado)
+
+        main_layout.addWidget(control_frame)
+
+        # QTableView para mostrar la lista
+        self.tabla_usuarios = QTableView()
+        self.tabla_usuarios.setSelectionBehavior(QTableView.SelectRows)  # Seleccionar filas completas
+        self.tabla_usuarios.setSelectionMode(QTableView.SingleSelection)  # Solo una fila a la vez
+        self.tabla_usuarios.setStyleSheet("QTableView { gridline-color: #CCC; font-size: 11pt; }")
+        main_layout.addWidget(self.tabla_usuarios)
+
+        main_layout.addStretch()
 
 
 
