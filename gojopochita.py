@@ -361,10 +361,129 @@ class CreateUserPage(ctk.CTkFrame):
         # Aquí iría la lógica de validación y guardado
 
 
+# --- PANTALLA: CreateCompanyPage ---
+
+class CreateCompanyPage(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)  # Fondo del diseño (Morado oscuro)
+
+        self.controller = controller
+
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        # 1. Contenedor principal centrado
+        main_container = ctk.CTkFrame(self, fg_color="transparent")
+        main_container.grid(row=0, column=0, sticky="nsew", padx=40, pady=40)
+        main_container.grid_rowconfigure(0, weight=1)
+        main_container.grid_columnconfigure(0, weight=1)
+        main_container.grid_columnconfigure(1, weight=1)
+
+        # 2. Lado Izquierdo (Título, textos y Botón Regresar)
+        left_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        left_frame.grid(row=0, column=0, sticky="nsw", padx=20, pady=20)
+        left_frame.grid_rowconfigure(5, weight=1)  # Ajustar el peso para el botón Regresar
+
+        # "Nombre empresa"
+        ctk.CTkLabel(left_frame, text="Nombre empresa",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=0, column=0, sticky="nw")
+
+        # Título Grande
+        ctk.CTkLabel(left_frame, text="Crear nueva\nempresa",  # Texto actualizado
+                     font=ctk.CTkFont(size=48, weight="bold"), text_color="white",
+                     justify="left").grid(row=1, column=0, sticky="nw", pady=(30, 20))
+
+        # "olaa"
+        ctk.CTkLabel(left_frame, text="olaa",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=2, column=0, sticky="nw")
+
+        # Separador (simulado con un CTkLabel con guiones)
+        ctk.CTkLabel(left_frame, text="—",
+                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white",
+                     justify="left").grid(row=3, column=0, sticky="nw", pady=5)
+
+        # "wasssa"
+        ctk.CTkLabel(left_frame, text="wasssa",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=4, column=0, sticky="nw")
+
+        # Botón Regresar
+        ctk.CTkButton(left_frame, text="Regresar",
+                      command=lambda: self.controller.show_default_dashboard(),
+                      width=150, height=45, corner_radius=10,
+                      fg_color=COLOR_BOTON_REGRESAR,
+                      hover_color="#A948C9",  # Color del botón Regresar en hover
+                      font=ctk.CTkFont(size=16, weight="normal"),
+                      text_color="white").grid(row=5, column=0, sticky="sw", pady=(100, 0))
+
+        # 3. Lado Derecho (Formulario de Empresa)
+        right_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        right_frame.grid(row=0, column=1, sticky="nse", padx=20, pady=20)
+
+        # El formulario estará en un sub-frame morado con esquinas muy redondeadas
+        # Usamos CTkScrollableFrame ya que hay muchos campos para evitar que se salga de pantalla
+        form_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=30,
+                                            fg_color=COLOR_FORM_FRAME, width=350)
+        form_frame.pack(expand=False, fill="y", side="right")
+
+        # Título del Formulario
+        ctk.CTkLabel(form_frame, text="Empresa",  # Título actualizado
+                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white").pack(pady=(40, 20), padx=40)
+
+        # CAMPOS DE LA IMAGEN DE REFERENCIA (Crear nueva empresa):
+        fields = ["NIT", "NOMBRE JEFE", "TELEFONO", "CORREO", "DIRECCIÓN", "DPI", "FECHA DE NACIMIENTO",
+                  "NOMBRE EMPRESA"]
+
+        for field in fields:
+            # Etiqueta
+            ctk.CTkLabel(form_frame, text=field,
+                         font=ctk.CTkFont(size=12, weight="normal"), text_color="white", anchor="w").pack(fill="x",
+                                                                                                          padx=40,
+                                                                                                          pady=(15, 0))
+
+            # Campo de entrada
+            if field == "FECHA DE NACIMIENTO":
+                # Simulación de Dropdown/Combobox para Fecha
+                entry = ctk.CTkEntry(form_frame, placeholder_text="Seleccionar fecha", height=40,
+                                     corner_radius=10,
+                                     fg_color=COLOR_CAMPO_CLARO,
+                                     border_width=0,
+                                     text_color="white")
+                entry.pack(fill="x", padx=40)
+
+                # Simular flecha de dropdown usando un label con el carácter unicode
+                ctk.CTkLabel(entry, text="⌄", font=ctk.CTkFont(size=20, weight="bold"), text_color="white",
+                             fg_color="transparent").place(relx=0.9, rely=0.5, anchor=tk.CENTER)
+            else:
+                entry = ctk.CTkEntry(form_frame, placeholder_text="", height=40,
+                                     corner_radius=10,
+                                     fg_color=COLOR_CAMPO_CLARO,
+                                     border_width=0,
+                                     text_color="white")
+                entry.pack(fill="x", padx=40)
+
+            # Placeholder/Ejemplo (Solo para el primer campo como en la imagen)
+            if field == "NIT":
+                entry.insert(0, "NIT de Empresa SA")  # Placeholder de la imagen
+
+        # Botón Crear Empresa (Color morado oscuro)
+        ctk.CTkButton(form_frame, text="CREAR\nEMPRESA",  # Texto actualizado
+                      command=self.create_company_action,
+                      width=180, height=60, corner_radius=15,
+                      fg_color=COLOR_MORADO_OSCURO,
+                      hover_color="#5D3FD3",  # Un color más claro para el hover
+                      font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(30, 40))
+
+    def create_company_action(self):
+        # Lógica para crear la empresa
+        print("Intentando crear nueva empresa...")
+        # Aquí iría la lógica de validación y guardado
+
+
 # --- PANTALLA BASE PARA TABLAS: TableBasePage ---
 
 class TableBasePage(ctk.CTkFrame):
-    def __init__(self, parent, controller, action_text, action_color, action_hover_color, action_command):
+    def __init__(self, parent, controller, action_text, action_color, action_hover_color, action_command,
+                 data_type="user"):
         super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)  # Fondo degradado oscuro
 
         self.controller = controller
@@ -372,20 +491,41 @@ class TableBasePage(ctk.CTkFrame):
         self.action_color = action_color
         self.action_hover_color = action_hover_color
         self.action_command = action_command
+        self.data_type = data_type
 
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
+        # Datos de ejemplo para Usuarios
         self.user_data = [
-            {"DPI": "DPI1", "Nombre": "HOLAAA", "Teléfono": "12345678", "ROL": "ENCARGADO CONTA DE BIMBO"},
-            {"DPI": "DPI2", "Nombre": "Maria Garcia", "Teléfono": "87654321", "ROL": "ADMINISTRADOR"},
-            {"DPI": "DPI3", "Nombre": "Pedro Lopez", "Teléfono": "11223344", "ROL": "CONTADOR"},
-            {"DPI": "DPI4", "Nombre": "Ana Martinez", "Teléfono": "44332211", "ROL": "GESTOR DE VENTAS"},
-            {"DPI": "DPI5", "Nombre": "Juan Pérez", "Teléfono": "55551234", "ROL": "OPERADOR"},
+            {"ID": "DPI1", "Nombre": "HOLAAA", "Teléfono": "12345678", "ROL": "ENCARGADO CONTA DE BIMBO"},
+            {"ID": "DPI2", "Nombre": "Maria Garcia", "Teléfono": "87654321", "ROL": "ADMINISTRADOR"},
+            {"ID": "DPI3", "Nombre": "Pedro Lopez", "Teléfono": "11223344", "ROL": "CONTADOR"},
+            {"ID": "DPI4", "Nombre": "Ana Martinez", "Teléfono": "44332211", "ROL": "GESTOR DE VENTAS"},
+            {"ID": "DPI5", "Nombre": "Juan Pérez", "Teléfono": "55551234", "ROL": "OPERADOR"},
+        ]
+
+        # Datos de ejemplo para Empresas (NUEVOS DATOS)
+        self.company_data = [
+            {"ID": "NIT1", "Nombre": "Tecno Soluciones SA", "Teléfono": "99887766", "DIRECCIÓN": "Av. Principal 123"},
+            {"ID": "NIT2", "Nombre": "Inversiones del Sur", "Teléfono": "22334455", "DIRECCIÓN": "Calle Falsa 456"},
+            {"ID": "NIT3", "Nombre": "Comercializadora Zeta", "Teléfono": "12121212", "DIRECCIÓN": "Zona Industrial 7"},
         ]
 
         self._setup_top_bar()
         self._setup_table()
+
+    def _get_data(self):
+        """Retorna los datos apropiados (usuarios o empresas)."""
+        if self.data_type == "company":
+            return self.company_data
+        return self.user_data
+
+    def _get_columns(self):
+        """Retorna las columnas apropiadas para el tipo de dato."""
+        if self.data_type == "company":
+            return ["NIT", "Nombre", "Teléfono", "DIRECCIÓN", "Acción"]
+        return ["DPI", "Nombre", "Teléfono", "ROL", "Acción"]
 
     def _setup_top_bar(self):
         """Configura la barra superior con Ordenar, Buscar y Volver."""
@@ -417,20 +557,19 @@ class TableBasePage(ctk.CTkFrame):
                       ).grid(row=0, column=2, padx=(15, 0), sticky="e")
 
     def _setup_table(self):
-        """Configura la tabla con la lista de usuarios."""
-        # Usar CTkFrame normal para que el scroll se maneje automáticamente
+        """Configura la tabla con los datos (usuarios o empresas)."""
         table_container = ctk.CTkScrollableFrame(self, fg_color="transparent", label_text=None)
         table_container.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
 
-        # Configuración de las columnas de la tabla (ajustar pesos)
-        cols = ["DPI", "Nombre", "Teléfono", "ROL", "Acción"]
-        table_container.grid_columnconfigure(0, weight=1)  # DPI
-        table_container.grid_columnconfigure(1, weight=3)  # Nombre
-        table_container.grid_columnconfigure(2, weight=2)  # Teléfono
-        table_container.grid_columnconfigure(3, weight=3)  # ROL
-        table_container.grid_columnconfigure(4, weight=1)  # Acción (Botón)
+        data = self._get_data()
+        cols = self._get_columns()
 
-        # --- Cabecera de la Tabla ---
+        # Configuración de las columnas de la tabla (ajustar pesos)
+        for i in range(len(cols)):
+            # Distribuir el espacio de manera uniforme
+            table_container.grid_columnconfigure(i, weight=1 if i < len(cols) - 1 else 1)
+
+            # --- Cabecera de la Tabla ---
         header_font = ctk.CTkFont(size=16, weight="bold")
         for i, col_name in enumerate(cols):
             # Usar color de cabecera oscuro
@@ -442,34 +581,50 @@ class TableBasePage(ctk.CTkFrame):
         # --- Filas de Datos ---
         row_font = ctk.CTkFont(size=14)
 
-        for r, user in enumerate(self.user_data):
+        # Determinar las claves para extraer los valores de cada fila
+        # Excluimos "Acción" que es el botón, e "ID" que es la clave interna
+        display_keys = [c for c in cols if c not in ["Acción", "DPI", "NIT"]]
+
+        # La primera columna siempre es el ID visible (DPI o NIT)
+        id_key = "DPI" if self.data_type == "user" else "NIT"
+
+        for r, item in enumerate(data):
             row_index = r + 1
             # Alternar colores de fondo (claro/oscuro)
             bg_color = COLOR_FILA_CLARA if r % 2 == 0 else COLOR_FILA_OSCURA
             text_color = COLOR_TEXTO_TABLA if r % 2 == 0 else "white"
 
-            # Datos de las columnas
-            user_values = [user["DPI"], user["Nombre"], user["Teléfono"], user["ROL"]]
+            # 1. Columna ID (DPI o NIT)
+            ctk.CTkLabel(table_container, text=item["ID"],
+                         fg_color=bg_color, text_color=text_color,
+                         font=row_font, height=60, corner_radius=0,
+                         anchor="w", padx=15).grid(row=row_index, column=0, sticky="nsew", padx=(1, 1), pady=(1, 1))
 
-            for c, value in enumerate(user_values):
+            # 2. Las otras columnas de datos
+            data_values = [item.get(key) for key in display_keys]
+
+            # Recorrer las columnas de datos a partir de la segunda columna (índice 1)
+            for c, value in enumerate(data_values):
+                col_idx = c + 1
                 cell = ctk.CTkLabel(table_container, text=str(value),
                                     fg_color=bg_color, text_color=text_color,
                                     font=row_font, height=60, corner_radius=0,
                                     anchor="w", padx=15)
-                # Aplicar relleno sutil para separar celdas
-                cell.grid(row=row_index, column=c, sticky="nsew", padx=(1 if c > 0 else 0, 1), pady=(1, 1))
+                cell.grid(row=row_index, column=col_idx, sticky="nsew", padx=(1, 1), pady=(1, 1))
 
-            # Columna de Acción (Botón)
+            # 3. Columna de Acción (Botón) - Última columna
+            action_col_idx = len(cols) - 1
             edit_button_frame = ctk.CTkFrame(table_container, fg_color=bg_color, corner_radius=0)
-            edit_button_frame.grid(row=row_index, column=len(cols) - 1, sticky="nsew", padx=(1, 1), pady=(1, 1))
+            edit_button_frame.grid(row=row_index, column=action_col_idx, sticky="nsew", padx=(1, 1), pady=(1, 1))
             edit_button_frame.grid_columnconfigure(0, weight=1)
 
             ctk.CTkButton(edit_button_frame, text=self.action_text,
-                          command=lambda u=user: self.action_command(u),
+                          command=lambda u=item: self.action_command(u),
                           width=80, height=35, corner_radius=10,
                           fg_color=self.action_color,
                           hover_color=self.action_hover_color,
-                          text_color=COLOR_CABECERA if bg_color == COLOR_BOTON_EDITAR else "white",
+                          text_color=COLOR_TEXTO_TABLA if bg_color == COLOR_BOTON_EDITAR else "white",
+                          # Ajuste de color de texto
                           font=ctk.CTkFont(size=14, weight="bold")
                           ).place(relx=0.5, rely=0.5, anchor=tk.CENTER)  # Centrar el botón
 
@@ -484,12 +639,13 @@ class ModifyUsersPage(TableBasePage):
             action_text="EditaR",
             action_color=COLOR_BOTON_EDITAR,
             action_hover_color="#CBAACB",
-            action_command=self.edit_user_action
+            action_command=self.edit_user_action,
+            data_type="user"
         )
 
     def edit_user_action(self, user):
         """Simula la acción de editar un usuario."""
-        print(f"Editando usuario: DPI={user['DPI']}, Nombre={user['Nombre']}")
+        print(f"Editando usuario: ID={user['ID']}, Nombre={user['Nombre']}")
         # Aquí se implementaría la navegación a la página de edición
 
 
@@ -503,13 +659,55 @@ class DeleteUsersPage(TableBasePage):
             action_text="EliminaR",  # Texto de acción cambiado
             action_color=COLOR_BOTON_ELIMINAR,  # Color de acción cambiado a rojo
             action_hover_color="#B22222",  # Hover más oscuro para el rojo
-            action_command=self.delete_user_action
+            action_command=self.delete_user_action,
+            data_type="user"
         )
 
     def delete_user_action(self, user):
         """Simula la acción de eliminar un usuario."""
         # Se podría pedir una confirmación aquí
-        print(f"!!! ELIMINANDO USUARIO: DPI={user['DPI']}, Nombre={user['Nombre']}")
+        print(f"!!! ELIMINANDO USUARIO: ID={user['ID']}, Nombre={user['Nombre']}")
+        # Lógica de eliminación...
+
+
+# --- NUEVA PANTALLA: ModifyCompanyPage (Hereda de TableBasePage) ---
+
+class ModifyCompanyPage(TableBasePage):
+    def __init__(self, parent, controller):
+        super().__init__(
+            parent,
+            controller,
+            action_text="EditaR",
+            action_color=COLOR_BOTON_EDITAR,
+            action_hover_color="#CBAACB",
+            action_command=self.edit_company_action,
+            data_type="company"  # Especifica que debe usar los datos de empresa
+        )
+
+    def edit_company_action(self, company):
+        """Simula la acción de editar una empresa."""
+        print(f"Editando empresa: ID={company['ID']}, Nombre={company['Nombre']}")
+        # Aquí se implementaría la navegación a la página de edición de empresa
+
+
+# --- NUEVA PANTALLA: DeleteCompanyPage (Hereda de TableBasePage) ---
+
+class DeleteCompanyPage(TableBasePage):
+    def __init__(self, parent, controller):
+        super().__init__(
+            parent,
+            controller,
+            action_text="EliminaR",
+            action_color=COLOR_BOTON_ELIMINAR,
+            action_hover_color="#B22222",
+            action_command=self.delete_company_action,
+            data_type="company"  # Especifica que debe usar los datos de empresa
+        )
+
+    def delete_company_action(self, company):
+        """Simula la acción de eliminar una empresa."""
+        # Se podría pedir una confirmación aquí
+        print(f"!!! ELIMINANDO EMPRESA: ID={company['ID']}, Nombre={company['Nombre']}")
         # Lógica de eliminación...
 
 
@@ -599,6 +797,7 @@ class DashboardPage(ctk.CTkFrame):
 
         # 3. Submenu Frame EMPRESA
         self.company_menu_frame = ctk.CTkFrame(self.nav_frame, fg_color="#4B0082", corner_radius=0)
+        # ITEMS DE EMPRESA ACTUALIZADOS:
         company_submenu_items = ["CREAR EMPRESA", "MODIFICAR INFORMACIÓN EMPRESA", "ELIMINAR EMPRESA"]
         for sub_item in company_submenu_items:
             self._create_sub_menu(self.company_menu_frame, sub_item).pack(fill="x", padx=(20, 0), pady=1)
@@ -652,7 +851,8 @@ class DashboardPage(ctk.CTkFrame):
             self.current_content.destroy()
 
         # Las páginas de creación, modificación y eliminación manejan su propio fondo
-        if content_frame_class in [ModifyUsersPage, CreateUserPage, DeleteUsersPage]:
+        if content_frame_class in [ModifyUsersPage, CreateUserPage, DeleteUsersPage, CreateCompanyPage,
+                                   ModifyCompanyPage, DeleteCompanyPage]:  # Clases añadidas
             self.current_content = content_frame_class(self.content_container, self)
         elif content_frame_class != DashboardPage:
             self.current_content = content_frame_class(self.content_container, self)
@@ -705,6 +905,12 @@ class DashboardPage(ctk.CTkFrame):
             self.show_content(ModifyUsersPage)
         elif action == "ELIMINAR USUARIOS":
             self.show_content(DeleteUsersPage)  # Nueva página de eliminación
+        elif action == "CREAR EMPRESA":
+            self.show_content(CreateCompanyPage)
+        elif action == "MODIFICAR INFORMACIÓN EMPRESA":  # NUEVA ACCIÓN
+            self.show_content(ModifyCompanyPage)
+        elif action == "ELIMINAR EMPRESA":  # NUEVA ACCIÓN
+            self.show_content(DeleteCompanyPage)
         else:
             self.show_default_dashboard()
 
@@ -719,5 +925,3 @@ if __name__ == "__main__":
 
     app = App()
     app.mainloop()
-
-
