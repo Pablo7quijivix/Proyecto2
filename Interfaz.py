@@ -541,6 +541,10 @@ class MainApp(QMainWindow):
         dpi = self.ui.input_dpi_propietario.text().strip()
         fecha_nacimiento = self.ui.input_fecha_nacimiento_propietario.text().strip()
 
+        # 2. Recolección de datos de la EMPRESA (Lógica 2)
+        nombre_empresa = self.ui.input_nombre_empresa.text().strip()
+        direccion_empresa = self.ui.input_direccion_empresa.text().strip()
+
 
 
 
