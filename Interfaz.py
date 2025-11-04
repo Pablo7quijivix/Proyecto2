@@ -968,8 +968,25 @@ class MainApp(QMainWindow):
             "rol": self.ui.mod_combo_rol.currentText(),
             "telefono": self.ui.mod_telefono.text(),
             "fecha_nacimiento": self.ui.mod_fecha_nacimiento.text(),
-
         }
+
+        # validacion simlple (nombre, usuario y contraseña)
+        if not all([datos_a_modificar["nombre", datos_a_modificar]["usuario"],datos_a_modificar["contrasena"]]):
+            QMessageBox.warning(self, "Error de Entrada", "Nombre, Usuario y Contraseña son obligatorios.")
+            return
+
+        try:
+            exito = self.auditor.modificar_usuario(
+                datos_a_modificar)  # Asume que modifica_usuario recibe el diccionario
+
+            if exito:
+                QMessageBox.information(self, "Éxito",
+                                        f"Usuario con DPI {self.dpi_usuario_modificando} modificado correctamente.")
+                self.handle_navigate_modificar_usuarios()  # Limpia y vuelve al estado inicial
+            else:
+                QMessageBox.critical(self, "Error",
+                                     "Error al intentar guardar la modificación. El usuario pudo no existir.")
+        except AttributeError:
 
 
 
