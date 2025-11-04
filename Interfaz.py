@@ -562,6 +562,17 @@ class MainApp(QMainWindow):
                 fecha_nacimiento=fecha_nacimiento
             )
 
+            if not cliente_creado:
+                # Si no se creó, asumimos que ya existe, lo cual es válido si se quiere usar un cliente existente.
+                QMessageBox.information(self, "Advertencia",f"El cliente con NIT {nit_cliente} ya existía en la base de datos. Se procederá a crear la empresa con este NIT.")
+
+            # SEGUNDO PASO: Crear la empresa, vinculándola al NIT del cliente
+            empresa_creada = self.auditor.crear_empresa(
+                nombre_empresa=nombre_empresa,
+                nit_cliente=nit_cliente,
+                direccion=direccion_empresa
+            )
+
 
 
 
