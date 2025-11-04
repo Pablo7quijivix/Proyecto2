@@ -840,8 +840,27 @@ class MainApp(QMainWindow):
         self.empresa_model.setHorizontalHeaderLabels(headers)
 
         # 2. Poblar el modelo
+        for empresa_data in lista_empresas:
+            row_items = []
+            row_items.append(QStandardItem(str(empresa_data.get('nit_cliente', 'N/A'))))
+            row_items.append(QStandardItem(str(empresa_data.get('nombre_empresa', 'N/A'))))
+            row_items.append(QStandardItem(str(empresa_data.get('direccion', 'N/A'))))
+            row_items.append(QStandardItem(str(empresa_data.get('nombre_cliente', 'N/A'))))
+            self.empresa_model.appendRow(row_items)
 
+        # 3. Ajustar vista de la tabla
+        self.ui.tabla_empresas.horizontalHeader().setStretchLastSection(True)
+        self.ui.tabla_empresas.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.ui.tabla_empresas.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        self.ui.tabla_empresas.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
 
+    def handle_ver_empresa_opciones(self):
+        """Simula la navegación a la página de opciones de una empresa específica (Pág. 15)."""
+        selected_indexes = self.ui.tabla_empresas.selectionModel().selectedRows()
+
+        if not selected_indexes:
+            QMessageBox.warning(self, "Advertencia", "Por favor, seleccione una empresa de la lista.")
+            return
 
 
 
