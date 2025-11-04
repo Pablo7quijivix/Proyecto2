@@ -717,38 +717,43 @@ class MainApp(QMainWindow):
         selected_indexes = self.ui.tabla_usuarios.selectionModel().selectedRows()
 
         if not selected_indexes:
-            QMessageBox.warning(self."Advertencia", "Por favor seleccione un usuario de la lista para eliminar.")
+            QMessageBox.warning(self,"Advertencia", "Por favor seleccione un usuario de la lista para eliminar.")
             return
 
-            # Obtener el DPI del usuario seleccionado (columna 0)
-            selected_row = selected_indexes[0].row()
-            dpi_item = self.user_model.item(selected_row, 0)
-            dpi_a_eliminar = dpi_item.text()
+        # Obtener el DPI del usuario seleccionado (columna 0)
+        selected_row = selected_indexes[0].row()
+        dpi_item = self.user_model.item(selected_row, 0)
+        dpi_a_eliminar = dpi_item.text()
 
-            # Diálogo de confirmación
-            reply = QMessageBox.question(
-                self,
-                'Confirmar Eliminación',
-                f"¿Está seguro que desea eliminar al usuario con DPI: {dpi_a_eliminar}? Esta acción es irreversible.",
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No
-            )
+        # Diálogo de confirmación
+        reply = QMessageBox.question(
+            self,
+        'Confirmar Eliminación',
+        f"¿Está seguro que desea eliminar al usuario con DPI: {dpi_a_eliminar}? Esta acción es irreversible.",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
 
-            if reply == QMessageBox.Yes:
-                # llamamos a la logica de negocio
-        try:
-            exito = self.auditor.eliminar_usuario(dpi_a_eliminar)
+        if reply == QMessageBox.Yes:
+            #
+            #llamamos a la logica de negocio
+            try:
+                exito = self.auditor.eliminar_usuario(dpi_a_eliminar)
 
-            if exito:
-                QMessageBox.information(self, "Exito",f"Usuario con DPI: {dpi_a_eliminar}, eliminado correctamente.")
-                # recargamos la lista
-                self.handle_listar_usuarios()
-            else:
-                QMessageBox.critical(self, "Error", "No se pudo eliminar el usuario. El DPI no fue encontrado.")
-        except AttributeError:
-            QMessageBox.critical(self,"Error de logica", "El método eliminar_usuario(dpi) no está implementado en la clase Auditor.")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al eliminar: {e}")
+                if exito:
+                    QMessageBox.information(self, "Exito",
+                                            f"Usuario con DPI: {dpi_a_eliminar}, eliminado correctamente.")
+                    # recargamos la lista
+                    self.handle_listar_usuarios()
+                else:
+                    QMessageBox.critical(self, "Error", "No se pudo eliminar el usuario. El DPI no fue encontrado.")
+            except AttributeError:
+                QMessageBox.critical(self, "Error de logica",
+                                     "El método eliminar_usuario(dpi) no está implementado en la clase Auditor.")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Error al eliminar: {e}")
+
+
 
 
 
