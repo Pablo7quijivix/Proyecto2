@@ -367,6 +367,22 @@ class Ui_MainWindow(object):
         menu_layout.addWidget(self.btn_eliminar_empresa)
         menu_layout.addStretch()
 
+        # 2. Área de Contenido de Empresas (Tercer QStackedWidget)
+        self.empresas_stacked_widget = QStackedWidget()
+        self.empresas_stacked_widget.setStyleSheet("background-color: white; padding: 10px;")
+
+        # --- VISTAS INTERNAS DE EMPRESAS ---
+        self.empresas_vacio_page = QWidget()  # Sub-página 0: Vacio/Inicial
+        self.empresas_crear_page = QWidget()  # Sub-página 1: Crear Empresa (Página 10 del PDF)
+        self.empresas_modificar_page = QWidget()  # Sub-página 2: Modificar Empresa
+        self.empresas_eliminar_page = QWidget()  # Sub-página 3: Eliminar Empresa
+
+        self.empresas_stacked_widget.addWidget(self.empresas_vacio_page)
+        self.empresas_stacked_widget.addWidget(self.empresas_crear_page)
+        self.empresas_stacked_widget.addWidget(self.empresas_modificar_page)
+        self.empresas_stacked_widget.addWidget(self.empresas_eliminar_page)
+
+
 
 
 
