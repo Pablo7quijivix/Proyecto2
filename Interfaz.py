@@ -54,6 +54,8 @@ class Ui_MainWindow(object):
         self.setup_dashboard_ui() # AGREGANDO NUEVA FUNCIÓN
         self.setup_gestion_usuarios_ui() # AGREGAMOS NUEVA FUNCIÓN EN ACTUALIZACIÓN 2
         self.setup_gestion_empresas_ui() # nueva funcion de empresa, A3
+        self.setup_listar_empresas() # agregando en actualizacion 6
+
 
     def setup_login_ui(self: QWidget):
         # --- Configuración Visual del Login (siguiendo PDF) ---
@@ -501,6 +503,15 @@ class Ui_MainWindow(object):
         control_layout.addWidget(self.btn_ver_empresa_seleccionada)
 
         main_layout.addWidget(control_frame)
+
+        # QTableView para mostrar la lista
+        self.tabla_empresas = QTableView()
+        self.tabla_empresas.setSelectionBehavior(QTableView.SelectRows)
+        self.tabla_empresas.setSelectionMode(QTableView.SingleSelection)
+        self.tabla_empresas.setStyleSheet("QTableView { gridline-color: #CCC; font-size: 11pt; }")
+        main_layout.addWidget(self.tabla_empresas)
+
+        main_layout.addStretch()
 
 
 
