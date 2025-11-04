@@ -24,13 +24,12 @@ COLOR_FONDO_LISTA = "#eeeeee"  # Color de fondo de la lista de empresas
 CREDENCIALES_VALIDAS = {"admin": "contador"}
 
 # ATENCIÓN: Se asume que esta imagen existe en el mismo directorio
-PATH_BG = "image_7365ba.jpg"
-PATH_LOGO = "image_7365ba.jpg"
-PATH_FROG = "image_7365ba.jpg"  # Imagen para el Dashboard
+PATH_BG = "fondo_degradado.png"
+PATH_LOGO = "doraemon.jpeg"
+PATH_FROG = "doraemon.jpeg"  # Imagen para el Dashboard
 
 
 def create_default_image(width, height, color1, color2, text=""):
-    """Crea una imagen de degradado de colores sólida como fallback."""
     image = Image.new("RGB", (width, height), color1)
     draw = ImageDraw.Draw(image)
 
@@ -58,34 +57,37 @@ def create_default_image(width, height, color1, color2, text=""):
 
 
 def load_pil_image(path, default_width=800, default_height=600):
-    """Carga una imagen o crea un degradado de fallback si el archivo no existe."""
-    # Colores oscuros de fallback para el Login (simulando el degradado de la imagen)
-    FALLBACK_COLOR_1 = COLOR_DEGRADADO_BASE
-    FALLBACK_COLOR_2 = COLOR_FONDO_PRINCIPAL
-
-    if not os.path.exists(path):
+    if os.path.exists(path):
+        try:
+            pil_img = Image.open(path)
+            print(f"[ÉXITO] Archivo '{path}' cargado correctamente. Tamaño: {pil_img.size}")
+            return pil_img
+        except Exception as e:
+            print(f"[ERROR] Falló al procesar '{path}': {e}. Usando imagen por defecto.")
+    else:
         print(f"[ADVERTENCIA] Archivo '{path}' no encontrado. Creando imagen por defecto.")
         print(f"Directorio actual: {os.getcwd()}")
-        # Usar el degradado del usuario
-        return create_default_image(
-            default_width, default_height,
-            FALLBACK_COLOR_1, FALLBACK_COLOR_2,
-            f"Default_{os.path.basename(path)}")
-    try:
-        pil_img = Image.open(path)
-        print(f"[ÉXITO] Archivo '{path}' cargado correctamente.")
-        return pil_img
-    except Exception as e:
-        print(f"[ERROR] Falló al procesar '{path}': {e}. Usando imagen por defecto.")
-        return create_default_image(
-            default_width, default_height,
-            FALLBACK_COLOR_1, FALLBACK_COLOR_2,
-            f"Error_{os.path.basename(path)}")
+        print(f"Archivos en directorio: {os.listdir('.')}")
+
+    # Solo crear degradado si falló la carga de la imagen
+    return create_default_image(
+        default_width, default_height,
+        COLOR_DEGRADADO_BASE, COLOR_FONDO_PRINCIPAL,
+        f"Default_{os.path.basename(path)}")
 
 
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
+
+        # DEBUG: Verificar si las imágenes existen
+        print(f"¿Existe PATH_BG ({PATH_BG})? {os.path.exists(PATH_BG)}")
+        print(f"¿Existe PATH_LOGO ({PATH_LOGO})? {os.path.exists(PATH_LOGO)}")
+        print(f"¿Existe PATH_FROG ({PATH_FROG})? {os.path.exists(PATH_FROG)}")
+        print(f"Directorio actual: {os.getcwd()}")
+
+        self.title("Aplicación de Gestión")
+
         self.title("Aplicación de Gestión")
         self.geometry("1000x700")
         self.minsize(700, 500)
@@ -228,12 +230,14 @@ class LoginPage(ctk.CTkFrame):
             initial_width = self.winfo_width() if self.winfo_width() > 1 else 1000
             initial_height = self.winfo_height() if self.winfo_height() > 1 else 700
 
+            # Usar la imagen original directamente
             self.ctk_bg_image = ctk.CTkImage(
                 light_image=self.original_bg_image,
                 dark_image=self.original_bg_image,
                 size=(initial_width, initial_height))
             self.background_label.configure(image=self.ctk_bg_image)
         else:
+            # Si no hay imagen, usar el degradado por defecto
             self.background_label.configure(fg_color=COLOR_MORADO_OSCURO)
 
         # Asegura que el fondo se redimensione
@@ -243,21 +247,39 @@ class LoginPage(ctk.CTkFrame):
         """Redimensiona la imagen de fondo cuando cambia el tamaño de la ventana."""
         if hasattr(self, 'original_bg_image') and self.original_bg_image:
             # Solo redimensionar si el ancho/alto ha cambiado significativamente
-            if event.width > 0 and event.height > 0:
+            if event.width > 50 and event.height > 50:  # Mínimo tamaño razonable
                 try:
-                    # Usar el degradado personalizado para simular el fondo de la imagen
-                    degraded_bg = create_default_image(
-                        event.width, event.height,
-                        COLOR_DEGRADADO_BASE, COLOR_FONDO_PRINCIPAL
-                    )
+                    # Redimensionar la imagen original manteniendo aspecto
+                    original_width, original_height = self.original_bg_image.size
+                    ratio = min(event.width / original_width, event.height / original_height)
+                    new_width = int(original_width * ratio)
+                    new_height = int(original_height * ratio)
 
-                    self.ctk_bg_image = ctk.CTkImage(light_image=degraded_bg,
-                                                     dark_image=degraded_bg,
-                                                     size=(event.width, event.height))
+                    resized_bg = self.original_bg_image.resize((new_width, new_height), Image.LANCZOS)
+
+                    self.ctk_bg_image = ctk.CTkImage(
+                        light_image=resized_bg,
+                        dark_image=resized_bg,
+                        size=(new_width, new_height)
+                    )
                     self.background_label.configure(image=self.ctk_bg_image)
 
                 except Exception as e:
                     print(f"Error al redimensionar fondo: {e}")
+                    # Fallback: usar degradado personalizado
+                    try:
+                        degraded_bg = create_default_image(
+                            event.width, event.height,
+                            COLOR_DEGRADADO_BASE, COLOR_FONDO_PRINCIPAL
+                        )
+                        self.ctk_bg_image = ctk.CTkImage(
+                            light_image=degraded_bg,
+                            dark_image=degraded_bg,
+                            size=(event.width, event.height)
+                        )
+                        self.background_label.configure(image=self.ctk_bg_image)
+                    except Exception as e2:
+                        print(f"Error también con degradado: {e2}")
 
     def _setup_header(self):
         # Nombre de la empresa
