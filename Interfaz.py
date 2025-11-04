@@ -734,6 +734,22 @@ class MainApp(QMainWindow):
                 QMessageBox.No
             )
 
+            if reply == QMessageBox.Yes:
+                # llamamos a la logica de negocio
+        try:
+            exito = self.auditor.eliminar_usuario(dpi_a_eliminar)
+
+            if exito:
+                QMessageBox.information(self, "Exito",f"Usuario con DPI: {dpi_a_eliminar}, eliminado correctamente.")
+                # recargamos la lista
+                self.handle_listar_usuarios()
+            else:
+                QMessageBox.critical(self, "Error", "No se pudo eliminar el usuario. El DPI no fue encontrado.")
+        except AttributeError:
+            QMessageBox.critical(self,"Error de logica", "El método eliminar_usuario(dpi) no está implementado en la clase Auditor.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al eliminar: {e}")
+
 
 
 
