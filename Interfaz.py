@@ -524,7 +524,7 @@ class MainApp(QMainWindow):
 
 
     # AGREGANDO NUEVO MÉTODO NAVEGACION INTERNA DE LAS EMPRESAS---------------
-    def navigate_emmpresas(self, index):
+    def navigate_empresas(self, index):
         # Cambia la sub-página visible dentro del QStackedWidget de Gestión de Empresas.
         self.ui.empresas_stacked_widget.setCurrentIndex(index)
 
