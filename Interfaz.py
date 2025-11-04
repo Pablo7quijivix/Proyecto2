@@ -944,6 +944,35 @@ class MainApp(QMainWindow):
             if index >= 0:
                 self.ui.mod_combo_rol.setCurrentIndex(index)
 
+            self.ui.form_modificar_frame.setHidden(False)
+            QMessageBox.information(self, "Éxito", f"Usuario {datos_usuario.get('nombre')} cargado para modificación.")
+        else:
+            self.ui.form_modificar_frame.setHidden(True)
+            QMessageBox.information(self, "No Encontrado",f"No se encontró ningún usuario con el DPI/Usuario: {busqueda}")
+
+
+    def handle_guardar_modificacion(self):
+        # recoge los datos del formulario de modificaciones y llama a la logica del negocio
+        if not self.auditor or not self.dpi_usuario_modificando:
+            QMessageBox.critical(self,"Error", "No hay un usuario cargado o no tiene permisos.")
+            return
+
+        # parte de recoleccion de datos para guardar la modificacion hecha por el ususairo
+        datos_a_modificar = {
+            "dpi_original": self.dpi_usuario_modificando,  # Clave para la modificación
+            "nombre": self.ui.mod_nombre_completo.text(),
+            "correo": self.ui.mod_correo.text(),
+            "puesto": self.ui.mod_puesto.text(),
+            "usuario": self.ui.mod_usuario.text(),
+            "contrasena": self.ui.mod_contrasena.text(),
+            "rol": self.ui.mod_combo_rol.currentText(),
+            "telefono": self.ui.mod_telefono.text(),
+            "fecha_nacimiento": self.ui.mod_fecha_nacimiento.text(),
+
+        }
+
+
+
 
 
 
