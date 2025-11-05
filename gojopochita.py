@@ -3,6 +3,8 @@ import tkinter as tk
 from PIL import Image, ImageDraw
 import os
 import tkinter.messagebox as messagebox
+
+# IMPORTAR TU ARCHIVO DE BASE DE DATOS
 import Proyecto_2
 
 ctk.set_appearance_mode("Dark")
@@ -139,11 +141,11 @@ class App(ctk.CTk):
             frame = self.frames[cont]
             frame.grid(row=0, column=0, sticky="nsew")
             frame.tkraise()
-
+#-----------------------------------------------------------------------------------------------------------------------
     def authenticate_user(self, username, password):
         """Verifica las credenciales en la base de datos MySQL y almacena el rol"""
         try:
-            resultado = Proyecto_2.inicio_sesio(username, password)
+            resultado = Proyecto_2.inicio_sesion(username, password)
 
             if resultado == "salir":
                 return False
