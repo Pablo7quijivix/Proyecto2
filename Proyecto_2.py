@@ -67,9 +67,9 @@ class BasedeDatos:
         conn = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="Wilson200.",
-            database="nueva_prueba",
-            port=3306
+            password="rufisbb7",
+            database="proyecto2",
+            port= 3306
         )
         return conn
 # Clase base
@@ -532,6 +532,7 @@ class Empresa:
 
             cursor.execute("DELETE FROM detalle_facturas WHERE empresa_nombre = %s", (nombre_empresa,))
             cursor.execute("DELETE FROM inventario_general WHERE empresa_nombre = %s", (nombre_empresa,))
+
             cursor.execute("DELETE FROM facturas_general WHERE empresa_nombre = %s", (nombre_empresa,))
             cursor.execute("DELETE FROM empresas WHERE nombre = %s", (nombre_empresa,))
 
@@ -1002,4 +1003,81 @@ def inicio_sesion(usuario, contrasena):
     except Exception as e:
         print(f"Ocurrió un error inesperado: {e}")
         return None
+
+
+def crear_usuario_admin():
+    """Crea un usuario admin por defecto si no existe"""
+    try:
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+
+        # Verificar si ya existe usuario
+        cursor.execute("SELECT * FROM usuarios WHERE usuario = 'admin'")
+        if cursor.fetchone():
+            print("Usuario admin ya existe")
+            return True
+
+        # Crear usuario admin
+        admin = Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "admin123")
+        success = admin.crear_usuario("Administrador", "123456789", "admin@empresa.com", "Administrador", "admin","admin123", "Admin")
+
+        # prueba de una instancia mono = Auditor("Administrador_pablo", "987654321", "admin_nuevo@.com", "admin_nuevoo", "admin123456")
+
+
+
+        if success:
+            print(" Usuario admin creado exitosamente")
+            print(" Credenciales: admin / admin123")
+        else:
+            print(" No se pudo crear el usuario admin")
+
+        return success
+        return admin
+
+    except Exception as e:
+        print(f"Error creando usuario admin: {e}")
+        return False
+    finally:
+        if 'conn' in locals() and conn.is_connected():
+            cursor.close()
+            conn.close()
+
+#cliente_pablo = Cliente("1199127","Pablo Quiijivix","5543-6645","quijivixpablo2@gmail.com","Asgard","3514584680901","27-08-2005","Pansitos.SA")
+#Auditor.crear_cliente("1199127","Pablo Quiijivix","5543-6645","quijivixpablo2@gmail.com","Asgard","3514584680901","27-08-2005","Pansitos.SA")
+
+
+def verificar_y_crear_admin():
+    try:
+        admin = Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "admin123")
+        pablo_admin = Auditor("David Suchi", "1478523699630", "davids@.com", "davids", "davids123")
+
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM usuarios WHERE usuario = 'admin'")
+
+        if cursor.fetchone():
+            print("Sistema listo - Usuario admin existe")
+        else:
+
+            success = admin.crear_usuario("Administrador", "123456789", "admin@empresa.com",
+                                          "Administrador", "admin", "admin123", "Admin")
+
+            success = pablo_admin.crear_usuario("David suchi", "1478523699630", "davids@.com", "admin_pablo",
+                                                "davids123", "davids123", "Admin2")
+            if success:
+                print("suario admin creado exitosamente")
+
+        cursor.close()
+        conn.close()
+        return True
+
+
+    except Exception as e:
+        print(f"Error inicializando: {e}")
+        return False
+
+
+# Ejecutar verificación
+verificar_y_crear_admin()
+crear_usuario_admin()
 
