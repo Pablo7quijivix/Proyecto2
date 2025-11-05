@@ -3,8 +3,6 @@ import tkinter as tk
 from PIL import Image, ImageDraw
 import os
 import tkinter.messagebox as messagebox
-
-# IMPORTAR TU ARCHIVO DE BASE DE DATOS
 import Proyecto_2
 
 ctk.set_appearance_mode("Dark")
@@ -89,6 +87,7 @@ class App(ctk.CTk):
         # Variables de usuario
         self.current_user = None
         self.user_role = None
+        self.selected_company = None
 
         self.title("Aplicación de Gestión")
         self.geometry("1000x700")
@@ -96,8 +95,6 @@ class App(ctk.CTk):
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
-
-        self.selected_company = None
 
         container = ctk.CTkFrame(self, fg_color=COLOR_FONDO_PRINCIPAL)
         container.grid(row=0, column=0, sticky="nsew")
@@ -146,16 +143,13 @@ class App(ctk.CTk):
     def authenticate_user(self, username, password):
         """Verifica las credenciales en la base de datos MySQL y almacena el rol"""
         try:
-            conn = Proyecto_2.BasedeDatos.conectar()
-            cursor = conn.cursor(dictionary=True)
-            query = "SELECT * FROM usuarios WHERE usuario = %s AND contrasena = %s"
-            cursor.execute(query, (username, password))
-            result = cursor.fetchall()
+            resultado = Proyecto_2.inicio_sesio(username, password)
 
-            if result and len(result) > 0:
-                # Almacenar información del usuario, incluyendo el rol
-                self.current_user = result[0]
-                self.user_role = result[0].get('rol', 'empleado')  # Default a empleado si no existe
+            if resultado == "salir":
+                return False
+            elif resultado:
+                self.current_user = resultado
+                self.user_role = resultado.get('rol', 'empleado')
 
                 # Crear DashboardPage después de la autenticación
                 self.frames[DashboardPage] = DashboardPage(parent=self.frames[LoginPage].master, controller=self)
@@ -165,10 +159,6 @@ class App(ctk.CTk):
         except Exception as e:
             print(f"Error en autenticación: {e}")
             return False
-        finally:
-            if 'conn' in locals() and conn.is_connected():
-                cursor.close()
-                conn.close()
 
     def select_company_and_navigate(self, company_name):
         self.selected_company = company_name
@@ -382,13 +372,15 @@ class CreateUserPage(ctk.CTkFrame):
         dpi = self.entries["DPI"].get()
         nombre = self.entries["NOMBRE_COMPLETO"].get()
         correo = self.entries["CORREO"].get()
-        puesto = self.entries["PUESTO"].get()  # Cambié telefono por puesto
+        puesto = self.entries["PUESTO"].get()
         usuario = self.entries["USUARIO"].get()
         contrasena = self.entries["CONTRASEÑA"].get()
         rol = self.entries["ROL"].get()
+
         if not all([dpi, nombre, usuario, contrasena, rol, correo, puesto]):
             messagebox.showerror("Error", "Por favor complete todos los campos obligatorios")
             return
+
         auditor = Proyecto_2.Auditor(nombre, dpi, correo, usuario, contrasena)
         success = auditor.crear_usuario(nombre, dpi, correo, puesto, usuario, contrasena, rol)
 
@@ -453,7 +445,6 @@ class CreateCompanyPage(ctk.CTkFrame):
         ctk.CTkLabel(form_frame, text="Empresa",
                      font=ctk.CTkFont(size=30, weight="bold"), text_color="white").pack(pady=(40, 20), padx=40)
 
-        # Campos según la definición de la clase Empresa
         fields = [
             "NOMBRE EMPRESA", "NIT", "DIRECCIÓN"
         ]
@@ -483,13 +474,11 @@ class CreateCompanyPage(ctk.CTkFrame):
         direccion = self.entries["DIRECCIÓN"].get()
 
         if not all([nit, nombre_empresa]):
-            messagebox.showerror("Error",
-                                 "Por favor complete los campos obligatorios: NIT y Nombre Empresa")
+            messagebox.showerror("Error", "Por favor complete los campos obligatorios: NIT y Nombre Empresa")
             return
 
         try:
             auditor = Proyecto_2.Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "password")
-
             success = auditor.crear_empresa(nombre_empresa, nit, direccion)
 
             if success:
@@ -501,6 +490,7 @@ class CreateCompanyPage(ctk.CTkFrame):
 
         except Exception as e:
             messagebox.showerror("Error", f"Error al crear la empresa: {str(e)}")
+
 
 class CreateInvoicePage(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -589,147 +579,32 @@ class CreateInvoicePage(ctk.CTkFrame):
 
     def register_invoice_action(self):
         nit_cliente = self.entries["NIT CLIENTE"].get()
-        nombre_cliente = self.entries["NOMBRE CLIENTE"].get()
-        direccion_cliente = self.entries["DIRECCIÓN CLIENTE"].get()
-        correo_cliente = self.entries["CORREO CLIENTE"].get()
-        dpi_cliente = self.entries["DPI CLIENTE"].get()
         numero_factura = self.entries["NUMERO FACTURA"].get()
         total = self.entries["TOTAL"].get()
         fecha_compra = self.entries["FECHA DE COMPRA"].get()
 
-        if not all([nit_cliente, nombre_cliente, numero_factura, total, fecha_compra]):
+        if not all([nit_cliente, numero_factura, total, fecha_compra]):
             messagebox.showerror("Error", "Por favor complete los campos obligatorios")
             return
 
-        empresa_nit = self.controller.controller.selected_company
-        if not empresa_nit:
+        empresa_nombre = self.controller.controller.selected_company
+        if not empresa_nombre:
             messagebox.showerror("Error", "No hay empresa seleccionada")
             return
 
-        # Usar la clase Factura de Proyecto_2.py
-        factura = Proyecto_2.Factura(numero_factura, empresa_nit, nit_cliente, nombre_cliente,
-                                     direccion_cliente, correo_cliente, dpi_cliente, fecha_compra, float(total))
-        success = factura.crear_factura()
-
-        if success:
-            messagebox.showinfo("Éxito", f"Factura {numero_factura} registrada correctamente")
-            for entry in self.entries.values():
-                entry.delete(0, tk.END)
-        else:
-            messagebox.showerror("Error", "No se pudo registrar la factura")
-
-
-class CreateClientPage(ctk.CTkFrame):
-    def __init__(self, parent, controller):
-        super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
-        self.controller = controller
-
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-
-        main_container = ctk.CTkFrame(self, fg_color="transparent")
-        main_container.grid(row=0, column=0, sticky="nsew", padx=40, pady=40)
-        main_container.grid_rowconfigure(0, weight=1)
-        main_container.grid_columnconfigure(0, weight=1)
-        main_container.grid_columnconfigure(1, weight=1)
-
-        left_frame = ctk.CTkFrame(main_container, fg_color="transparent")
-        left_frame.grid(row=0, column=0, sticky="nsw", padx=20, pady=20)
-        left_frame.grid_rowconfigure(5, weight=1)
-
-        ctk.CTkLabel(left_frame, text="Nombre empresa",
-                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=0, column=0, sticky="nw")
-
-        ctk.CTkLabel(left_frame, text="Crear nuevo\ncliente",
-                     font=ctk.CTkFont(size=48, weight="bold"), text_color="white",
-                     justify="left").grid(row=1, column=0, sticky="nw", pady=(30, 20))
-
-        ctk.CTkLabel(left_frame, text="Aquí puedes crear un nuevo cliente.",
-                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=2, column=0, sticky="nw")
-
-        ctk.CTkLabel(left_frame, text="—",
-                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white",
-                     justify="left").grid(row=3, column=0, sticky="nw", pady=5)
-
-        ctk.CTkLabel(left_frame, text="Los clientes son necesarios para crear facturas.",
-                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=4, column=0, sticky="nw")
-
-        ctk.CTkButton(left_frame, text="Regresar",
-                      command=lambda: self.controller.show_default_dashboard(),
-                      width=150, height=45, corner_radius=10,
-                      fg_color=COLOR_BOTON_REGRESAR,
-                      hover_color="#A948C9",
-                      font=ctk.CTkFont(size=16, weight="normal"),
-                      text_color="white").grid(row=5, column=0, sticky="sw", pady=(100, 0))
-
-        right_frame = ctk.CTkFrame(main_container, fg_color="transparent")
-        right_frame.grid(row=0, column=1, sticky="nse", padx=20, pady=20)
-
-        form_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=30,
-                                            fg_color=COLOR_FORM_FRAME, width=350)
-        form_frame.pack(expand=False, fill="y", side="right")
-
-        ctk.CTkLabel(form_frame, text="Cliente",
-                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white").pack(pady=(40, 20), padx=40)
-
-        fields = [
-            "NIT CLIENTE", "NOMBRE CLIENTE", "DIRECCIÓN", "CORREO", "DPI", "TELÉFONO"
-        ]
-
-        self.entries = {}
-        for field in fields:
-            ctk.CTkLabel(form_frame, text=field,
-                         font=ctk.CTkFont(size=12, weight="normal"), text_color="white", anchor="w").pack(fill="x",
-                                                                                                          padx=40,
-                                                                                                          pady=(15, 0))
-
-            entry = ctk.CTkEntry(form_frame, placeholder_text="", height=40,
-                                 corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
-            entry.pack(fill="x", padx=40)
-            self.entries[field] = entry
-
-        ctk.CTkButton(form_frame, text="CREAR\nCLIENTE",
-                      command=self.create_client_action,
-                      width=180, height=60, corner_radius=15,
-                      fg_color=COLOR_MORADO_OSCURO,
-                      hover_color="#5D3FD3",
-                      font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(30, 40))
-
-    def create_client_action(self):
-        nit_cliente = self.entries["NIT CLIENTE"].get()
-        nombre_cliente = self.entries["NOMBRE CLIENTE"].get()
-        direccion = self.entries["DIRECCIÓN"].get()
-        correo = self.entries["CORREO"].get()
-        dpi = self.entries["DPI"].get()
-        telefono = self.entries["TELÉFONO"].get()
-
-        if not all([nit_cliente, nombre_cliente]):
-            messagebox.showerror("Error", "Por favor complete NIT y Nombre del cliente")
-            return
-
         try:
-            # Aquí necesitaríamos un método para crear clientes
-            # Por ahora, haremos una inserción directa a la base de datos
-            conn = Proyecto_2.BasedeDatos.conectar()
-            cursor = conn.cursor()
+            auditor = Proyecto_2.Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "password")
+            success = auditor.registrar_factura(numero_factura, nit_cliente, empresa_nombre, float(total), fecha_compra)
 
-            query = """
-                INSERT INTO clientes (nit_cliente, nombre_cliente, direccion, correo, dpi, telefono)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """
-            cursor.execute(query, (nit_cliente, nombre_cliente, direccion, correo, dpi, telefono))
-            conn.commit()
-
-            messagebox.showinfo("Éxito", f"Cliente {nombre_cliente} creado correctamente")
-            for entry in self.entries.values():
-                entry.delete(0, tk.END)
-
+            if success:
+                messagebox.showinfo("Éxito", f"Factura {numero_factura} registrada correctamente")
+                for entry in self.entries.values():
+                    entry.delete(0, tk.END)
+            else:
+                messagebox.showerror("Error", "No se pudo registrar la factura")
         except Exception as e:
-            messagebox.showerror("Error", f"No se pudo crear el cliente: {str(e)}")
-        finally:
-            if 'conn' in locals() and conn.is_connected():
-                cursor.close()
-                conn.close()
+            messagebox.showerror("Error", f"Error al registrar factura: {str(e)}")
+
 
 class TableBasePage(ctk.CTkFrame):
     def __init__(self, parent, controller, action_text, action_color, action_hover_color, action_command,
@@ -761,53 +636,59 @@ class TableBasePage(ctk.CTkFrame):
     def _load_users_from_db(self):
         """Carga usuarios reales desde la base de datos"""
         try:
-            conn = Proyecto_2.BasedeDatos.conectar()
-            cursor = conn.cursor(dictionary=True)
-            query = "SELECT dpi as ID, nombre_completo as Nombre, telefono as Teléfono, rol as ROL FROM usuarios"
-            cursor.execute(query)
-            result = cursor.fetchall()
-            return result or []
+            usuarios = Proyecto_2.Usuario.listar_todos()
+            # Adaptar formato para la tabla
+            formatted_users = []
+            for usuario in usuarios:
+                formatted_users.append({
+                    "ID": usuario.get('id', ''),
+                    "Nombre": usuario.get('nombre', ''),
+                    "Usuario": usuario.get('usuario', ''),
+                    "ROL": usuario.get('rol', ''),
+                    "Puesto": usuario.get('puesto', '')
+                })
+            return formatted_users
         except Exception as e:
             print(f"Error cargando usuarios: {e}")
             return []
-        finally:
-            if 'conn' in locals() and conn.is_connected():
-                cursor.close()
-                conn.close()
 
     def _load_companies_from_db(self):
         """Carga empresas reales desde la base de datos"""
         try:
-            conn = Proyecto_2.BasedeDatos.conectar()
-            cursor = conn.cursor(dictionary=True)
-            query = "SELECT nit as ID, nombre_empresa as Nombre, telefono as Teléfono, direccion as DIRECCIÓN FROM empresas"
-            cursor.execute(query)
-            result = cursor.fetchall()
-            return result or []
+            empresas = Proyecto_2.Empresa.listar()
+            formatted_companies = []
+            for empresa in empresas:
+                formatted_companies.append({
+                    "ID": empresa.get('id', ''),
+                    "Nombre": empresa.get('nombre', ''),
+                    "NIT": empresa.get('nit_cliente', ''),
+                    "DIRECCIÓN": empresa.get('direccion', '')
+                })
+            return formatted_companies
         except Exception as e:
             print(f"Error cargando empresas: {e}")
             return []
-        finally:
-            if 'conn' in locals() and conn.is_connected():
-                cursor.close()
-                conn.close()
 
     def _load_inventory_from_db(self):
         """Carga inventario real desde la base de datos"""
         try:
-            conn = Proyecto_2.BasedeDatos.conectar()
-            cursor = conn.cursor(dictionary=True)
-            query = "SELECT id_producto as ID_Producto, nombre_producto as Nombre, cantidad as Cantidad, unidad as Unidad, costo_unitario as Costo FROM inventario"
-            cursor.execute(query)
-            result = cursor.fetchall()
-            return result or []
+            empresa_nombre = self.controller.controller.selected_company
+            if not empresa_nombre:
+                return []
+
+            inventario = Proyecto_2.Inventario.listar(empresa_nombre)
+            formatted_inventory = []
+            for item in inventario:
+                formatted_inventory.append({
+                    "ID_Producto": item.get('producto', ''),
+                    "Nombre": item.get('producto', ''),
+                    "Cantidad": item.get('cantidad', 0),
+                    "Precio": item.get('precio', 0)
+                })
+            return formatted_inventory
         except Exception as e:
             print(f"Error cargando inventario: {e}")
             return []
-        finally:
-            if 'conn' in locals() and conn.is_connected():
-                cursor.close()
-                conn.close()
 
     def _setup_title(self):
         ctk.CTkLabel(self, text=self.title_text,
@@ -823,10 +704,10 @@ class TableBasePage(ctk.CTkFrame):
 
     def _get_columns(self):
         if self.data_type == "company":
-            return ["NIT", "Nombre", "Teléfono", "DIRECCIÓN", "Acción"]
+            return ["ID", "Nombre", "NIT", "DIRECCIÓN", "Acción"]
         elif self.data_type == "inventory":
-            return ["ID PRODUCTO", "NOMBRE PRODUCTO", "CANTIDAD", "UNIDAD", "COSTO POR UNIDAD", "Acción"]
-        return ["DPI", "Nombre", "Teléfono", "ROL", "Acción"]
+            return ["PRODUCTO", "CANTIDAD", "PRECIO", "Acción"]
+        return ["ID", "Nombre", "Usuario", "ROL", "Acción"]
 
     def _setup_top_bar(self):
         top_bar_frame = ctk.CTkFrame(self, fg_color="transparent", height=60)
@@ -883,14 +764,14 @@ class TableBasePage(ctk.CTkFrame):
 
         row_font = ctk.CTkFont(size=14)
         if self.data_type == "user":
-            display_keys = ["Nombre", "Teléfono", "ROL"]
+            display_keys = ["Nombre", "Usuario", "ROL"]
             id_key = "ID"
         elif self.data_type == "company":
-            display_keys = ["Nombre", "Teléfono", "DIRECCIÓN"]
+            display_keys = ["Nombre", "NIT", "DIRECCIÓN"]
             id_key = "ID"
         elif self.data_type == "inventory":
-            display_keys = ["Nombre", "Cantidad", "Unidad", "Costo"]
-            id_key = "ID_Producto"
+            display_keys = ["Cantidad", "Precio"]
+            id_key = "Nombre"
         else:
             display_keys = []
             id_key = ""
@@ -908,10 +789,10 @@ class TableBasePage(ctk.CTkFrame):
             current_col = 1
             for key in display_keys:
                 value = item.get(key)
-                if key == "Costo":
-                    display_value = f"Q {value:.2f}"
+                if key == "Precio":
+                    display_value = f"Q {float(value):.2f}" if value else "Q 0.00"
                 else:
-                    display_value = str(value)
+                    display_value = str(value) if value else ""
                 cell = ctk.CTkLabel(table_container, text=display_value, fg_color=bg_color, text_color=text_color,
                                     font=row_font, height=60, corner_radius=0, anchor="w", padx=15)
                 cell.grid(row=row_index, column=current_col, sticky="nsew", padx=(1, 1), pady=(1, 1))
@@ -936,7 +817,7 @@ class ModifyUsersPage(TableBasePage):
     def __init__(self, parent, controller):
         super().__init__(
             parent, controller,
-            action_text="EditaR",
+            action_text="Editar",
             action_color=COLOR_BOTON_EDITAR,
             action_hover_color="#CBAACB",
             action_command=self.edit_user_action,
@@ -961,15 +842,10 @@ class DeleteUsersPage(TableBasePage):
         )
 
     def delete_user_action(self, user):
-        """Elimina un usuario de la base de datos MySQL"""
+        """Elimina un usuario usando Proyecto_2"""
         try:
-            conn = Proyecto_2.BasedeDatos.conectar()
-            cursor = conn.cursor()
-            query = "DELETE FROM usuarios WHERE dpi = %s"
-            cursor.execute(query, (user['ID'],))
-            conn.commit()
-
-            if cursor.rowcount > 0:
+            success = Proyecto_2.Usuario.eliminar(user['Usuario'])
+            if success:
                 messagebox.showinfo("Éxito", f"Usuario {user['Nombre']} eliminado correctamente")
                 self.user_data = self._load_users_from_db()
                 self._setup_table()
@@ -977,22 +853,18 @@ class DeleteUsersPage(TableBasePage):
                 messagebox.showerror("Error", "No se pudo eliminar el usuario")
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo eliminar el usuario: {e}")
-        finally:
-            if 'conn' in locals() and conn.is_connected():
-                cursor.close()
-                conn.close()
 
 
 class ModifyCompanyPage(TableBasePage):
     def __init__(self, parent, controller):
         super().__init__(
             parent, controller,
-            action_text="EditaR",
+            action_text="Editar",
             action_color=COLOR_BOTON_EDITAR,
             action_hover_color="#CBAACB",
             action_command=self.edit_company_action,
             data_type="company",
-            title_text="MODIFICAR INFORMACIÓN EMPRESA"
+            title_text="MODIFICAR EMPRESAS"
         )
 
     def edit_company_action(self, company):
@@ -1008,19 +880,14 @@ class DeleteCompanyPage(TableBasePage):
             action_hover_color="#8B0000",
             action_command=self.delete_company_action,
             data_type="company",
-            title_text="ELIMINAR EMPRESA"
+            title_text="ELIMINAR EMPRESAS"
         )
 
     def delete_company_action(self, company):
-        """Elimina una empresa de la base de datos MySQL"""
+        """Elimina una empresa usando Proyecto_2"""
         try:
-            conn = Proyecto_2.BasedeDatos.conectar()
-            cursor = conn.cursor()
-            query = "DELETE FROM empresas WHERE nit = %s"
-            cursor.execute(query, (company['ID'],))
-            conn.commit()
-
-            if cursor.rowcount > 0:
+            success = Proyecto_2.Empresa.eliminar(company['Nombre'])
+            if success:
                 messagebox.showinfo("Éxito", f"Empresa {company['Nombre']} eliminada correctamente")
                 self.company_data = self._load_companies_from_db()
                 self._setup_table()
@@ -1028,17 +895,13 @@ class DeleteCompanyPage(TableBasePage):
                 messagebox.showerror("Error", "No se pudo eliminar la empresa")
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo eliminar la empresa: {e}")
-        finally:
-            if 'conn' in locals() and conn.is_connected():
-                cursor.close()
-                conn.close()
 
 
 class InventoryManagementPage(TableBasePage):
     def __init__(self, parent, controller):
         super().__init__(
             parent, controller,
-            action_text="EditaR",
+            action_text="Editar",
             action_color=COLOR_BOTON_EDITAR,
             action_hover_color="#CBAACB",
             action_command=self.edit_inventory_action,
@@ -1089,18 +952,18 @@ class InventoryManagementPage(TableBasePage):
         self.wait_window(dialog)
 
     def edit_inventory_action(self, item):
-        print(f"Editando ítem de inventario: ID={item['ID_Producto']}, Nombre={item['Nombre']}")
+        print(f"Editando ítem de inventario: Producto={item['Nombre']}")
 
     def delete_inventory_action(self, item):
-        """Elimina un ítem del inventario de la base de datos MySQL"""
+        """Elimina un ítem del inventario usando Proyecto_2"""
         try:
-            conn = Proyecto_2.BasedeDatos.conectar()
-            cursor = conn.cursor()
-            query = "DELETE FROM inventario WHERE id_producto = %s"
-            cursor.execute(query, (item['ID_Producto'],))
-            conn.commit()
+            empresa_nombre = self.controller.controller.selected_company
+            if not empresa_nombre:
+                messagebox.showerror("Error", "No hay empresa seleccionada")
+                return
 
-            if cursor.rowcount > 0:
+            success = Proyecto_2.Inventario.eliminar_de_inventario(empresa_nombre, item['Nombre'])
+            if success:
                 messagebox.showinfo("Éxito", f"Producto {item['Nombre']} eliminado correctamente")
                 self.inventory_data = self._load_inventory_from_db()
                 self._setup_table()
@@ -1108,10 +971,6 @@ class InventoryManagementPage(TableBasePage):
                 messagebox.showerror("Error", "No se pudo eliminar el producto")
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo eliminar el producto: {e}")
-        finally:
-            if 'conn' in locals() and conn.is_connected():
-                cursor.close()
-                conn.close()
 
     def _setup_table(self):
         table_container = ctk.CTkScrollableFrame(self, fg_color="transparent", label_text=None)
@@ -1133,8 +992,8 @@ class InventoryManagementPage(TableBasePage):
             header_cell.grid(row=0, column=i, sticky="nsew", padx=(1 if i > 0 else 0, 1), pady=(0, 1))
 
         row_font = ctk.CTkFont(size=14)
-        display_keys = ["Nombre", "Cantidad", "Unidad", "Costo"]
-        id_key = "ID_Producto"
+        display_keys = ["Cantidad", "Precio"]
+        id_key = "Nombre"
 
         for r, item in enumerate(data):
             row_index = r + 1
@@ -1149,10 +1008,10 @@ class InventoryManagementPage(TableBasePage):
             current_col = 1
             for key in display_keys:
                 value = item.get(key)
-                if key == "Costo":
-                    display_value = f"Q {value:.2f}"
+                if key == "Precio":
+                    display_value = f"Q {float(value):.2f}" if value else "Q 0.00"
                 else:
-                    display_value = str(value)
+                    display_value = str(value) if value else ""
                 cell = ctk.CTkLabel(table_container, text=display_value, fg_color=bg_color, text_color=text_color,
                                     font=row_font, height=60, corner_radius=0, anchor="w", padx=15)
                 cell.grid(row=row_index, column=current_col, sticky="nsew", padx=(1, 1), pady=(1, 1))
@@ -1163,7 +1022,7 @@ class InventoryManagementPage(TableBasePage):
             edit_button_frame.grid(row=row_index, column=action_col_idx, sticky="nsew", padx=(1, 1), pady=(1, 1))
             edit_button_frame.grid_columnconfigure(0, weight=1)
 
-            ctk.CTkButton(edit_button_frame, text="EditaR",
+            ctk.CTkButton(edit_button_frame, text="Editar",
                           command=lambda u=item: self.edit_inventory_action(u),
                           width=70, height=35, corner_radius=10,
                           fg_color=COLOR_BOTON_EDITAR,
@@ -1191,7 +1050,7 @@ class AddInventoryDialog(ctk.CTkToplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Agregar Producto al Inventario")
-        self.geometry("400x500")
+        self.geometry("400x400")
         self.resizable(False, False)
 
         self.parent = parent
@@ -1203,12 +1062,10 @@ class AddInventoryDialog(ctk.CTkToplevel):
                      font=ctk.CTkFont(size=20, weight="bold"), text_color="white").pack(pady=(20, 30))
 
         self.entries = {}
-        fields = [
-            "ID_PRODUCTO", "NOMBRE_PRODUCTO", "CANTIDAD", "UNIDAD", "COSTO_UNITARIO"
-        ]
+        fields = ["PRODUCTO", "CANTIDAD", "PRECIO"]
 
         for field in fields:
-            ctk.CTkLabel(main_frame, text=field.replace("_", " "),
+            ctk.CTkLabel(main_frame, text=field,
                          font=ctk.CTkFont(size=12, weight="normal"), text_color="white", anchor="w").pack(fill="x",
                                                                                                           padx=40,
                                                                                                           pady=(10, 0))
@@ -1232,33 +1089,32 @@ class AddInventoryDialog(ctk.CTkToplevel):
                       hover_color="#5D3FD3").pack(side="right")
 
     def add_product(self):
-        id_producto = self.entries["ID_PRODUCTO"].get()
-        nombre_producto = self.entries["NOMBRE_PRODUCTO"].get()
+        producto = self.entries["PRODUCTO"].get()
         cantidad = self.entries["CANTIDAD"].get()
-        unidad = self.entries["UNIDAD"].get()
-        costo_unitario = self.entries["COSTO_UNITARIO"].get()
+        precio = self.entries["PRECIO"].get()
 
-        if not all([id_producto, nombre_producto, cantidad, unidad, costo_unitario]):
+        if not all([producto, cantidad, precio]):
             messagebox.showerror("Error", "Por favor complete todos los campos")
             return
 
-        empresa_nit = self.parent.controller.controller.selected_company
-        if not empresa_nit:
+        empresa_nombre = self.parent.controller.controller.selected_company
+        if not empresa_nombre:
             messagebox.showerror("Error", "No hay empresa seleccionada")
             return
 
-        # Usar la clase Producto de Proyecto_2.py
-        producto = Proyecto_2.Producto(id_producto, nombre_producto, float(cantidad), unidad, float(costo_unitario),
-                                       empresa_nit)
-        success = producto.crear_producto()
+        try:
+            inventario = Proyecto_2.Inventario(empresa_nombre, producto, int(cantidad), float(precio))
+            success = inventario.guardar()
 
-        if success:
-            messagebox.showinfo("Éxito", f"Producto {nombre_producto} agregado correctamente")
-            self.destroy()
-            self.parent.inventory_data = self.parent._load_inventory_from_db()
-            self.parent._setup_table()
-        else:
-            messagebox.showerror("Error", "No se pudo agregar el producto")
+            if success:
+                messagebox.showinfo("Éxito", f"Producto {producto} agregado correctamente")
+                self.destroy()
+                self.parent.inventory_data = self.parent._load_inventory_from_db()
+                self.parent._setup_table()
+            else:
+                messagebox.showerror("Error", "No se pudo agregar el producto")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al agregar producto: {str(e)}")
 
 
 class ViewCompaniesPage(ctk.CTkFrame):
@@ -1276,19 +1132,11 @@ class ViewCompaniesPage(ctk.CTkFrame):
     def _load_companies_from_db(self):
         """Carga empresas reales desde la base de datos"""
         try:
-            conn = Proyecto_2.BasedeDatos.conectar()
-            cursor = conn.cursor(dictionary=True)
-            query = "SELECT nombre_empresa FROM empresas"
-            cursor.execute(query)
-            result = cursor.fetchall()
-            return [company['nombre_empresa'] for company in result] if result else []
+            empresas = Proyecto_2.Empresa.listar()
+            return [empresa['nombre'] for empresa in empresas] if empresas else []
         except Exception as e:
             print(f"Error cargando empresas: {e}")
             return []
-        finally:
-            if 'conn' in locals() and conn.is_connected():
-                cursor.close()
-                conn.close()
 
     def _setup_header(self):
         header_frame = ctk.CTkFrame(self, fg_color=COLOR_MORADO_OSCURO, corner_radius=0, height=60)
@@ -1325,7 +1173,6 @@ class ViewCompaniesPage(ctk.CTkFrame):
                                                                                                           column=0,
                                                                                                           pady=(20, 30),
                                                                                                           sticky="n")
-
         list_font = ctk.CTkFont(family="Courier", size=20)
         for i, company_name in enumerate(self.companies):
             company_button = ctk.CTkButton(scrollable_list,
@@ -1408,198 +1255,99 @@ class CompanyHomePage(ctk.CTkFrame):
             option_button.grid(row=i + 1, column=0, sticky="ew", pady=5, padx=20)
 
 
-class FacturaTableBase(ctk.CTkFrame):
-    def __init__(self, master, controller, title="Lista de Facturas", data_type="Emitidas"):
-        super().__init__(master, fg_color=COLOR_CONTENIDO_BOX)
-        self.controller = controller
-
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
-
-        ctk.CTkLabel(self, text=title, font=ctk.CTkFont(size=18, weight="bold"), text_color="#301934").grid(row=0,
-                                                                                                            column=0,
-                                                                                                            pady=(15,
-                                                                                                                  5))
-
-        if data_type == "Emitidas":
-            data = self._load_facturas_emitidas()
-        elif data_type == "Canceladas":
-            data = self._load_facturas_canceladas()
-        else:
-            data = self._load_total_vendido_mes()
-
-        self._create_factura_table(data, data_type)
-
-    def _load_facturas_emitidas(self):
-        empresa_nit = self.controller.controller.selected_company
-        if not empresa_nit:
-            return []
-
-        try:
-            conn = Proyecto_2.BasedeDatos.conectar()
-            cursor = conn.cursor(dictionary=True)
-            query = """
-                SELECT numero_factura, fecha_compra, nombre_cliente, total 
-                FROM facturas 
-                WHERE empresa_nit = %s AND estado = 'ACTIVA'
-            """
-            cursor.execute(query, (empresa_nit,))
-            result = cursor.fetchall()
-            return result or []
-        except Exception as e:
-            print(f"Error cargando facturas emitidas: {e}")
-            return []
-        finally:
-            if 'conn' in locals() and conn.is_connected():
-                cursor.close()
-                conn.close()
-
-    def _load_facturas_canceladas(self):
-        empresa_nit = self.controller.controller.selected_company
-        if not empresa_nit:
-            return []
-
-        try:
-            conn = Proyecto_2.BasedeDatos.conectar()
-            cursor = conn.cursor(dictionary=True)
-            query = """
-                SELECT numero_factura, fecha_compra, nombre_cliente, total 
-                FROM facturas 
-                WHERE empresa_nit = %s AND estado = 'CANCELADA'
-            """
-            cursor.execute(query, (empresa_nit,))
-            result = cursor.fetchall()
-            return result or []
-        except Exception as e:
-            print(f"Error cargando facturas canceladas: {e}")
-            return []
-        finally:
-            if 'conn' in locals() and conn.is_connected():
-                cursor.close()
-                conn.close()
-
-    def _load_total_vendido_mes(self):
-        empresa_nit = self.controller.controller.selected_company
-        if not empresa_nit:
-            return []
-
-        try:
-            conn = Proyecto_2.BasedeDatos.conectar()
-            cursor = conn.cursor(dictionary=True)
-            query = """
-                SELECT DATE_FORMAT(fecha_compra, '%Y-%m') as mes, 
-                       SUM(total) as total_vendido
-                FROM facturas 
-                WHERE empresa_nit = %s 
-                GROUP BY DATE_FORMAT(fecha_compra, '%Y-%m')
-                ORDER BY mes DESC
-            """
-            cursor.execute(query, (empresa_nit,))
-            result = cursor.fetchall()
-            return result or []
-        except Exception as e:
-            print(f"Error cargando total vendido: {e}")
-            return []
-        finally:
-            if 'conn' in locals() and conn.is_connected():
-                cursor.close()
-                conn.close()
-
-    def _create_factura_table(self, data, data_type):
-        inner_table_frame = ctk.CTkFrame(self, fg_color=COLOR_CONTENIDO_BOX)
-        inner_table_frame.grid(row=1, column=0, sticky="nsew", padx=15, pady=15)
-
-        if data_type == "Total Vendido por Mes":
-            columns = ["MES", "TOTAL VENDIDO (Q)"]
-            col_weights = [1, 1]
-        else:
-            columns = ["NÚMERO FACTURA", "FECHA", "CLIENTE", "MONTO (Q)"]
-            col_weights = [2, 2, 3, 2]
-
-        for i, weight in enumerate(col_weights):
-            inner_table_frame.grid_columnconfigure(i, weight=weight)
-
-        for col, header in enumerate(columns):
-            ctk.CTkLabel(inner_table_frame, text=header, font=ctk.CTkFont(size=14, weight="bold"),
-                         fg_color=COLOR_MORADO_OSCURO, text_color="white", corner_radius=5).grid(row=0, column=col,
-                                                                                                 sticky="nsew", padx=1,
-                                                                                                 pady=1)
-
-        for row_idx, row_data in enumerate(data):
-            row_color = COLOR_CONTENIDO_BOX if row_idx % 2 == 0 else "#e8e8e8"
-
-            for col_idx, cell_data in enumerate(row_data.values()):
-                if isinstance(cell_data, (int, float)):
-                    display_text = f"Q{cell_data:,.2f}"
-                else:
-                    display_text = str(cell_data)
-
-                label = ctk.CTkLabel(inner_table_frame, text=display_text,
-                                     fg_color=row_color, text_color="#301934",
-                                     font=ctk.CTkFont(size=12), height=30)
-                label.grid(row=row_idx + 1, column=col_idx, sticky="nsew", padx=1, pady=1)
-
-
 class ReportsPage(ctk.CTkFrame):
-    VIEWS = {
-        "FACTURAS EMITIDAS": {"title": "Reporte de Facturas Emitidas", "type": "Emitidas"},
-        "FACTURAS CANCELADAS": {"title": "Reporte de Facturas Canceladas", "type": "Canceladas"},
-        "TOTAL VENDIDO POR MES": {"title": "Total Vendido por Mes", "type": "Total Vendido por Mes"}
-    }
-
-    def __init__(self, master, controller, company_name="EMPRESA"):
-        super().__init__(master, fg_color=COLOR_FONDO_GENERAL)
+    def __init__(self, parent, controller):
+        super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
         self.controller = controller
-        self.company_name = company_name
+        self.company_name = self.controller.controller.selected_company
 
+        self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(2, weight=1)
 
-        ctk.CTkLabel(self, text=f"REPORTES - {company_name}",
-                     font=ctk.CTkFont(size=28, weight="bold"),
-                     text_color=COLOR_TEXTO_ETIQUETA).grid(row=0, column=0, pady=(30, 20), sticky="n")
+        self._setup_header()
+        self._setup_reports()
 
-        options_frame = ctk.CTkFrame(self, fg_color="transparent")
-        options_frame.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+    def _setup_header(self):
+        header_frame = ctk.CTkFrame(self, fg_color=COLOR_MORADO_OSCURO, corner_radius=0, height=60)
+        header_frame.grid(row=0, column=0, sticky="new")
+        header_frame.grid_columnconfigure(0, weight=1)
 
-        options_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
+        ctk.CTkLabel(header_frame, text=f"REPORTES - {self.company_name}",
+                     font=ctk.CTkFont(size=18, weight="bold"), text_color="white").grid(
+            row=0, column=0, padx=20, pady=10)
 
-        self.current_view_frame = None
-        self.buttons = {}
+        ctk.CTkButton(header_frame, text="Regresar",
+                      command=lambda: self.controller.nav_action("REGRESAR A EMPRESA"),
+                      width=100, height=35, corner_radius=10,
+                      fg_color="white", hover_color="#cccccc", text_color="black"
+                      ).grid(row=0, column=1, padx=20, sticky="e")
 
-        for i, (name, data) in enumerate(self.VIEWS.items()):
-            button = ctk.CTkButton(options_frame, text=name,
-                                   command=lambda n=name: self.change_view(n),
-                                   fg_color=COLOR_BOTON_REGRESAR,
-                                   hover_color="#5800a3",
-                                   height=40, corner_radius=10, font=ctk.CTkFont(size=14, weight="bold"))
-            button.grid(row=0, column=i, padx=5, pady=5, sticky="ew")
-            self.buttons[name] = button
+    def _setup_reports(self):
+        main_frame = ctk.CTkFrame(self, fg_color="transparent")
+        main_frame.grid(row=1, column=0, sticky="nsew", padx=50, pady=30)
+        main_frame.grid_columnconfigure(0, weight=1)
+        main_frame.grid_rowconfigure(1, weight=1)
 
-        btn_regresar = ctk.CTkButton(options_frame, text="Regresar", command=self.regresar_action,
-                                     fg_color=COLOR_MORADO_OSCURO, hover_color="#4b0082",
-                                     height=40, corner_radius=10, width=100)
-        btn_regresar.grid(row=0, column=len(self.VIEWS), padx=(10, 0), sticky="e")
+        # Botones de tipos de reportes
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.grid(row=0, column=0, sticky="ew", pady=(0, 20))
 
-        self.change_view(list(self.VIEWS.keys())[0])
+        report_types = ["FACTURAS EMITIDAS", "FACTURAS CANCELADAS", "VENTAS TOTALES"]
+        for i, report_type in enumerate(report_types):
+            ctk.CTkButton(button_frame, text=report_type,
+                          command=lambda rt=report_type: self.show_report(rt),
+                          width=150, height=40, corner_radius=10,
+                          fg_color=COLOR_BOTON_PRIMARIO,
+                          hover_color="#5D3FD3").grid(row=0, column=i, padx=10)
 
-    def change_view(self, view_name):
-        for name, button in self.buttons.items():
-            color = COLOR_BOTON_PRIMARIO if name == view_name else COLOR_BOTON_REGRESAR
-            button.configure(fg_color=color)
+        # Área de reportes
+        self.report_frame = ctk.CTkScrollableFrame(main_frame, fg_color=COLOR_CONTENIDO_BOX)
+        self.report_frame.grid(row=1, column=0, sticky="nsew")
 
-        if self.current_view_frame:
-            self.current_view_frame.destroy()
+        # Mostrar reporte por defecto
+        self.show_report("FACTURAS EMITIDAS")
 
-        view_info = self.VIEWS[view_name]
-        self.current_view_frame = FacturaTableBase(self, self.controller,
-                                                   title=view_info["title"],
-                                                   data_type=view_info["type"])
-        self.current_view_frame.grid(row=2, column=0, sticky="nsew", padx=20, pady=(0, 20))
+    def show_report(self, report_type):
+        # Limpiar frame anterior
+        for widget in self.report_frame.winfo_children():
+            widget.destroy()
 
-    def regresar_action(self):
-        company_name = self.controller.controller.selected_company if self.controller.controller.selected_company else "EMPRESA"
-        self.controller.controller.select_company_and_navigate(company_name)
+        ctk.CTkLabel(self.report_frame, text=report_type,
+                     font=ctk.CTkFont(size=20, weight="bold"),
+                     text_color=COLOR_TEXTO_ETIQUETA).pack(pady=20)
+
+        try:
+            if report_type == "FACTURAS EMITIDAS":
+                data = Proyecto_2.Reporte.facturas_emitidas(self.company_name)
+            elif report_type == "FACTURAS CANCELADAS":
+                data = Proyecto_2.Reporte.facturas_anuladas(self.company_name)
+            elif report_type == "VENTAS TOTALES":
+                data = Proyecto_2.Reporte.total_ventas_empresa(self.company_name)
+            else:
+                data = []
+
+            if not data:
+                ctk.CTkLabel(self.report_frame, text="No hay datos disponibles",
+                             font=ctk.CTkFont(size=16), text_color=COLOR_TEXTO_ETIQUETA).pack(pady=50)
+                return
+
+            # Crear tabla simple
+            for i, item in enumerate(data):
+                report_text = ""
+                for key, value in item.items():
+                    report_text += f"{key}: {value}\n"
+
+                frame = ctk.CTkFrame(self.report_frame, fg_color=COLOR_FILA_CLARA if i % 2 == 0 else COLOR_FILA_OSCURA)
+                frame.pack(fill="x", padx=10, pady=5)
+
+                ctk.CTkLabel(frame, text=report_text.strip(),
+                             font=ctk.CTkFont(size=12),
+                             text_color=COLOR_TEXTO_TABLA if i % 2 == 0 else "white",
+                             justify="left").pack(padx=10, pady=5)
+
+        except Exception as e:
+            ctk.CTkLabel(self.report_frame, text=f"Error al cargar reporte: {str(e)}",
+                         font=ctk.CTkFont(size=16), text_color="red").pack(pady=50)
 
 
 class DashboardPage(ctk.CTkFrame):
@@ -1700,12 +1448,6 @@ class DashboardPage(ctk.CTkFrame):
             self._create_sub_menu(self.company_menu_frame, "CREAR EMPRESA").pack(fill="x")
             self._create_sub_menu(self.company_menu_frame, "MODIFICAR INFORMACIÓN EMPRESA").pack(fill="x")
             self._create_sub_menu(self.company_menu_frame, "ELIMINAR EMPRESA").pack(fill="x")
-            self.btn_clientes = self._create_nav_button("GESTIONAR CLIENTES ▾",
-                                                        lambda: self.toggle_menu('clientes'))
-            self.btn_clientes.pack(fill="x", padx=0, pady=(10, 0))
-            self.clientes_menu_frame = ctk.CTkFrame(self.nav_frame, fg_color="transparent")
-            self._create_sub_menu(self.clientes_menu_frame, "CREAR CLIENTE").pack(fill="x")
-            self._create_sub_menu(self.clientes_menu_frame, "VER CLIENTES").pack(fill="x")
 
         # Todos los usuarios pueden ver empresas
         self.btn_view_companies = self._create_nav_button("VER EMPRESAS",
@@ -1824,7 +1566,7 @@ class DashboardPage(ctk.CTkFrame):
             self.show_content(CreateInvoicePage)
         elif action == "VER REPORTES":
             company_name = self.controller.selected_company if self.controller.selected_company else "EMPRESA"
-            reports_page = ReportsPage(self.content_container, self, company_name=company_name)
+            reports_page = ReportsPage(self.content_container, self)
             reports_page.grid(row=0, column=0, sticky="nsew")
             self.current_content = reports_page
         elif action == "REGRESAR A EMPRESA":
