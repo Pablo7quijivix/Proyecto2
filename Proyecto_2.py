@@ -1,8 +1,10 @@
-import mysql.connector #Se importa la libreria para oncertarse con la bse de datos
+import mysql.connector
 from datetime import date
 
-DB_Sistema= "sistema_empresa.db"
-#Metodos de Busqueda
+DB_Sistema = "sistema_empresa.db"
+
+
+# Métodos de Búsqueda
 def busqueda_binaria(lista, indice, valor):
     inicio = 0
     fin = len(lista) - 1
@@ -16,13 +18,13 @@ def busqueda_binaria(lista, indice, valor):
             fin = medio - 1
     return -1
 
-def busqueda_secuencial(lista,indice,valor):
+def busqueda_secuencial(lista, indice, valor):
     for x in lista:
         if x[indice] == valor:
             return x
     return -1
 
-#Metodos de ordenamiento
+# Métodos de ordenamiento
 def metodo_bubble_sort(lista, indice=1):
     datos = list(lista)
     numero = len(datos)
@@ -39,17 +41,18 @@ def metodo_bubble_sort(lista, indice=1):
 def metodo_quick_sort(lista, indice=1):
     if len(lista) <= 1:
         return list(lista)
-    pivote = lista[len(lista)//2][indice]
+    pivote = lista[len(lista) // 2][indice]
     menores = [x for x in lista if x[indice] < pivote]
     iguales = [x for x in lista if x[indice] == pivote]
     mayores = [x for x in lista if x[indice] > pivote]
     return metodo_quick_sort(menores, indice) + iguales + metodo_quick_sort(mayores, indice)
 
-def meotod_selection_sort(lista, indice=1):
+
+def metodo_selection_sort(lista, indice=1):
     lista_ordenar = list(lista)
-    for i in range(len(lista_ordenar)-1):
+    for i in range(len(lista_ordenar) - 1):
         menor = i
-        for j in range(i+1, len(lista_ordenar)):
+        for j in range(i + 1, len(lista_ordenar)):
             if lista_ordenar[j][indice] < lista_ordenar[menor][indice]:
                 menor = j
         aux = lista_ordenar[i]
@@ -57,20 +60,19 @@ def meotod_selection_sort(lista, indice=1):
         lista_ordenar[menor] = aux
     return lista_ordenar
 
-Conexion= ()
-#Clase base de datos
-class BasedeDatos():
+# Clase base de datos
+class BasedeDatos:
     @staticmethod
     def conectar():
         conn = mysql.connector.connect(
             host="localhost",
             user="root",
             password="Wilson200.",
-            database="prueba_8",
-            port= 3306
+            database="nueva_prueba",
+            port=3306
         )
         return conn
-#Clase base
+# Clase base
 class Usuario:
     def __init__(self,nombre,dpi,correo,puesto,usuario,contrasena,rol):
         self.__nombre= nombre
@@ -125,7 +127,7 @@ class Usuario:
         if "@" in correo_nuevo:
             self._correo = correo_nuevo
         else:
-            print("Correo no valido..")
+            print("Correo no válido..")
 
     @property
     def rol(self):
@@ -201,7 +203,7 @@ class Usuario:
 
 reportes = {}
 facturas = {}
-inventario={}
+inventario = {}
 
 class Auditor(Usuario):
     def __init__(self,nombre,dpi,correo,usuario,contrasena):
@@ -240,8 +242,8 @@ class Auditor(Usuario):
         return Inventario.listar(nombre_empresa)
 
     def modificar_inventario(self,nombre_empresa,producto,cantidad,precio):
-        inventario = Inventario(nombre_empresa,producto,cantidad,precio)
-        guardar = inventario.guardar()
+        inventari = Inventario(nombre_empresa,producto,cantidad,precio)
+        guardar = inventari.guardar()
         return guardar
 
     def reporte_facturas_emitidas(self,empresa):
@@ -253,8 +255,8 @@ class Auditor(Usuario):
     def reporte_ventas(self,empresa):
         return Reporte.total_ventas_empresa(empresa)
 
-    def registrar_factura(self, numero_factura, nit_cliente, empresa_nombre, monto, fecha=None):
-        factura = Factura(numero_factura, nit_cliente, monto, fecha)
+    def registrar_factura(self,numero_factura,nit_cliente,empresa_nombre,monto,productos=None,fecha=None):
+        factura = Factura(numero_factura,nit_cliente,monto,productos,fecha)
         guardar = factura.guardar(empresa_nombre)
         if guardar:
             if empresa_nombre not in facturas:
@@ -272,15 +274,15 @@ class Auditor(Usuario):
         return Usuario.listar_todos()
 
 class Empleado(Usuario):
-    def __init__(self,nombre,dpi,correo,usuario,contrasena):
-        super().__init__(nombre, dpi, correo, "Empleado", usuario, contrasena,"Usuario")
+    def __init__(self, nombre, dpi, correo, usuario, contrasena):
+        super().__init__(nombre, dpi, correo, "Empleado", usuario, contrasena, "Usuario")
 
     def mostrar_info(self):
         pass
 
 
 class Cliente:
-    def __init__(self, nit, nombre, telefono="", correo="", direccion="", dpi="", fecha_nacimiento=None,nombre_negocio=""):
+    def __init__(self, nit,nombre,telefono="",correo="",direccion="",dpi="",fecha_nacimiento=None,nombre_negocio=""):
         self._nit = nit
         self._nombre = nombre
         self._telefono = telefono
@@ -406,7 +408,7 @@ class Cliente:
     def mostrar_informacion(self):
         print(f"{self.nit} - {self.nombre} ({self.nombre_negocio})")
 
-#Noramlizar nombre para guardar en base de datos
+# Normalizar nombre para guardar en base de datos
 def normalizar_nombre(nombre):
     nombre_empresa = nombre.strip().lower()
     nombre_empresa = "_".join(nombre_empresa.split())
@@ -472,6 +474,19 @@ class Empresa:
                     INDEX idx_cliente (nit_cliente)
                 );
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS detalle_facturas (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    empresa_nombre VARCHAR(200) NOT NULL,
+                    no_factura VARCHAR(50) NOT NULL,
+                    producto VARCHAR(200) NOT NULL,
+                    cantidad INT NOT NULL,
+                    precio_unitario DECIMAL(10,2) NOT NULL,
+                    subtotal DECIMAL(10,2) NOT NULL,
+                    FOREIGN KEY (empresa_nombre, no_factura) REFERENCES facturas_general(empresa_nombre, no_factura) ON DELETE CASCADE,
+                    INDEX idx_factura (empresa_nombre, no_factura),
+                    INDEX idx_producto (producto)
+                );""")
             conn.commit()
         except mysql.connector.Error as e:
             print(f"Error al crear tablas unificadas: {e}")
@@ -504,7 +519,7 @@ class Empresa:
                 conn.close()
 
     @staticmethod
-    def eliminar(nombre_empresa): #Eliminar una empresa y con ella los datos como inventario y facturas
+    def eliminar(nombre_empresa):
         conn = None
         cursor = None
         try:
@@ -515,8 +530,8 @@ class Empresa:
                 print(f"La empresa '{nombre_empresa}' no existe.")
                 return False
 
+            cursor.execute("DELETE FROM detalle_facturas WHERE empresa_nombre = %s", (nombre_empresa,))
             cursor.execute("DELETE FROM inventario_general WHERE empresa_nombre = %s", (nombre_empresa,))
-
             cursor.execute("DELETE FROM facturas_general WHERE empresa_nombre = %s", (nombre_empresa,))
             cursor.execute("DELETE FROM empresas WHERE nombre = %s", (nombre_empresa,))
 
@@ -557,15 +572,23 @@ class Empresa:
         return rows
 
 class Factura:
-    def __init__(self,no_factura,nit_cliente,monto,fecha=None,estado="Emitida"):
+    def __init__(self, no_factura, nit_cliente, monto, productos=None, fecha=None, estado="Emitida"):
         self.__no_factura = no_factura
         self.__nit_cliente = nit_cliente
         self._monto = monto
         self._fecha = fecha if fecha else date.today()
         self._estado = estado
+        self.productos = productos or []  # Lista de productos que fya fueron vendidos
+
+    def agregar_producto(self, producto, cantidad, precio_unitario):
+        self.productos.append({
+            'producto': producto,
+            'cantidad': cantidad,
+            'precio_unitario': precio_unitario,
+            'subtotal': cantidad * precio_unitario})
 
     def informacion(self):
-        print(f"Factura: {self.no_factura} | Clinte: {self.nit_cliente} | Monto: {self.monto} | fecha: {self.fecha} | Estado:{self.estado}")
+        print(f"Factura: {self.no_factura} | Cliente: {self.nit_cliente} | Monto: {self.monto} | fecha: {self.fecha} | Estado:{self.estado}")
 
     def guardar(self, empresa_nombre):
         conn = None
@@ -573,20 +596,42 @@ class Factura:
         try:
             conn = BasedeDatos.conectar()
             cursor = conn.cursor()
+            # Verificar stock
+            for prod in self.productos:
+                if not Inventario.verificar_stock(empresa_nombre, prod['producto'], prod['cantidad']):
+                    print(f"Stock insuficiente para {prod['producto']}")
+                    return False
+
             cursor.execute("""
-                INSERT INTO facturas_general (empresa_nombre, no_factura, nit_cliente, monto, fecha, estado) VALUES (%s, %s, %s, %s, %s, %s)""",
-                           (empresa_nombre, self.__no_factura, self.__nit_cliente, self._monto, self._fecha, self._estado))
+                INSERT INTO facturas_general (empresa_nombre, no_factura, nit_cliente, monto, fecha, estado) 
+                VALUES (%s, %s, %s, %s, %s, %s)""",
+                           (empresa_nombre, self.__no_factura, self.__nit_cliente, self._monto, self._fecha,self._estado))
+            # Guardar detalles y actualizar inventario
+            for prod in self.productos:
+                # Guardar detalle
+                cursor.execute("""INSERT INTO detalle_facturas (empresa_nombre, no_factura, producto, cantidad, precio_unitario, subtotal)VALUES (%s, %s, %s, %s, %s, %s)""",
+                               (empresa_nombre, self.__no_factura, prod['producto'], prod['cantidad'],
+                                prod['precio_unitario'], prod['subtotal']))
+
+                # Actualizar inventario (reducir cantidad)
+                cursor.execute("""
+                    UPDATE inventario_general 
+                    SET cantidad = cantidad - %s 
+                    WHERE empresa_nombre = %s AND producto = %s""",
+                               (prod['cantidad'], empresa_nombre, prod['producto']))
+
             conn.commit()
-            print(f"Factura {self.__no_factura} guardada")
+            print(f"Factura {self.__no_factura} guardada e inventario actualizado")
             return True
+
         except mysql.connector.Error as e:
-            print("Ocurrio un error en base de datos", e)
+            print("Error al guardar factura:", e)
+            if conn:
+                conn.rollback()
             return False
         finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
+            if cursor: cursor.close()
+            if conn: conn.close()
 
     @staticmethod
     def listar_por_empresa(empresa_nombre):
@@ -603,11 +648,25 @@ class Factura:
             INNER JOIN clientes ON facturas_general.nit_cliente = clientes.nit
             WHERE facturas_general.empresa_nombre = %s
             ORDER BY facturas_general.fecha DESC""",
-            (empresa_nombre,))
+                       (empresa_nombre,))
         datos_filas = cursor.fetchall()
         cursor.close()
         conn.close()
         return datos_filas
+
+    @staticmethod
+    def obtener_detalle_factura(empresa_nombre, no_factura):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT producto, cantidad, precio_unitario, subtotal
+            FROM detalle_facturas
+            WHERE empresa_nombre = %s AND no_factura = %s""",
+                       (empresa_nombre, no_factura))
+        detalles = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return detalles
 
     @property
     def estado(self):
@@ -644,7 +703,7 @@ class Reporte:
             SELECT no_factura, nit_cliente, monto, fecha, empresa_nombre
             FROM facturas_general 
             WHERE estado = 'Emitida' AND empresa_nombre = %s""",
-                (empresa,))
+                       (empresa,))
         resultados = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -694,7 +753,7 @@ class Reporte:
                 GROUP BY MONTH(fecha)
                 ORDER BY mes
             """, (empresa, año_deseado))
-        else:# Si no dan año y solo nombre de empresa
+        else:  #Si no dan año y solo empresa
             cursor.execute("""SELECT 
                     YEAR(fecha) as año, 
                     MONTH(fecha) as mes,
@@ -794,10 +853,8 @@ class Reporte:
             mes_num = dato["mes"]
             mes_nombre = nombres_meses.get(mes_num, f"MES {mes_num}")
 
-            reporte += f"{mes_nombre}: {dato["cantidad"]}\n"
-
+            reporte += f"{mes_nombre}: {dato['cantidad']}\n"
         return reporte
-
 
     @staticmethod
     def hacer_reporte_anuladas(empresa, año_seleccionado=None):
@@ -811,13 +868,14 @@ class Reporte:
             9: "SEPTIEMBRE", 10: "OCTUBRE", 11: "NOVIEMBRE", 12: "DICIEMBRE"
         }
         reporte = "FACTURAS ANULADAS\n"
-        reporte += "=" * 30+ "\n"
+        reporte += "=" * 30 + "\n"
         for dato in datos:
             año = dato.get("año", "2024")
             mes_num = dato["mes"]
             mes_nombre = nombres_meses.get(mes_num, f"MES {mes_num}")
-            reporte += f"{mes_nombre}: {dato["cantidad"]}\n"
+            reporte += f"{mes_nombre}: {dato['cantidad']}\n"
         return reporte
+
 
 class Inventario:
     def __init__(self, empresa_nombre, producto, cantidad, precio):
@@ -833,10 +891,27 @@ class Inventario:
             conn = BasedeDatos.conectar()
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO inventario_general (empresa_nombre, producto, cantidad, precio) VALUES (%s, %s, %s, %s)""",
-                           (self._empresa_nombre, self._producto, self._cantidad, self._precio))
+                SELECT cantidad FROM inventario_general 
+                WHERE empresa_nombre = %s AND producto = %s""",
+                           (self._empresa_nombre, self._producto))
+            existente = cursor.fetchone()
+
+            if existente:
+                # Actualizar cantidad existente
+                cursor.execute("""
+                    UPDATE inventario_general 
+                    SET cantidad = cantidad + %s, precio = %s 
+                    WHERE empresa_nombre = %s AND producto = %s""",
+                               (self._cantidad, self._precio, self._empresa_nombre, self._producto))
+            else:
+                # Insertar nuevo producto
+                cursor.execute("""
+                    INSERT INTO inventario_general (empresa_nombre, producto, cantidad, precio) 
+                    VALUES (%s, %s, %s, %s)""",
+                               (self._empresa_nombre, self._producto, self._cantidad, self._precio))
+
             conn.commit()
-            print(f"Producto {self._producto} agregado a inventario de {self._empresa_nombre}")
+            print(f"Producto {self._producto} actualizado en inventario de {self._empresa_nombre}")
             return True
         except mysql.connector.Error as e:
             print("Error al guardar inventario", e)
@@ -854,12 +929,26 @@ class Inventario:
         cursor.execute("""
             SELECT producto, cantidad, precio 
             FROM inventario_general 
-            WHERE empresa_nombre = %s""",
-            (nombre_empresa,))
+            WHERE empresa_nombre = %s
+            ORDER BY producto""",(nombre_empresa,))
         rows = cursor.fetchall()
         cursor.close()
         conn.close()
         return rows
+
+    @staticmethod
+    def verificar_stock(empresa_nombre, producto, cantidad_requerida):
+        conn = BasedeDatos.conectar()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT cantidad FROM inventario_general 
+            WHERE empresa_nombre = %s AND producto = %s""",(empresa_nombre, producto))
+        resultado = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if resultado and resultado['cantidad'] >= cantidad_requerida:
+            return True
+        return False
 
     @staticmethod
     def eliminar_de_inventario(empresa_nombre, producto):
@@ -872,7 +961,6 @@ class Inventario:
             cursor.execute("""DELETE FROM inventario_general 
                     WHERE empresa_nombre = %s AND producto = %s
                 """, (empresa_nombre, producto))
-
             conn.commit()
             if cursor.rowcount > 0:
                 print(f"Producto '{producto}' eliminado del inventario de {empresa_nombre}.")
@@ -891,7 +979,7 @@ class Inventario:
                 conn.close()
 
 
-def inicio_sesio(usuario,contrasena):
+def inicio_sesion(usuario, contrasena):
     try:
         if usuario == "contador" and contrasena == "contador123":
             return {"rol": "Contador", "nombre": "Administrador"}
@@ -912,43 +1000,6 @@ def inicio_sesio(usuario,contrasena):
             return None
 
     except Exception as e:
-        print(f"Ocurrio un error inesperado: {e}")
+        print(f"Ocurrió un error inesperado: {e}")
         return None
-
-
-def crear_usuario_admin():
-    """Crea un usuario admin por defecto si no existe"""
-    try:
-        conn = BasedeDatos.conectar()
-        cursor = conn.cursor(dictionary=True)
-
-        # Verificar si ya existe usuario
-        cursor.execute("SELECT * FROM usuarios WHERE usuario = 'admin'")
-        if cursor.fetchone():
-            print("Usuario admin ya existe")
-            return True
-
-        # Crear usuario admin
-        admin = Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "admin123")
-        success = admin.crear_usuario("Administrador", "123456789", "admin@empresa.com", "Administrador", "admin",
-                                      "admin123", "Admin")
-
-        if success:
-            print(" Usuario admin creado exitosamente")
-            print(" Credenciales: admin / admin123")
-        else:
-            print(" No se pudo crear el usuario admin")
-
-        return success
-
-    except Exception as e:
-        print(f"Error creando usuario admin: {e}")
-        return False
-    finally:
-        if 'conn' in locals() and conn.is_connected():
-            cursor.close()
-            conn.close()
-
-
-crear_usuario_admin()
 
