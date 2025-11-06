@@ -1234,35 +1234,246 @@ class DeleteCompanyPage(TableBasePage):
             messagebox.showerror("Error", f"No se pudo eliminar la empresa: {e}")
 
 
-class InventoryManagementPage(TableBasePage):
+class InventoryManagementPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
-        super().__init__(
-            parent, controller,
-            action_text="Editar",
-            action_color=COLOR_BOTON_EDITAR,
-            action_hover_color="#CBAACB",
-            action_command=self.edit_inventory_action,
-            data_type="inventory",
-            title_text="GESTIÓN DE INVENTARIO"
-        )
-        self._setup_inventory_top_bar()
+        super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
+        self.controller = controller
+        self.datos_originales = []
+        self.datos_filtrados = []
+        self.campo_busqueda = "Nombre"
 
-    def _setup_inventory_top_bar(self):
-        pass
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_columnconfigure(0, weight=1)
 
-    def add_inventory_action(self):
-        dialog = AddInventoryDialog(self)
+        # Cargar datos del inventario
+        self.datos_originales = self._load_inventory_from_db()
+        self.datos_filtrados = self.datos_originales.copy()
+
+        self._setup_title()
+        self._setup_top_bar()
+        self._setup_table()
+
+    def _load_inventory_from_db(self):
+        try:
+            empresa_nombre = self.controller.controller.selected_company
+            if not empresa_nombre:
+                return []
+
+            inventario = Proyecto_2.Inventario.listar(empresa_nombre)
+            formatted_inventory = []
+            for item in inventario:
+                formatted_inventory.append({
+                    "ID_Producto": item.get('id_producto', ''),
+                    "Nombre": item.get('producto', ''),
+                    "Cantidad": item.get('cantidad', 0),
+                    "Precio": item.get('precio', 0)
+                })
+            return formatted_inventory
+        except Exception as e:
+            print(f"Error cargando inventario: {e}")
+            return []
+
+    def _setup_title(self):
+        ctk.CTkLabel(self, text="GESTIÓN DE INVENTARIO",
+                     font=ctk.CTkFont(size=30, weight="bold"),
+                     text_color="white").grid(row=0, column=0, pady=(40, 0), sticky="n")
+
+    def _setup_top_bar(self):
+        top_bar_frame = ctk.CTkFrame(self, fg_color="transparent", height=60)
+        top_bar_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=(40, 20))
+        top_bar_frame.grid_columnconfigure(1, weight=1)
+
+        # Botón de Agregar Producto
+        ctk.CTkButton(top_bar_frame, text="Agregar Producto",
+                      command=self.add_inventory_action,
+                      width=140, height=45, corner_radius=25,
+                      fg_color=COLOR_BOTON_BUSQUEDA,
+                      hover_color="#3CB371",
+                      font=ctk.CTkFont(size=14, weight="bold")
+                      ).grid(row=0, column=0, padx=(0, 15), sticky="w")
+
+        # Campo de búsqueda
+        self.buscar_entry = ctk.CTkEntry(top_bar_frame, placeholder_text="Buscar...",
+                                         width=400, height=45, corner_radius=25,
+                                         fg_color="white", text_color="black",
+                                         font=ctk.CTkFont(size=14))
+        self.buscar_entry.grid(row=0, column=1, sticky="ew", padx=15)
+        self.buscar_entry.bind("<KeyRelease>", self._realizar_busqueda)
+
+        # Botón de búsqueda avanzada
+        ctk.CTkButton(top_bar_frame, text="Buscar",
+                      command=self._buscar_avanzada,
+                      width=100, height=45, corner_radius=25,
+                      fg_color=COLOR_BOTON_BUSQUEDA,
+                      hover_color="#3CB371",
+                      font=ctk.CTkFont(size=14, weight="bold")
+                      ).grid(row=0, column=2, padx=(15, 0), sticky="e")
+
+        # Botón de regresar
+        ctk.CTkButton(top_bar_frame, text="Regresar",
+                      command=self._handle_back_action,
+                      width=100, height=45, corner_radius=25,
+                      fg_color="white", hover_color="#cccccc", text_color="black",
+                      font=ctk.CTkFont(size=14, weight="bold")
+                      ).grid(row=0, column=3, padx=(15, 0), sticky="e")
+
+    def _realizar_busqueda(self, event=None):
+        texto_busqueda = self.buscar_entry.get().strip()
+
+        if not texto_busqueda:
+            self.datos_filtrados = self.datos_originales.copy()
+            self._actualizar_tabla()
+            return
+
+        # Búsqueda secuencial simple
+        resultados = []
+        for item in self.datos_originales:
+            if texto_busqueda.lower() in str(item.get('Nombre', '')).lower():
+                resultados.append(item)
+
+        self.datos_filtrados = resultados
+        self._actualizar_tabla()
+
+    def _buscar_avanzada(self):
+        texto_busqueda = self.buscar_entry.get().strip()
+
+        if not texto_busqueda:
+            messagebox.showinfo("Búsqueda", "Ingrese un término de búsqueda")
+            return
+
+        dialog = BusquedaInventarioDialog(self)
         self.wait_window(dialog)
 
+        if dialog.campo_seleccionado:
+            self.campo_busqueda = dialog.campo_seleccionado
+            resultados = []
+
+            for item in self.datos_originales:
+                valor_item = str(item.get(self.campo_busqueda, '')).lower()
+                if texto_busqueda.lower() in valor_item:
+                    resultados.append(item)
+
+            if not resultados:
+                messagebox.showinfo("Búsqueda", "No se encontraron resultados")
+                self.datos_filtrados = []
+            else:
+                self.datos_filtrados = resultados
+                messagebox.showinfo("Búsqueda", f"Se encontraron {len(resultados)} resultado(s)")
+
+            self._actualizar_tabla()
+
+    def _handle_back_action(self):
+        if self.controller.controller.selected_company:
+            company_name = self.controller.controller.selected_company
+            self.controller.controller.select_company_and_navigate(company_name)
+        else:
+            self.controller.show_default_dashboard()
+
+    def _setup_table(self):
+        table_container = ctk.CTkScrollableFrame(self, fg_color="transparent", label_text=None)
+        table_container.grid(row=2, column=0, sticky="nsew", padx=20, pady=20)
+
+        data = self.datos_filtrados
+        cols = ["PRODUCTO", "CANTIDAD", "PRECIO", "Editar", "Eliminar"]
+
+        num_cols = len(cols)
+        for i in range(num_cols):
+            table_container.grid_columnconfigure(i, weight=1)
+
+        # Encabezados de la tabla
+        header_font = ctk.CTkFont(size=16, weight="bold")
+        for i, col_name in enumerate(cols):
+            header_cell = ctk.CTkLabel(table_container, text=col_name.upper(),
+                                       fg_color=COLOR_CABECERA, text_color="white", font=header_font, height=50,
+                                       corner_radius=0)
+            header_cell.grid(row=0, column=i, sticky="nsew", padx=(1 if i > 0 else 0, 1), pady=(0, 1))
+
+        # Filas de datos
+        row_font = ctk.CTkFont(size=14)
+        for r, item in enumerate(data):
+            row_index = r + 1
+            bg_color = COLOR_FILA_CLARA if r % 2 == 0 else COLOR_FILA_OSCURA
+            text_color = COLOR_TEXTO_TABLA if r % 2 == 0 else "white"
+
+            # Columna Producto
+            ctk.CTkLabel(table_container, text=item['Nombre'], fg_color=bg_color, text_color=text_color,
+                         font=row_font, height=60, corner_radius=0, anchor="w", padx=15).grid(row=row_index, column=0,
+                                                                                              sticky="nsew",
+                                                                                              padx=(1, 1), pady=(1, 1))
+
+            # Columna Cantidad
+            ctk.CTkLabel(table_container, text=str(item['Cantidad']), fg_color=bg_color, text_color=text_color,
+                         font=row_font, height=60, corner_radius=0, anchor="w", padx=15).grid(row=row_index, column=1,
+                                                                                              sticky="nsew",
+                                                                                              padx=(1, 1), pady=(1, 1))
+
+            # Columna Precio
+            precio_text = f"Q {float(item['Precio']):.2f}" if item['Precio'] else "Q 0.00"
+            ctk.CTkLabel(table_container, text=precio_text, fg_color=bg_color, text_color=text_color,
+                         font=row_font, height=60, corner_radius=0, anchor="w", padx=15).grid(row=row_index, column=2,
+                                                                                              sticky="nsew",
+                                                                                              padx=(1, 1), pady=(1, 1))
+
+            # Columna Editar
+            edit_frame = ctk.CTkFrame(table_container, fg_color=bg_color, corner_radius=0)
+            edit_frame.grid(row=row_index, column=3, sticky="nsew", padx=(1, 1), pady=(1, 1))
+            ctk.CTkButton(edit_frame, text="Editar",
+                          command=lambda u=item: self.edit_inventory_action(u),
+                          width=70, height=35, corner_radius=10,
+                          fg_color=COLOR_BOTON_EDITAR,
+                          hover_color="#CBAACB",
+                          text_color=COLOR_TEXTO_TABLA,
+                          font=ctk.CTkFont(size=12, weight="bold")
+                          ).place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+
+            # Columna Eliminar
+            delete_frame = ctk.CTkFrame(table_container, fg_color=bg_color, corner_radius=0)
+            delete_frame.grid(row=row_index, column=4, sticky="nsew", padx=(1, 1), pady=(1, 1))
+            ctk.CTkButton(delete_frame, text="Eliminar",
+                          command=lambda u=item: self.delete_inventory_action(u),
+                          width=70, height=35, corner_radius=10,
+                          fg_color=COLOR_BOTON_ELIMINAR,
+                          hover_color="#8B0000",
+                          text_color="white",
+                          font=ctk.CTkFont(size=12, weight="bold")
+                          ).place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+
+    def _actualizar_tabla(self):
+        # Limpiar tabla actual
+        for widget in self.grid_slaves():
+            if int(widget.grid_info()["row"]) == 2:
+                widget.destroy()
+        # Recrear la tabla
+        self._setup_table()
+
+    def add_inventory_action(self):
+        """Abre el diálogo para agregar nuevo producto al inventario"""
+        dialog = AddInventoryDialog(self)
+        self.wait_window(dialog)
+        # Recargar los datos después de agregar un producto
+        self.datos_originales = self._load_inventory_from_db()
+        self.datos_filtrados = self.datos_originales.copy()
+        self._actualizar_tabla()
+
     def edit_inventory_action(self, item):
-        print(f"Editando ítem de inventario: Producto={item['Nombre']}")
+        """Abre diálogo para editar ítem de inventario"""
+        messagebox.showinfo("Editar Producto", f"Editando: {item['Nombre']}\n\nFunción en desarrollo...")
 
     def delete_inventory_action(self, item):
-        """Elimina un ítem del inventario usando Proyecto_2"""
+        """Elimina un ítem del inventario"""
         try:
             empresa_nombre = self.controller.controller.selected_company
             if not empresa_nombre:
                 messagebox.showerror("Error", "No hay empresa seleccionada")
+                return
+
+            # Confirmar eliminación
+            respuesta = messagebox.askyesno(
+                "Confirmar Eliminación",
+                f"¿Estás seguro de que quieres eliminar el producto '{item['Nombre']}'?"
+            )
+
+            if not respuesta:
                 return
 
             success = Proyecto_2.Inventario.eliminar_de_inventario(empresa_nombre, item['Nombre'])
@@ -1277,84 +1488,41 @@ class InventoryManagementPage(TableBasePage):
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo eliminar el producto: {e}")
 
-    def _setup_table(self):
-        # Usar el método de la clase padre pero agregar columna extra
-        table_container = ctk.CTkScrollableFrame(self, fg_color="transparent", label_text=None)
-        table_container.grid(row=2, column=0, sticky="nsew", padx=20, pady=20)
 
-        data = self._get_data()
-        cols = self._get_columns()
-        cols.append("Eliminar")  # Agregar columna extra
+class BusquedaInventarioDialog(ctk.CTkToplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Búsqueda en Inventario")
+        self.geometry("500x500")
+        self.resizable(False, False)
 
-        num_cols = len(cols)
-        for i in range(num_cols):
-            table_container.grid_columnconfigure(i, weight=1)
+        self.campo_seleccionado = None
 
-        header_font = ctk.CTkFont(size=16, weight="bold")
-        for i, col_name in enumerate(cols):
-            header_cell = ctk.CTkLabel(table_container, text=col_name.upper(),
-                                       fg_color=COLOR_CABECERA, text_color="white", font=header_font, height=50,
-                                       corner_radius=0)
-            header_cell.grid(row=0, column=i, sticky="nsew", padx=(1 if i > 0 else 0, 1), pady=(0, 1))
+        main_frame = ctk.CTkFrame(self, fg_color=COLOR_FORM_FRAME, corner_radius=15)
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        row_font = ctk.CTkFont(size=14)
-        display_keys = ["Cantidad", "Precio"]
-        id_key = "Nombre"
+        ctk.CTkLabel(main_frame, text="BUSCAR POR:",
+                     font=ctk.CTkFont(size=16, weight="bold"),
+                     text_color="white").pack(pady=(15, 20))
 
-        for r, item in enumerate(data):
-            row_index = r + 1
-            bg_color = COLOR_FILA_CLARA if r % 2 == 0 else COLOR_FILA_OSCURA
-            text_color = COLOR_TEXTO_TABLA if r % 2 == 0 else "white"
+        campos = ["Nombre", "Cantidad", "Precio"]
 
-            ctk.CTkLabel(table_container, text=item[id_key], fg_color=bg_color, text_color=text_color,
-                         font=row_font, height=60, corner_radius=0, anchor="w", padx=15).grid(row=row_index, column=0,
-                                                                                              sticky="nsew",
-                                                                                              padx=(1, 1), pady=(1, 1))
+        for campo in campos:
+            ctk.CTkButton(main_frame, text=campo,
+                          command=lambda c=campo: self.seleccionar_campo(c),
+                          width=200, height=35, corner_radius=10,
+                          fg_color=COLOR_CAMPO_CLARO,
+                          hover_color=COLOR_MORADO_OSCURO,
+                          text_color="white").pack(pady=5)
 
-            current_col = 1
-            for key in display_keys:
-                value = item.get(key)
-                if key == "Precio":
-                    display_value = f"Q {float(value):.2f}" if value else "Q 0.00"
-                else:
-                    display_value = str(value) if value else ""
-                cell = ctk.CTkLabel(table_container, text=display_value, fg_color=bg_color, text_color=text_color,
-                                    font=row_font, height=60, corner_radius=0, anchor="w", padx=15)
-                cell.grid(row=row_index, column=current_col, sticky="nsew", padx=(1, 1), pady=(1, 1))
-                current_col += 1
-
-            action_col_idx = current_col
-            edit_button_frame = ctk.CTkFrame(table_container, fg_color=bg_color, corner_radius=0)
-            edit_button_frame.grid(row=row_index, column=action_col_idx, sticky="nsew", padx=(1, 1), pady=(1, 1))
-            edit_button_frame.grid_columnconfigure(0, weight=1)
-
-            ctk.CTkButton(edit_button_frame, text="Editar",
-                          command=lambda u=item: self.edit_inventory_action(u),
-                          width=70, height=35, corner_radius=10,
-                          fg_color=COLOR_BOTON_EDITAR,
-                          hover_color="#CBAACB",
-                          text_color=COLOR_TEXTO_TABLA,
-                          font=ctk.CTkFont(size=14, weight="bold")
-                          ).place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-
-            delete_col_idx = action_col_idx + 1
-            delete_button_frame = ctk.CTkFrame(table_container, fg_color=bg_color, corner_radius=0)
-            delete_button_frame.grid(row=row_index, column=delete_col_idx, sticky="nsew", padx=(1, 1), pady=(1, 1))
-            delete_button_frame.grid_columnconfigure(0, weight=1)
-
-            ctk.CTkButton(delete_button_frame, text="Eliminar",
-                          command=lambda u=item: self.delete_inventory_action(u),
-                          width=80, height=35, corner_radius=10,
-                          fg_color=COLOR_BOTON_ELIMINAR,
-                          hover_color="#8B0000",
-                          text_color="white",
-                          font=ctk.CTkFont(size=14, weight="bold")
-                          ).place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+    def seleccionar_campo(self, campo):
+        self.campo_seleccionado = campo
+        self.destroy()
 class AddInventoryDialog(ctk.CTkToplevel):
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Agregar Producto al Inventario")
-        self.geometry("400x400")
+        self.geometry("500x600")
         self.resizable(False, False)
 
         self.parent = parent
@@ -1393,9 +1561,9 @@ class AddInventoryDialog(ctk.CTkToplevel):
                       hover_color="#5D3FD3").pack(side="right")
 
     def add_product(self):
-        producto = self.entries["PRODUCTO"].get()
-        cantidad = self.entries["CANTIDAD"].get()
-        precio = self.entries["PRECIO"].get()
+        producto = self.entries["PRODUCTO"].get().strip()
+        cantidad = self.entries["CANTIDAD"].get().strip()
+        precio = self.entries["PRECIO"].get().strip()
 
         if not all([producto, cantidad, precio]):
             messagebox.showerror("Error", "Por favor complete todos los campos")
@@ -1407,16 +1575,22 @@ class AddInventoryDialog(ctk.CTkToplevel):
             return
 
         try:
+            inventario_existente = Proyecto_2.Inventario.listar(empresa_nombre)
+            for item in inventario_existente:
+                if item['producto'].lower() == producto.lower():
+                    messagebox.showerror("Error", f"El producto '{producto}' ya existe en el inventario")
+                    return
+
             inventario = Proyecto_2.Inventario(empresa_nombre, producto, int(cantidad), float(precio))
             success = inventario.guardar()
 
             if success:
                 messagebox.showinfo("Éxito", f"Producto {producto} agregado correctamente")
                 self.destroy()
-                self.parent.inventory_data = self.parent._load_inventory_from_db()
-                self.parent._setup_table()
             else:
                 messagebox.showerror("Error", "No se pudo agregar el producto")
+        except ValueError:
+            messagebox.showerror("Error", "Cantidad y Precio deben ser números válidos")
         except Exception as e:
             messagebox.showerror("Error", f"Error al agregar producto: {str(e)}")
 
