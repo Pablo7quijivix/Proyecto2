@@ -3,7 +3,6 @@ from datetime import date
 
 DB_Sistema = "sistema_empresa.db"
 
-
 # Métodos de Búsqueda
 def busqueda_binaria(lista, indice, valor):
     inicio = 0
@@ -47,7 +46,6 @@ def metodo_quick_sort(lista, indice=1):
     mayores = [x for x in lista if x[indice] > pivote]
     return metodo_quick_sort(menores, indice) + iguales + metodo_quick_sort(mayores, indice)
 
-
 def metodo_selection_sort(lista, indice=1):
     lista_ordenar = list(lista)
     for i in range(len(lista_ordenar) - 1):
@@ -69,7 +67,7 @@ class BasedeDatos:
             user="root",
             password="rufisbb7",
             database="prueba2",
-            port= 3306
+            port=3306
         )
         return conn
 # Clase base
@@ -152,8 +150,10 @@ class Usuario:
             print(f"Error al guardar usuario: {e}")
             return False
         finally:
-            if cursor: cursor.close()
-            if conn: conn.close()
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def mostrar_info(self):
         print(f"{self.nombre} ({self.puesto}) - Rol:{self.rol}")
@@ -172,8 +172,10 @@ class Usuario:
             print(f"Error al listar usuarios: {e}")
             return []
         finally:
-            if cursor: cursor.close()
-            if conn: conn.close()
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     @staticmethod
     def eliminar(usuario):
@@ -198,8 +200,10 @@ class Usuario:
             print(f"Error al eliminar usuario: {e}")
             return False
         finally:
-            if cursor: cursor.close()
-            if conn: conn.close()
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
 reportes = {}
 facturas = {}
@@ -216,7 +220,7 @@ class Auditor(Usuario):
         u = Usuario(nombre, dpi, correo, puesto, usuario, contrasena, rol)
         return u.guardar()
 
-    def crear_cliente(self, nit, nombre, telefono="", correo="", direccion="", dpi="", fecha_nacimiento="",nombre_negocio=""):
+    def crear_cliente(self,nit,nombre,telefono="",correo="",direccion="",dpi="",fecha_nacimiento="",nombre_negocio=""):
         cliente = Cliente(nit, nombre, telefono, correo, direccion, dpi, fecha_nacimiento, nombre_negocio)
         return cliente.guardar()
 
@@ -273,6 +277,23 @@ class Auditor(Usuario):
     def listar_usuarios(self):
         return Usuario.listar_todos()
 
+    def obtener_clientes_disponibles(self):
+        try:
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT c.nit, c.nombre, c.nombre_negocio 
+                FROM clientes c
+                WHERE c.nit NOT IN (SELECT DISTINCT nit_cliente FROM empresas WHERE nit_cliente IS NOT NULL)
+            """)
+            clientes = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            return clientes
+        except mysql.connector.Error as e:
+            print(f"Error al obtener clientes: {e}")
+            return []
+
 class Empleado(Usuario):
     def __init__(self, nombre, dpi, correo, usuario, contrasena):
         super().__init__(nombre, dpi, correo, "Empleado", usuario, contrasena, "Usuario")
@@ -280,9 +301,8 @@ class Empleado(Usuario):
     def mostrar_info(self):
         pass
 
-
 class Cliente:
-    def __init__(self, nit,nombre,telefono="",correo="",direccion="",dpi="",fecha_nacimiento=None,nombre_negocio=""):
+    def __init__(self,nit,nombre,telefono="",correo="",direccion="",dpi="",fecha_nacimiento=None,nombre_negocio=""):
         self._nit = nit
         self._nombre = nombre
         self._telefono = telefono
@@ -393,7 +413,7 @@ class Cliente:
             cursor.execute("DELETE FROM clientes WHERE nit = %s", (nit,))
             conn.commit()
 
-            print(f"✅ Cliente con NIT '{nit}' eliminado correctamente.")
+            print(f"Cliente con NIT {nit} eliminado correctamente.")
             return True
 
         except mysql.connector.Error as e:
@@ -491,8 +511,10 @@ class Empresa:
         except mysql.connector.Error as e:
             print(f"Error al crear tablas unificadas: {e}")
         finally:
-            if cursor: cursor.close()
-            if conn: conn.close()
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def guardar(self):
         conn = None
@@ -606,7 +628,7 @@ class Factura:
             cursor.execute("""
                 INSERT INTO facturas_general (empresa_nombre, no_factura, nit_cliente, monto, fecha, estado) 
                 VALUES (%s, %s, %s, %s, %s, %s)""",
-                           (empresa_nombre, self.__no_factura, self.__nit_cliente, self._monto, self._fecha,self._estado))
+                           (empresa_nombre, self.__no_factura, self.__nit_cliente, self._monto, self._fecha, self._estado))
             # Guardar detalles y actualizar inventario
             for prod in self.productos:
                 # Guardar detalle
@@ -631,8 +653,10 @@ class Factura:
                 conn.rollback()
             return False
         finally:
-            if cursor: cursor.close()
-            if conn: conn.close()
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     @staticmethod
     def listar_por_empresa(empresa_nombre):
@@ -877,7 +901,6 @@ class Reporte:
             reporte += f"{mes_nombre}: {dato['cantidad']}\n"
         return reporte
 
-
 class Inventario:
     def __init__(self, empresa_nombre, producto, cantidad, precio):
         self._empresa_nombre = empresa_nombre
@@ -931,7 +954,7 @@ class Inventario:
             SELECT producto, cantidad, precio 
             FROM inventario_general 
             WHERE empresa_nombre = %s
-            ORDER BY producto""",(nombre_empresa,))
+            ORDER BY producto""", (nombre_empresa,))
         rows = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -943,7 +966,7 @@ class Inventario:
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
             SELECT cantidad FROM inventario_general 
-            WHERE empresa_nombre = %s AND producto = %s""",(empresa_nombre, producto))
+            WHERE empresa_nombre = %s AND producto = %s""", (empresa_nombre, producto))
         resultado = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -979,7 +1002,6 @@ class Inventario:
             if conn:
                 conn.close()
 
-
 def inicio_sesion(usuario, contrasena):
     try:
         if usuario == "contador" and contrasena == "contador123":
@@ -1004,7 +1026,6 @@ def inicio_sesion(usuario, contrasena):
         print(f"Ocurrió un error inesperado: {e}")
         return None
 
-
 def crear_usuario_admin():
     """Crea un usuario admin por defecto si no existe"""
     try:
@@ -1021,10 +1042,6 @@ def crear_usuario_admin():
         admin = Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "admin123")
         success = admin.crear_usuario("Administrador", "123456789", "admin@empresa.com", "Administrador", "admin","admin123", "Admin")
 
-        # prueba de una instancia mono = Auditor("Administrador_pablo", "987654321", "admin_nuevo@.com", "admin_nuevoo", "admin123456")
-
-
-
         if success:
             print(" Usuario admin creado exitosamente")
             print(" Credenciales: admin / admin123")
@@ -1032,7 +1049,6 @@ def crear_usuario_admin():
             print(" No se pudo crear el usuario admin")
 
         return success
-        return admin
 
     except Exception as e:
         print(f"Error creando usuario admin: {e}")
@@ -1042,14 +1058,9 @@ def crear_usuario_admin():
             cursor.close()
             conn.close()
 
-#cliente_pablo = Cliente("1199127","Pablo Quiijivix","5543-6645","quijivixpablo2@gmail.com","Asgard","3514584680901","27-08-2005","Pansitos.SA")
-#Auditor.crear_cliente("1199127","Pablo Quiijivix","5543-6645","quijivixpablo2@gmail.com","Asgard","3514584680901","27-08-2005","Pansitos.SA")
-
-
 def verificar_y_crear_admin():
     try:
         admin = Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "admin123")
-        pablo_admin = Auditor("David Suchi", "1478523699630", "davids@.com", "davids", "davids123")
 
         conn = BasedeDatos.conectar()
         cursor = conn.cursor(dictionary=True)
@@ -1058,26 +1069,19 @@ def verificar_y_crear_admin():
         if cursor.fetchone():
             print("Sistema listo - Usuario admin existe")
         else:
-
             success = admin.crear_usuario("Administrador", "123456789", "admin@empresa.com",
                                           "Administrador", "admin", "admin123", "Admin")
-
-            success = pablo_admin.crear_usuario("David suchi", "1478523699630", "davids@.com", "admin_pablo",
-                                                "davids123", "davids123", "Admin2")
             if success:
-                print("suario admin creado exitosamente")
+                print("Usuario admin creado exitosamente")
 
         cursor.close()
         conn.close()
         return True
 
-
     except Exception as e:
         print(f"Error inicializando: {e}")
         return False
 
-
 # Ejecutar verificación
 verificar_y_crear_admin()
 crear_usuario_admin()
-
