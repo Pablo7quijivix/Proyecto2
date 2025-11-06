@@ -3,8 +3,6 @@ import tkinter as tk
 from PIL import Image, ImageDraw
 import os
 import tkinter.messagebox as messagebox
-
-# IMPORTAR TU ARCHIVO DE BASE DE DATOS
 import Proyecto_2
 
 ctk.set_appearance_mode("Dark")
@@ -1245,7 +1243,7 @@ class ViewCompaniesPage(ctk.CTkFrame):
         self._setup_company_list()
 
     def _load_companies_from_db(self):
-        """Carga empresas reales desde la base de datos"""
+        """Carga empresas desde la base de datos"""
         try:
             empresas = Proyecto_2.Empresa.listar()
             return [empresa['nombre'] for empresa in empresas] if empresas else []
@@ -1267,12 +1265,7 @@ class ViewCompaniesPage(ctk.CTkFrame):
                      fg_color="white", text_color="black",
                      font=ctk.CTkFont(size=14)
                      ).grid(row=0, column=1, padx=20, sticky="e")
-
-        ctk.CTkLabel(self, text="EMPRESAS", font=ctk.CTkFont(size=30, weight="bold"), text_color="white").grid(row=1,
-                                                                                                               column=0,
-                                                                                                               pady=(40,
-                                                                                                                     30),
-                                                                                                               sticky="n")
+        ctk.CTkLabel(self, text="EMPRESAS", font=ctk.CTkFont(size=30, weight="bold"), text_color="white").grid(row=1,column=0,pady=(40,30),sticky="n")
 
     def _setup_company_list(self):
         list_frame = ctk.CTkFrame(self, fg_color=COLOR_FONDO_LISTA, corner_radius=15)
@@ -1469,6 +1462,8 @@ class CreateInvoicePage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
         self.controller = controller
+        self.productos_factura = []
+        self.productos_disponibles = []
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -1481,7 +1476,7 @@ class CreateInvoicePage(ctk.CTkFrame):
 
         left_frame = ctk.CTkFrame(main_container, fg_color="transparent")
         left_frame.grid(row=0, column=0, sticky="nsw", padx=20, pady=20)
-        left_frame.grid_rowconfigure(5, weight=1)
+        left_frame.grid_rowconfigure(6, weight=1)
 
         company_name = self.controller.controller.selected_company if self.controller.controller.selected_company else "Nombre empresa"
         ctk.CTkLabel(left_frame, text=company_name,
@@ -1492,18 +1487,16 @@ class CreateInvoicePage(ctk.CTkFrame):
                      justify="left").grid(row=1, column=0, sticky="nw", pady=(30, 20))
 
         ctk.CTkLabel(left_frame, text=f"Aquí puedes registrar una nueva factura de {company_name}.",
-                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=2,
-                                                                                                          column=0,
-                                                                                                          sticky="nw")
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=2,column=0,sticky="nw")
 
         ctk.CTkLabel(left_frame, text="—",
                      font=ctk.CTkFont(size=30, weight="bold"), text_color="white",
                      justify="left").grid(row=3, column=0, sticky="nw", pady=5)
 
-        ctk.CTkLabel(left_frame, text="Asegúrate de ingresar todos los datos requeridos.",
-                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=4,
-                                                                                                          column=0,
-                                                                                                          sticky="nw")
+        ctk.CTkLabel(left_frame, text="Selecciona productos del inventario disponible.",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=4,column=0, sticky="nw")
+        ctk.CTkLabel(left_frame, text="El inventario se actualizará automáticamente.",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=5,sticky="nw")
 
         ctk.CTkButton(left_frame, text="Regresar",
                       command=lambda: self.controller.nav_action("REGRESAR A EMPRESA"),
@@ -1511,23 +1504,21 @@ class CreateInvoicePage(ctk.CTkFrame):
                       fg_color=COLOR_BOTON_REGRESAR,
                       hover_color="#A948C9",
                       font=ctk.CTkFont(size=16, weight="normal"),
-                      text_color="white").grid(row=5, column=0, sticky="sw", pady=(100, 0))
+                      text_color="white").grid(row=6, column=0, sticky="sw", pady=(100, 0))
 
         right_frame = ctk.CTkFrame(main_container, fg_color="transparent")
         right_frame.grid(row=0, column=1, sticky="nse", padx=20, pady=20)
 
-        form_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=30,
-                                            fg_color=COLOR_FORM_FRAME, width=350)
+        form_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=30,fg_color=COLOR_FORM_FRAME, width=450)
         form_frame.pack(expand=False, fill="y", side="right")
 
         ctk.CTkLabel(form_frame, text="Factura",
                      font=ctk.CTkFont(size=30, weight="bold"), text_color="white").pack(pady=(40, 20), padx=40)
 
+        # Campos básicos de la factura
+        basic_fields = ["NIT CLIENTE", "NUMERO FACTURA", "FECHA DE COMPRA"]
         self.entries = {}
-        fields = ["NIT CLIENTE", "NOMBRE CLIENTE", "DIRECCIÓN CLIENTE", "CORREO CLIENTE", "DPI CLIENTE",
-                  "NUMERO FACTURA", "TOTAL", "FECHA DE COMPRA"]
-
-        for field in fields:
+        for field in basic_fields:
             ctk.CTkLabel(form_frame, text=field.replace("_", " "),
                          font=ctk.CTkFont(size=12, weight="normal"), text_color="white", anchor="w").pack(fill="x",
                                                                                                           padx=40,
@@ -1537,27 +1528,220 @@ class CreateInvoicePage(ctk.CTkFrame):
                 entry = ctk.CTkEntry(form_frame, placeholder_text="YYYY-MM-DD", height=40,
                                      corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
             else:
-                entry = ctk.CTkEntry(form_frame, placeholder_text="", height=40,
-                                     corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
-
+                entry = ctk.CTkEntry(form_frame, placeholder_text="", height=40,corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
             entry.pack(fill="x", padx=40)
             self.entries[field] = entry
 
+        # Sección para seleccionar productos
+        ctk.CTkLabel(form_frame, text="SELECCIONAR PRODUCTOS",
+                     font=ctk.CTkFont(size=16, weight="bold"), text_color="white").pack(pady=(30, 10), padx=40)
+        product_selection_frame = ctk.CTkFrame(form_frame, fg_color="transparent")
+        product_selection_frame.pack(fill="x", padx=40, pady=10)
+        ctk.CTkLabel(product_selection_frame, text="Producto Disponible",
+                     font=ctk.CTkFont(size=12), text_color="white").pack(anchor="w")
+
+        self.producto_combobox = ctk.CTkComboBox(product_selection_frame,
+                                                 values=[],
+                                                 state="readonly",
+                                                 height=40,
+                                                 corner_radius=10,
+                                                 fg_color=COLOR_CAMPO_CLARO,
+                                                 text_color="white",
+                                                 dropdown_fg_color=COLOR_FORM_FRAME,
+                                                 button_color=COLOR_MORADO_OSCURO)
+        self.producto_combobox.pack(fill="x", pady=(5, 10))
+        self.producto_combobox.set("Seleccione un producto")
+        # Información del producto seleccionado
+        self.producto_info_label = ctk.CTkLabel(product_selection_frame,text="Stock: - | Precio: Q -",font=ctk.CTkFont(size=11),text_color="yellow")
+        self.producto_info_label.pack(anchor="w", pady=(0, 10))
+
+        # Frame para cantidad
+        cantidad_frame = ctk.CTkFrame(product_selection_frame, fg_color="transparent")
+        cantidad_frame.pack(fill="x", pady=5)
+
+        ctk.CTkLabel(cantidad_frame, text="Cantidad a vender",
+                     font=ctk.CTkFont(size=12), text_color="white").pack(anchor="w")
+
+        self.cantidad_entry = ctk.CTkEntry(cantidad_frame,
+                                           placeholder_text="Cantidad",
+                                           height=40,
+                                           corner_radius=10,
+                                           fg_color=COLOR_CAMPO_CLARO,
+                                           text_color="white")
+        self.cantidad_entry.pack(fill="x", pady=(5, 10))
+        # Botón para agregar producto
+        ctk.CTkButton(form_frame, text="Agregar Producto a Factura",
+                      command=self.agregar_producto_action,
+                      width=200, height=40, corner_radius=10,
+                      fg_color=COLOR_MORADO_OSCURO,
+                      hover_color="#5D3FD3").pack(pady=(10, 20))
+
+        # Lista de productos agregados a la factura
+        ctk.CTkLabel(form_frame, text="PRODUCTOS EN FACTURA",
+                     font=ctk.CTkFont(size=14, weight="bold"), text_color="white").pack(pady=(10, 5), padx=40)
+
+        self.productos_listbox = tk.Listbox(form_frame,
+                                            bg=COLOR_CAMPO_CLARO,
+                                            fg="white",
+                                            font=("Arial", 10),
+                                            height=6,
+                                            selectmode=tk.SINGLE)
+        self.productos_listbox.pack(fill="x", padx=40, pady=(0, 10))
+        ctk.CTkButton(form_frame, text="Eliminar Producto Seleccionado",
+                      command=self.eliminar_producto_action,
+                      width=200, height=35, corner_radius=8,
+                      fg_color=COLOR_BOTON_ELIMINAR,
+                      hover_color="#8B0000").pack(pady=(0, 20))
+
+        # Total de la factura
+        self.total_label = ctk.CTkLabel(form_frame,text="TOTAL: Q 0.00",font=ctk.CTkFont(size=18, weight="bold"),text_color="yellow")
+        self.total_label.pack(pady=(10, 20))
         ctk.CTkButton(form_frame, text="REGISTRAR\nFACTURA",
                       command=self.register_invoice_action,
                       width=180, height=60, corner_radius=15,
                       fg_color=COLOR_MORADO_OSCURO,
                       hover_color="#5D3FD3",
-                      font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(30, 40))
+                      font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(10, 40))
+        self.cargar_productos_disponibles()
+        self.producto_combobox.configure(command=self.actualizar_info_producto)
+        self.cantidad_entry.bind("<KeyRelease>", self.actualizar_info_producto)
+
+    def cargar_productos_disponibles(self):
+        try:
+            empresa_nombre = self.controller.controller.selected_company
+            if not empresa_nombre:
+                messagebox.showerror("Error", "No hay empresa seleccionada")
+                return
+
+            auditor = Proyecto_2.Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "password")
+            self.productos_disponibles = auditor.obtener_productos_empresa(empresa_nombre)
+
+            if not self.productos_disponibles:
+                self.producto_combobox.configure(values=["No hay productos disponibles"])
+                self.producto_combobox.set("No hay productos disponibles")
+                return
+            nombres_productos = [f"{prod['producto']} (Stock: {prod['cantidad']})" for prod in
+                                 self.productos_disponibles]
+            self.producto_combobox.configure(values=nombres_productos)
+            self.producto_combobox.set("Seleccione un producto")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al cargar productos: {str(e)}")
+    def actualizar_info_producto(self, event=None):
+        """Actualiza la información del producto seleccionado"""
+        producto_seleccionado = self.producto_combobox.get()
+
+        if producto_seleccionado in ["Seleccione un producto", "No hay productos disponibles"]:
+            self.producto_info_label.configure(text="Stock: - | Precio: Q -")
+            return
+        nombre_producto = producto_seleccionado.split(" (Stock: ")[0]
+        producto_info = next((prod for prod in self.productos_disponibles if prod['producto'] == nombre_producto), None)
+
+        if producto_info:
+            stock = producto_info['cantidad']
+            precio = producto_info['precio']
+
+            cantidad_text = self.cantidad_entry.get().strip()
+            if cantidad_text:
+                try:
+                    cantidad = int(cantidad_text)
+                    if cantidad > stock:
+                        self.producto_info_label.configure(
+                            text=f"Stock: {stock} | Precio: Q {precio:.2f} | Stock insuficiente",
+                            text_color="red")
+                    else:
+                        subtotal = cantidad * precio
+                        self.producto_info_label.configure(
+                            text=f"Stock: {stock} | Precio: Q {precio:.2f} | Subtotal: Q {subtotal:.2f}",
+                            text_color="yellow")
+                except ValueError:
+                    self.producto_info_label.configure(text=f"Stock: {stock} | Precio: Q {precio:.2f}",text_color="yellow")
+            else:
+                self.producto_info_label.configure(text=f"Stock: {stock} | Precio: Q {precio:.2f}",text_color="yellow")
+
+    def agregar_producto_action(self):
+        producto_seleccionado = self.producto_combobox.get()
+        cantidad_text = self.cantidad_entry.get().strip()
+
+        if producto_seleccionado in ["Seleccione un producto", "No hay productos disponibles"]:
+            messagebox.showerror("Error", "Por favor seleccione un producto")
+            return
+        if not cantidad_text:
+            messagebox.showerror("Error", "Por favor ingrese la cantidad")
+            return
+        try:
+            cantidad = int(cantidad_text)
+            if cantidad <= 0:
+                messagebox.showerror("Error", "La catidad debe ser mayor a 0")
+                return
+            nombre_producto = producto_seleccionado.split(" (Stock: ")[0]
+            # Busca información del producto
+            producto_info = next((prod for prod in self.productos_disponibles if prod['producto'] == nombre_producto),None)
+
+            if not producto_info:
+                messagebox.showerror("Error", "Producto no encontrado")
+                return
+            if cantidad > producto_info['cantidad']:
+                messagebox.showerror("Error", f"Stock insuficiente. Disponible: {producto_info['cantidad']}")
+                return
+            for prod in self.productos_factura:
+                if prod['producto'] == nombre_producto:
+                    messagebox.showerror("Error", f"El producto {nombre_producto} ya está en la factura")
+                    return
+            # Agregar producto a la factura
+            producto_factura = {
+                'producto': nombre_producto,
+                'cantidad': cantidad,
+                'precio_unitario': producto_info['precio'],
+                'subtotal': cantidad * producto_info['precio']
+            }
+            self.productos_factura.append(producto_factura)
+            self.actualizar_lista_productos()
+            self.cantidad_entry.delete(0, tk.END)
+            self.producto_combobox.set("Seleccione un producto")
+            self.producto_info_label.configure(text="Stock: - | Precio: Q -")
+
+        except ValueError:
+            messagebox.showerror("Error", "La cantidad debe ser un número entero")
+
+    def eliminar_producto_action(self):
+        seleccion = self.productos_listbox.curselection()
+        if not seleccion:
+            messagebox.showerror("Error", "Por favor seleccione un producto para eliminar")
+            return
+
+        indice = seleccion[0]
+        producto_eliminado = self.productos_factura.pop(indice)
+
+        self.actualizar_lista_productos()
+        messagebox.showinfo("Éxito", f"Producto {producto_eliminado['producto']} eliminado de la factura")
+
+    def actualizar_lista_productos(self):
+        """Actualiza la lista visual de productos y el total"""
+        # Limpiar lista
+        self.productos_listbox.delete(0, tk.END)
+
+        # Agregar productos
+        total_factura = 0
+        for prod in self.productos_factura:
+            display_text = f"{prod['producto']} - {prod['cantidad']} x Q{prod['precio_unitario']:.2f} = Q{prod['subtotal']:.2f}"
+            self.productos_listbox.insert(tk.END, display_text)
+            total_factura += prod['subtotal']
+
+        # Actualizar total
+        self.total_label.configure(text=f"TOTAL: Q {total_factura:.2f}")
 
     def register_invoice_action(self):
-        nit_cliente = self.entries["NIT CLIENTE"].get()
-        numero_factura = self.entries["NUMERO FACTURA"].get()
-        total = self.entries["TOTAL"].get()
-        fecha_compra = self.entries["FECHA DE COMPRA"].get()
+        """Registra la factura completa con todos los productos"""
+        nit_cliente = self.entries["NIT CLIENTE"].get().strip()
+        numero_factura = self.entries["NUMERO FACTURA"].get().strip()
+        fecha_compra = self.entries["FECHA DE COMPRA"].get().strip()
 
-        if not all([nit_cliente, numero_factura, total, fecha_compra]):
-            messagebox.showerror("Error", "Por favor complete los campos obligatorios")
+        if not all([nit_cliente, numero_factura, fecha_compra]):
+            messagebox.showerror("Error", "Por favor complete los campos obligatorios de la factura")
+            return
+
+        if not self.productos_factura:
+            messagebox.showerror("Error", "Debe agregar al menos un producto a la factura")
             return
 
         empresa_nombre = self.controller.controller.selected_company
@@ -1566,15 +1750,21 @@ class CreateInvoicePage(ctk.CTkFrame):
             return
 
         try:
-            auditor = Proyecto_2.Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "password")
-            success = auditor.registrar_factura(numero_factura, nit_cliente, empresa_nombre, float(total), fecha_compra)
+            monto_total = sum(prod['subtotal'] for prod in self.productos_factura)
+            # Crear factura
+            factura = Proyecto_2.Factura(numero_factura, nit_cliente, monto_total, self.productos_factura, fecha_compra)
+            success = factura.guardar(empresa_nombre)
 
             if success:
-                messagebox.showinfo("Éxito", f"Factura {numero_factura} registrada correctamente")
+                messagebox.showinfo("Éxito",f"Factura {numero_factura} registrada correctamente\n"f"Inventario actualizado automáticamente\n"f"Total: Q {monto_total:.2f}")
                 for entry in self.entries.values():
                     entry.delete(0, tk.END)
+                self.productos_listbox.delete(0, tk.END)
+                self.productos_factura.clear()
+                self.total_label.configure(text="TOTAL: Q 0.00")
+                self.cargar_productos_disponibles()
             else:
-                messagebox.showerror("Error", "No se pudo registrar la factura")
+                messagebox.showerror("Error", "No se pudo registrar la factura. Verifique el stock diponible.")
         except Exception as e:
             messagebox.showerror("Error", f"Error al registrar factura: {str(e)}")
 
@@ -1843,7 +2033,6 @@ class DashboardPage(ctk.CTkFrame):
                 self.show_default_dashboard()
         else:
             self.show_default_dashboard()
-
 
 if __name__ == "__main__":
     print(f"\n--- INICIO DE APLICACIÓN ---")

@@ -294,6 +294,23 @@ class Auditor(Usuario):
             print(f"Error al obtener clientes: {e}")
             return []
 
+    def obtener_productos_empresa(self,empresa_nombre):
+        try:
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT producto, cantidad, precio 
+                FROM inventario_general 
+                WHERE empresa_nombre = %s AND cantidad > 0
+                ORDER BY producto""", (empresa_nombre,))
+            productos = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            return productos
+        except mysql.connector.Error as e:
+            print(f"Existio un error en la base de datos :(: {e}")
+            return []
+
 class Empleado(Usuario):
     def __init__(self, nombre, dpi, correo, usuario, contrasena):
         super().__init__(nombre, dpi, correo, "Empleado", usuario, contrasena, "Usuario")
@@ -609,6 +626,7 @@ class Factura:
             'cantidad': cantidad,
             'precio_unitario': precio_unitario,
             'subtotal': cantidad * precio_unitario})
+        self._monto = sum(prod['subtotal'] for prod in self.productos)
 
     def informacion(self):
         print(f"Factura: {self.no_factura} | Cliente: {self.nit_cliente} | Monto: {self.monto} | fecha: {self.fecha} | Estado:{self.estado}")
@@ -619,29 +637,30 @@ class Factura:
         try:
             conn = BasedeDatos.conectar()
             cursor = conn.cursor()
-            # Verificar stock
-            for prod in self.productos:
-                if not Inventario.verificar_stock(empresa_nombre, prod['producto'], prod['cantidad']):
-                    print(f"Stock insuficiente para {prod['producto']}")
+            for producto in self.productos:
+                if not Inventario.verificar_stock(empresa_nombre, producto['producto'], producto['cantidad']):
+                    print(f"Stock insuficiente para {producto['producto']}")
                     return False
-
             cursor.execute("""
                 INSERT INTO facturas_general (empresa_nombre, no_factura, nit_cliente, monto, fecha, estado) 
                 VALUES (%s, %s, %s, %s, %s, %s)""",
-                           (empresa_nombre, self.__no_factura, self.__nit_cliente, self._monto, self._fecha, self._estado))
-            # Guardar detalles y actualizar inventario
-            for prod in self.productos:
-                # Guardar detalle
-                cursor.execute("""INSERT INTO detalle_facturas (empresa_nombre, no_factura, producto, cantidad, precio_unitario, subtotal)VALUES (%s, %s, %s, %s, %s, %s)""",
-                               (empresa_nombre, self.__no_factura, prod['producto'], prod['cantidad'],
-                                prod['precio_unitario'], prod['subtotal']))
+                           (empresa_nombre, self.__no_factura, self.__nit_cliente, self._monto, self._fecha,self._estado))
 
-                # Actualizar inventario (reducir cantidad)
+            for producto in self.productos:
+                cursor.execute("""
+                    INSERT INTO detalle_facturas (empresa_nombre, no_factura, producto, cantidad, precio_unitario, subtotal)VALUES (%s, %s, %s, %s, %s, %s)""",
+                               (empresa_nombre, self.__no_factura, producto['producto'], producto['cantidad'],producto['precio_unitario'], producto['subtotal']))
+
                 cursor.execute("""
                     UPDATE inventario_general 
                     SET cantidad = cantidad - %s 
                     WHERE empresa_nombre = %s AND producto = %s""",
-                               (prod['cantidad'], empresa_nombre, prod['producto']))
+                               (producto['cantidad'], empresa_nombre, producto['producto']))
+
+                if cursor.rowcount == 0:
+                    print(f"Error: Producto {producto['producto']} no encontrado en inventario")
+                    conn.rollback()
+                    return False
 
             conn.commit()
             print(f"Factura {self.__no_factura} guardada e inventario actualizado")
@@ -1001,6 +1020,23 @@ class Inventario:
                 cursor.close()
             if conn:
                 conn.close()
+
+    @staticmethod
+    def obtener_informacion_producto(empresa_nombre, producto):
+        try:
+            conn = BasedeDatos.conectar()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT producto, cantidad, precio 
+                FROM inventario_general 
+                WHERE empresa_nombre = %s AND producto = %s""", (empresa_nombre, producto))
+            producto_info = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            return producto_info
+        except mysql.connector.Error as e:
+            print(f"Ocurrio un error en base de datos :(: {e}")
+            return None
 
 def inicio_sesion(usuario, contrasena):
     try:
