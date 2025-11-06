@@ -6,6 +6,7 @@ import tkinter.messagebox as messagebox
 
 # IMPORTAR TU ARCHIVO DE BASE DE DATOS
 import Proyecto_2
+from Modificar_usuario import abrir_ventana_edicion
 
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
@@ -829,6 +830,19 @@ class ModifyUsersPage(TableBasePage):
 
     def edit_user_action(self, user):
         print(f"Editando usuario: ID={user['ID']}, Nombre={user['Nombre']}")
+        """
+                Esta función se ejecuta al presionar 'Editar'.
+                Ahora llama a la ventana de edición externa.
+                """
+        # 'user' contiene un diccionario con los datos de la fila (ej: {'ID': 1, 'Nombre': '...', 'Usuario': '...', 'ROL': '...'})
+        print(f"Llamando a la ventana de edición para: ID={user['ID']}, Nombre={user['Nombre']}")
+
+        # Llama a la función importada, pasándole la página actual (self) como padre
+        # y el diccionario 'user' con los datos.
+        abrir_ventana_edicion(self, user)  # <--- ¡SOLUCIÓN FINAL!
+
+        # Después de que la ventana de edición se cierra, puedes recargar la tabla:
+        self._setup_table()
 
 
 class DeleteUsersPage(TableBasePage):
