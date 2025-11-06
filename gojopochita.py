@@ -26,6 +26,7 @@ COLOR_CONTENIDO_BOX = "#ffffff"
 COLOR_FONDO_GENERAL = "#f5f5f5"
 COLOR_TEXTO_ETIQUETA = "#301934"
 COLOR_BOTON_PRIMARIO = "#4b0082"
+COLOR_BOTON_BUSQUEDA = "#2E8B57"
 
 PATH_BG = "fondo_degradado.png"
 PATH_LOGO = "fondo_degradado.png"
@@ -732,15 +733,24 @@ class TableBasePage(ctk.CTkFrame):
         self.data_type = data_type
         self.title_text = title_text
 
+        # Variables para búsqueda y ordenamiento
+        self.datos_originales = []
+        self.datos_filtrados = []
+        self.campo_busqueda = "Nombre"  # Campo por defecto para búsqueda
+        self.metodo_ordenamiento = "bubble"  # Método por defecto
+
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
+        # Cargar datos
         if data_type == "user":
-            self.user_data = self._load_users_from_db()
+            self.datos_originales = self._load_users_from_db()
         elif data_type == "company":
-            self.company_data = self._load_companies_from_db()
+            self.datos_originales = self._load_companies_from_db()
         elif data_type == "inventory":
-            self.inventory_data = self._load_inventory_from_db()
+            self.datos_originales = self._load_inventory_from_db()
+
+        self.datos_filtrados = self.datos_originales.copy()
 
         self._setup_title()
         self._setup_top_bar()
@@ -783,7 +793,6 @@ class TableBasePage(ctk.CTkFrame):
             return []
 
     def _load_inventory_from_db(self):
-        """Carga inventario real desde la base de datos"""
         try:
             empresa_nombre = self.controller.controller.selected_company
             if not empresa_nombre:
@@ -809,11 +818,7 @@ class TableBasePage(ctk.CTkFrame):
                      text_color="white").grid(row=0, column=0, pady=(40, 0), sticky="n")
 
     def _get_data(self):
-        if self.data_type == "company":
-            return self.company_data
-        elif self.data_type == "inventory":
-            return self.inventory_data
-        return self.user_data
+        return self.datos_filtrados
 
     def _get_columns(self):
         if self.data_type == "company":
@@ -827,25 +832,193 @@ class TableBasePage(ctk.CTkFrame):
         top_bar_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=(40, 20))
         top_bar_frame.grid_columnconfigure(1, weight=1)
 
-        ctk.CTkButton(top_bar_frame, text="Ordenar",
-                      width=100, height=45, corner_radius=25,
-                      fg_color="transparent", border_color="white", border_width=2,
-                      hover_color="#6A5ACD", text_color="white",
-                      font=ctk.CTkFont(size=16, weight="bold")
-                      ).grid(row=0, column=0, padx=(0, 15), sticky="w")
+        # Botón de ordenamiento con dropdown
+        self.ordenar_btn = ctk.CTkButton(top_bar_frame, text="Ordenar ▾",
+                                         width=120, height=45, corner_radius=25,
+                                         fg_color="transparent", border_color="white", border_width=2,
+                                         hover_color="#6A5ACD", text_color="white",
+                                         font=ctk.CTkFont(size=14, weight="bold"),
+                                         command=self._mostrar_opciones_ordenamiento)
+        self.ordenar_btn.grid(row=0, column=0, padx=(0, 15), sticky="w")
 
-        ctk.CTkEntry(top_bar_frame, placeholder_text="Buscar",
-                     width=500, height=50, corner_radius=25,
-                     fg_color="white", text_color="black",
-                     font=ctk.CTkFont(size=16)
-                     ).grid(row=0, column=1, sticky="ew", padx=15)
+        # Campo de búsqueda
+        self.buscar_entry = ctk.CTkEntry(top_bar_frame, placeholder_text="Buscar...",
+                                         width=400, height=45, corner_radius=25,
+                                         fg_color="white", text_color="black",
+                                         font=ctk.CTkFont(size=14))
+        self.buscar_entry.grid(row=0, column=1, sticky="ew", padx=15)
+        self.buscar_entry.bind("<KeyRelease>", self._realizar_busqueda)
+
+        # Botón de búsqueda avanzada
+        ctk.CTkButton(top_bar_frame, text="Buscar",
+                      command=self._buscar_avanzada,
+                      width=100, height=45, corner_radius=25,
+                      fg_color=COLOR_BOTON_BUSQUEDA,
+                      hover_color="#3CB371",
+                      font=ctk.CTkFont(size=14, weight="bold")
+                      ).grid(row=0, column=2, padx=(15, 0), sticky="e")
 
         ctk.CTkButton(top_bar_frame, text="Regresar",
                       command=lambda: self._handle_back_action(),
                       width=100, height=45, corner_radius=25,
                       fg_color="white", hover_color="#cccccc", text_color="black",
-                      font=ctk.CTkFont(size=16, weight="bold")
-                      ).grid(row=0, column=2, padx=(15, 0), sticky="e")
+                      font=ctk.CTkFont(size=14, weight="bold")
+                      ).grid(row=0, column=3, padx=(15, 0), sticky="e")
+
+    def _mostrar_opciones_ordenamiento(self):
+        menu = tk.Menu(self, tearoff=0)
+
+        # Métodos de ordenamiento
+        menu.add_command(label="Burbuja", command=lambda: self._aplicar_ordenamiento("bubble"))
+        menu.add_command(label="Quick Sort", command=lambda: self._aplicar_ordenamiento("quick"))
+        menu.add_command(label="Selección", command=lambda: self._aplicar_ordenamiento("selection"))
+
+        menu.add_separator()
+
+        # Campos para ordenar
+        if self.data_type == "user":
+            menu.add_command(label="Por Nombre", command=lambda: self._ordenar_por_campo("Nombre"))
+            menu.add_command(label="Por Usuario", command=lambda: self._ordenar_por_campo("Usuario"))
+            menu.add_command(label="Por Rol", command=lambda: self._ordenar_por_campo("ROL"))
+        elif self.data_type == "company":
+            menu.add_command(label="Por Nombre", command=lambda: self._ordenar_por_campo("Nombre"))
+            menu.add_command(label="Por NIT", command=lambda: self._ordenar_por_campo("NIT"))
+        elif self.data_type == "inventory":
+            menu.add_command(label="Por Producto", command=lambda: self._ordenar_por_campo("Nombre"))
+            menu.add_command(label="Por Cantidad", command=lambda: self._ordenar_por_campo("Cantidad"))
+            menu.add_command(label="Por Precio", command=lambda: self._ordenar_por_campo("Precio"))
+
+        # Mostrar menú cerca del botón
+        try:
+            menu.tk_popup(self.ordenar_btn.winfo_rootx(),
+                          self.ordenar_btn.winfo_rooty() + self.ordenar_btn.winfo_height())
+        finally:
+            menu.grab_release()
+
+    def _ordenar_por_campo(self, campo):
+        """Ordena por un campo específico usando el método actual"""
+        self.campo_busqueda = campo
+        self._aplicar_ordenamiento(self.metodo_ordenamiento)
+
+    def _aplicar_ordenamiento(self, metodo):
+        """Aplica el método de ordenamiento seleccionado"""
+        self.metodo_ordenamiento = metodo
+        self.ordenar_btn.configure(text=f"Ordenar ({metodo}) ▾")
+
+        # Determinar índice del campo
+        campos = self._get_columns()
+        try:
+            indice = campos.index(self.campo_busqueda)
+        except ValueError:
+            indice = 1  # Por defecto segundo campo (generalmente Nombre)
+
+        # Aplicar ordenamiento usando los métodos de Proyecto_2
+        if metodo == "bubble":
+            resultados = Proyecto_2.metodo_bubble_sort(self.datos_filtrados, indice)
+        elif metodo == "quick":
+            resultados = Proyecto_2.metodo_quick_sort(self.datos_filtrados, indice)
+        elif metodo == "selection":
+            resultados = Proyecto_2.metodo_selection_sort(self.datos_filtrados, indice)
+        else:
+            resultados = self.datos_filtrados
+
+        # Extraer solo los items de las tuplas (indice, item)
+        if resultados and isinstance(resultados[0], tuple):
+            self.datos_filtrados = [item for _, item in resultados]
+        else:
+            self.datos_filtrados = resultados
+
+        self._actualizar_tabla()
+
+    def _adaptar_busqueda_binaria(self, lista, campo, valor):
+        if not lista:
+            return -1
+
+        # Convertir la lista a una lista de valores del campo específico
+        lista_valores = [(i, str(item.get(campo, '')).lower()) for i, item in enumerate(lista)]
+        lista_ordenada = sorted(lista_valores, key=lambda x: x[1])
+
+        # Realizar búsqueda binaria
+        resultado = Proyecto_2.busqueda_binaria([x[1] for x in lista_ordenada], 0, str(valor).lower())
+
+        if resultado != -1:
+            # Encontrar el índice original
+            for i, (idx, val) in enumerate(lista_ordenada):
+                if val == resultado:
+                    return lista[idx]
+        return -1
+
+    def _adaptar_busqueda_secuencial(self, lista, campo, valor):
+        """Adapta la búsqueda secuencial para trabajar con diccionarios"""
+        if not lista:
+            return -1
+
+        valor_busqueda = str(valor).lower()
+        resultados = []
+
+        for item in lista:
+            valor_item = str(item.get(campo, '')).lower()
+            if valor_busqueda in valor_item:
+                resultados.append(item)
+
+        return resultados if resultados else -1
+
+    def _realizar_busqueda(self, event=None):
+        """Búsqueda en tiempo real"""
+        texto_busqueda = self.buscar_entry.get().strip()
+
+        if not texto_busqueda:
+            self.datos_filtrados = self.datos_originales.copy()
+            self._actualizar_tabla()
+            return
+
+        # Usar búsqueda secuencial adaptada para diccionarios
+        resultados = self._adaptar_busqueda_secuencial(self.datos_originales, self.campo_busqueda, texto_busqueda)
+
+        if resultados == -1:
+            self.datos_filtrados = []
+        else:
+            self.datos_filtrados = resultados
+
+        self._actualizar_tabla()
+
+    def _buscar_avanzada(self):
+        """Búsqueda avanzada con selección de método"""
+        texto_busqueda = self.buscar_entry.get().strip()
+
+        if not texto_busqueda:
+            messagebox.showinfo("Búsqueda", "Ingrese un término de búsqueda")
+            return
+        dialog = BusquedaAvanzadaDialog(self, self.data_type)
+        self.wait_window(dialog)
+
+        if dialog.metodo_seleccionado and dialog.campo_seleccionado:
+            self.campo_busqueda = dialog.campo_seleccionado
+
+            if dialog.metodo_seleccionado == "secuencial":
+                resultados = self._adaptar_busqueda_secuencial(self.datos_originales, self.campo_busqueda,
+                                                               texto_busqueda)
+            else:  # binaria
+                resultado_binario = self._adaptar_busqueda_binaria(self.datos_originales, self.campo_busqueda,
+                                                                   texto_busqueda)
+                resultados = [resultado_binario] if resultado_binario != -1 else []
+
+            if not resultados or resultados == -1:
+                messagebox.showinfo("Búsqueda", "No se encontraron resultados")
+                self.datos_filtrados = []
+            else:
+                self.datos_filtrados = resultados
+                messagebox.showinfo("Búsqueda", f"Se encontraron {len(resultados)} resultado(s)")
+
+            self._actualizar_tabla()
+
+    def _actualizar_tabla(self):
+        # Limpiar tabla actual
+        for widget in self.grid_slaves():
+            if int(widget.grid_info()["row"]) == 2:
+                widget.destroy()
+        # Recrear la tabla
+        self._setup_table()
 
     def _handle_back_action(self):
         if self.data_type == "inventory":
@@ -895,10 +1068,7 @@ class TableBasePage(ctk.CTkFrame):
             text_color = COLOR_TEXTO_TABLA if r % 2 == 0 else "white"
 
             ctk.CTkLabel(table_container, text=item[id_key], fg_color=bg_color, text_color=text_color,
-                         font=row_font, height=60, corner_radius=0, anchor="w", padx=15).grid(row=row_index, column=0,
-                                                                                              sticky="nsew",
-                                                                                              padx=(1, 1), pady=(1, 1))
-
+                         font=row_font, height=60, corner_radius=0, anchor="w", padx=15).grid(row=row_index, column=0,sticky="nsew",padx=(1, 1), pady=(1, 1))
             current_col = 1
             for key in display_keys:
                 value = item.get(key)
@@ -925,6 +1095,60 @@ class TableBasePage(ctk.CTkFrame):
                           font=ctk.CTkFont(size=14, weight="bold")
                           ).place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
+
+class BusquedaAvanzadaDialog(ctk.CTkToplevel):
+    def __init__(self, parent, data_type):
+        super().__init__(parent)
+        self.title("Búsqueda Avanzada")
+        self.geometry("500x500")
+        self.resizable(False, False)
+
+        self.metodo_seleccionado = None
+        self.campo_seleccionado = None
+
+        main_frame = ctk.CTkFrame(self, fg_color=COLOR_FORM_FRAME, corner_radius=15)
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        ctk.CTkLabel(main_frame, text="BÚSQUEDA AVANZADA",font=ctk.CTkFont(size=16, weight="bold"),text_color="white").pack(pady=(15, 20))
+
+        ctk.CTkLabel(main_frame, text="Método de búsqueda:",
+                     font=ctk.CTkFont(size=12), text_color="white").pack(anchor="w", padx=20)
+
+        self.metodo_var = tk.StringVar(value="secuencial")
+        ctk.CTkRadioButton(main_frame, text="Búsqueda Secuencial",
+                           variable=self.metodo_var, value="secuencial",
+                           text_color="white").pack(anchor="w", padx=30, pady=5)
+        ctk.CTkRadioButton(main_frame, text="Búsqueda Binaria",
+                           variable=self.metodo_var, value="binaria",
+                           text_color="white").pack(anchor="w", padx=30, pady=5)
+        ctk.CTkLabel(main_frame, text="Campo de búsqueda:",
+                     font=ctk.CTkFont(size=12), text_color="white").pack(anchor="w", padx=20, pady=(10, 0))
+
+        if data_type == "user":
+            campos = ["Nombre", "Usuario", "ROL", "Puesto"]
+        elif data_type == "company":
+            campos = ["Nombre", "NIT", "DIRECCIÓN"]
+        elif data_type == "inventory":
+            campos = ["Nombre", "Cantidad", "Precio"]
+        else:
+            campos = ["Nombre"]
+
+        self.campo_combobox = ctk.CTkComboBox(main_frame, values=campos,state="readonly",fg_color=COLOR_CAMPO_CLARO,text_color="white")
+        self.campo_combobox.pack(fill="x", padx=20, pady=5)
+        self.campo_combobox.set(campos[0])
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(fill="x", padx=20, pady=15)
+        ctk.CTkButton(button_frame, text="Cancelar", command=self.destroy,
+                      width=100, height=35, corner_radius=10,
+                      fg_color=COLOR_BOTON_ELIMINAR,
+                      hover_color="#8B0000").pack(side="left", padx=(0, 10))
+
+        ctk.CTkButton(button_frame, text="Aplicar", command=self.aplicar_busqueda,width=100, height=35, corner_radius=10,fg_color=COLOR_BOTON_BUSQUEDA,hover_color="#3CB371").pack(side="right")
+
+    def aplicar_busqueda(self):
+        self.metodo_seleccionado = self.metodo_var.get()
+        self.campo_seleccionado = self.campo_combobox.get()
+        self.destroy()
 
 class ModifyUsersPage(TableBasePage):
     def __init__(self, parent, controller):
@@ -1024,41 +1248,7 @@ class InventoryManagementPage(TableBasePage):
         self._setup_inventory_top_bar()
 
     def _setup_inventory_top_bar(self):
-        for widget in self.grid_slaves():
-            if int(widget.grid_info()["row"]) == 1:
-                widget.destroy()
-
-        top_bar_frame = ctk.CTkFrame(self, fg_color="transparent", height=60)
-        top_bar_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=(40, 20))
-        top_bar_frame.grid_columnconfigure(2, weight=1)
-
-        ctk.CTkButton(top_bar_frame, text="Agregar", command=self.add_inventory_action,
-                      width=100, height=45, corner_radius=25,
-                      fg_color=COLOR_MORADO_OSCURO,
-                      hover_color="#5D3FD3",
-                      text_color="white",
-                      font=ctk.CTkFont(size=16, weight="bold")
-                      ).grid(row=0, column=0, padx=(0, 15), sticky="w")
-
-        ctk.CTkButton(top_bar_frame, text="Ordenar",
-                      width=100, height=45, corner_radius=25,
-                      fg_color="transparent", border_color="white", border_width=2,
-                      hover_color="#6A5ACD", text_color="white",
-                      font=ctk.CTkFont(size=16, weight="bold")
-                      ).grid(row=0, column=1, padx=(0, 15), sticky="w")
-
-        ctk.CTkEntry(top_bar_frame, placeholder_text="Buscar",
-                     width=500, height=50, corner_radius=25,
-                     fg_color="white", text_color="black",
-                     font=ctk.CTkFont(size=16)
-                     ).grid(row=0, column=2, sticky="ew", padx=15)
-
-        ctk.CTkButton(top_bar_frame, text="Regresar",
-                      command=lambda: self._handle_back_action(),
-                      width=100, height=45, corner_radius=25,
-                      fg_color="white", hover_color="#cccccc", text_color="black",
-                      font=ctk.CTkFont(size=16, weight="bold")
-                      ).grid(row=0, column=3, padx=(15, 0), sticky="e")
+        pass
 
     def add_inventory_action(self):
         dialog = AddInventoryDialog(self)
@@ -1078,20 +1268,23 @@ class InventoryManagementPage(TableBasePage):
             success = Proyecto_2.Inventario.eliminar_de_inventario(empresa_nombre, item['Nombre'])
             if success:
                 messagebox.showinfo("Éxito", f"Producto {item['Nombre']} eliminado correctamente")
-                self.inventory_data = self._load_inventory_from_db()
-                self._setup_table()
+                # Recargar datos después de eliminar
+                self.datos_originales = self._load_inventory_from_db()
+                self.datos_filtrados = self.datos_originales.copy()
+                self._actualizar_tabla()
             else:
                 messagebox.showerror("Error", "No se pudo eliminar el producto")
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo eliminar el producto: {e}")
 
     def _setup_table(self):
+        # Usar el método de la clase padre pero agregar columna extra
         table_container = ctk.CTkScrollableFrame(self, fg_color="transparent", label_text=None)
         table_container.grid(row=2, column=0, sticky="nsew", padx=20, pady=20)
 
         data = self._get_data()
         cols = self._get_columns()
-        cols.append("Eliminar")
+        cols.append("Eliminar")  # Agregar columna extra
 
         num_cols = len(cols)
         for i in range(num_cols):
@@ -1157,8 +1350,6 @@ class InventoryManagementPage(TableBasePage):
                           text_color="white",
                           font=ctk.CTkFont(size=14, weight="bold")
                           ).place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-
-
 class AddInventoryDialog(ctk.CTkToplevel):
     def __init__(self, parent):
         super().__init__(parent)

@@ -66,7 +66,7 @@ class BasedeDatos:
             host="localhost",
             user="root",
             password="Wilson200.",
-            database="nueva_prueba",
+            database="proyecto_final",
             port=3306
         )
         return conn
