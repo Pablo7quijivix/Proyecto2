@@ -6,7 +6,6 @@ import tkinter.messagebox as messagebox
 
 # IMPORTAR TU ARCHIVO DE BASE DE DATOS
 import Proyecto_2
-from Modificar_usuario import abrir_ventana_edicion
 
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
@@ -121,6 +120,7 @@ class App(ctk.CTk):
             CreateUserPage: CreateUserPage,
             ModifyUsersPage: ModifyUsersPage,
             DeleteUsersPage: DeleteUsersPage,
+            CreateClientPage: CreateClientPage,
             CreateCompanyPage: CreateCompanyPage,
             ModifyCompanyPage: ModifyCompanyPage,
             DeleteCompanyPage: DeleteCompanyPage,
@@ -142,7 +142,7 @@ class App(ctk.CTk):
             frame = self.frames[cont]
             frame.grid(row=0, column=0, sticky="nsew")
             frame.tkraise()
-#-----------------------------------------------------------------------------------------------------------------------
+
     def authenticate_user(self, username, password):
         """Verifica las credenciales en la base de datos MySQL y almacena el rol"""
         try:
@@ -220,7 +220,7 @@ class LoginPage(ctk.CTkFrame):
                                            text_color="black",
                                            border_width=0)
         self.password_entry.pack(pady=10)
-        self.password_entry.insert(0, "contador")
+        self.password_entry.insert(0, "admin123")
 
         ctk.CTkButton(self.login_frame, text="Ingresar",
                       command=self.login_action,
@@ -395,10 +395,134 @@ class CreateUserPage(ctk.CTkFrame):
             messagebox.showerror("Error", "No se pudo crear el usuario")
 
 
+
+class CreateClientPage(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
+        self.controller = controller
+
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        main_container = ctk.CTkFrame(self, fg_color="transparent")
+        main_container.grid(row=0, column=0, sticky="nsew", padx=40, pady=40)
+        main_container.grid_rowconfigure(0, weight=1)
+        main_container.grid_columnconfigure(0, weight=1)
+        main_container.grid_columnconfigure(1, weight=1)
+
+        left_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        left_frame.grid(row=0, column=0, sticky="nsw", padx=20, pady=20)
+        left_frame.grid_rowconfigure(5, weight=1)
+
+        ctk.CTkLabel(left_frame, text="Nombre empresa",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=0, column=0, sticky="nw")
+
+        ctk.CTkLabel(left_frame, text="Crear nuevo\ncliente",
+                     font=ctk.CTkFont(size=48, weight="bold"), text_color="white",
+                     justify="left").grid(row=1, column=0, sticky="nw", pady=(30, 20))
+
+        ctk.CTkLabel(left_frame, text="Aquí puedes crear un nuevo cliente.",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=2, column=0, sticky="nw")
+
+        ctk.CTkLabel(left_frame, text="—",
+                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white",
+                     justify="left").grid(row=3, column=0, sticky="nw", pady=5)
+
+        ctk.CTkLabel(left_frame, text="Solo NIT y Nombre son obligatorios.",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=4, column=0, sticky="nw")
+
+        ctk.CTkButton(left_frame, text="Regresar",
+                      command=lambda: self.controller.show_default_dashboard(),
+                      width=150, height=45, corner_radius=10,
+                      fg_color=COLOR_BOTON_REGRESAR,
+                      hover_color="#A948C9",
+                      font=ctk.CTkFont(size=16, weight="normal"),
+                      text_color="white").grid(row=5, column=0, sticky="sw", pady=(100, 0))
+
+        right_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        right_frame.grid(row=0, column=1, sticky="nse", padx=20, pady=20)
+
+        form_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=30,
+                                            fg_color=COLOR_FORM_FRAME, width=350)
+        form_frame.pack(expand=False, fill="y", side="right")
+
+        ctk.CTkLabel(form_frame, text="Cliente",
+                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white").pack(pady=(40, 20), padx=40)
+
+        # Campos modificados - nombre_negocio ahora es opcional
+        fields = [
+            ("NIT *", "NIT"),
+            ("NOMBRE *", "NOMBRE"),
+            ("TELÉFONO", "TELEFONO"),
+            ("CORREO", "CORREO"),
+            ("DIRECCIÓN", "DIRECCION"),
+            ("DPI", "DPI"),
+            ("FECHA NACIMIENTO", "FECHA_NACIMIENTO"),
+            ("NOMBRE NEGOCIO (Opcional)", "NOMBRE_NEGOCIO")  # Ahora es opcional
+        ]
+
+        self.entries = {}
+        for field_label, field_key in fields:
+            ctk.CTkLabel(form_frame, text=field_label,
+                         font=ctk.CTkFont(size=12, weight="normal"), text_color="white", anchor="w").pack(fill="x",
+                                                                                                          padx=40,
+                                                                                                          pady=(15, 0))
+
+            entry = ctk.CTkEntry(form_frame, placeholder_text="", height=40,
+                                 corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
+            entry.pack(fill="x", padx=40)
+            self.entries[field_key] = entry
+
+        # Agregar nota sobre campos obligatorios
+        ctk.CTkLabel(form_frame, text="* Campos obligatorios",
+                     font=ctk.CTkFont(size=10), text_color="yellow").pack(pady=(10, 0))
+
+        ctk.CTkButton(form_frame, text="CREAR\nCLIENTE",
+                      command=self.create_client_action,
+                      width=180, height=60, corner_radius=15,
+                      fg_color=COLOR_MORADO_OSCURO,
+                      hover_color="#5D3FD3",
+                      font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(30, 40))
+
+    def create_client_action(self):
+        nit = self.entries["NIT"].get().strip()
+        nombre = self.entries["NOMBRE"].get().strip()
+        telefono = self.entries["TELEFONO"].get().strip()
+        correo = self.entries["CORREO"].get().strip()
+        direccion = self.entries["DIRECCION"].get().strip()
+        dpi = self.entries["DPI"].get().strip()
+        fecha_nacimiento = self.entries["FECHA_NACIMIENTO"].get().strip()
+        nombre_negocio = self.entries["NOMBRE_NEGOCIO"].get().strip()
+
+        # Solo validar campos obligatorios
+        if not all([nit, nombre]):
+            messagebox.showerror("Error", "Por favor complete los campos obligatorios: NIT y Nombre")
+            return
+
+        try:
+            # Si nombre_negocio está vacío, se pasa como string vacío (será NULL en BD)
+            nombre_negocio_value = nombre_negocio if nombre_negocio else ""
+
+            cliente = Proyecto_2.Cliente(nit, nombre, telefono, correo, direccion, dpi, fecha_nacimiento, nombre_negocio_value)
+            success = cliente.guardar()
+
+            if success:
+                messagebox.showinfo("Éxito", f"Cliente {nombre} creado correctamente")
+                # Limpiar todos los campos
+                for entry in self.entries.values():
+                    entry.delete(0, tk.END)
+            else:
+                messagebox.showerror("Error", "No se pudo crear el cliente. Puede que el NIT ya exista.")
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al crear cliente: {str(e)}")
+
+
 class CreateCompanyPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
         self.controller = controller
+        self.selected_client = None
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -420,14 +544,14 @@ class CreateCompanyPage(ctk.CTkFrame):
                      font=ctk.CTkFont(size=48, weight="bold"), text_color="white",
                      justify="left").grid(row=1, column=0, sticky="nw", pady=(30, 20))
 
-        ctk.CTkLabel(left_frame, text="Aquí puedes crear una nueva empresa.",
+        ctk.CTkLabel(left_frame, text="Primero selecciona un cliente, luego crea la empresa.",
                      font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=2, column=0, sticky="nw")
 
         ctk.CTkLabel(left_frame, text="—",
                      font=ctk.CTkFont(size=30, weight="bold"), text_color="white",
                      justify="left").grid(row=3, column=0, sticky="nw", pady=5)
 
-        ctk.CTkLabel(left_frame, text="Completa todos los campos requeridos.",
+        ctk.CTkLabel(left_frame, text="La empresa se creará bajo el NIT del cliente seleccionado.",
                      font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=4, column=0, sticky="nw")
 
         ctk.CTkButton(left_frame, text="Regresar",
@@ -441,172 +565,160 @@ class CreateCompanyPage(ctk.CTkFrame):
         right_frame = ctk.CTkFrame(main_container, fg_color="transparent")
         right_frame.grid(row=0, column=1, sticky="nse", padx=20, pady=20)
 
-        form_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=30,
-                                            fg_color=COLOR_FORM_FRAME, width=350)
-        form_frame.pack(expand=False, fill="y", side="right")
+        # Frame para lista de clientes
+        self.client_list_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=15,
+                                                        fg_color=COLOR_FORM_FRAME, width=400, height=300)
+        self.client_list_frame.pack(expand=True, fill="both", pady=(0, 20))
 
-        ctk.CTkLabel(form_frame, text="Empresa",
-                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white").pack(pady=(40, 20), padx=40)
+        ctk.CTkLabel(self.client_list_frame, text="SELECCIONAR CLIENTE",
+                     font=ctk.CTkFont(size=20, weight="bold"), text_color="white").pack(pady=(20, 15))
 
-        fields = [
-            "NOMBRE EMPRESA", "NIT", "DIRECCIÓN"
-        ]
+        self.client_list_container = ctk.CTkFrame(self.client_list_frame, fg_color="transparent")
+        self.client_list_container.pack(fill="both", expand=True, padx=20)
 
-        self.entries = {}
-        for field in fields:
-            ctk.CTkLabel(form_frame, text=field,
-                         font=ctk.CTkFont(size=12, weight="normal"), text_color="white", anchor="w").pack(fill="x",
-                                                                                                          padx=40,
-                                                                                                          pady=(15, 0))
+        # Frame para formulario de empresa (inicialmente oculto)
+        self.company_form_frame = ctk.CTkFrame(right_frame, corner_radius=15,
+                                               fg_color=COLOR_FORM_FRAME, width=400)
 
-            entry = ctk.CTkEntry(form_frame, placeholder_text="", height=40,
-                                 corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
-            entry.pack(fill="x", padx=40)
-            self.entries[field] = entry
+        self.load_clients()
 
-        ctk.CTkButton(form_frame, text="CREAR\nEMPRESA",
+    def load_clients(self):
+        """Carga la lista de TODOS los clientes desde la base de datos"""
+        try:
+            # Limpiar lista anterior
+            for widget in self.client_list_container.winfo_children():
+                widget.destroy()
+
+            auditor = Proyecto_2.Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "password")
+            clientes = auditor.obtener_clientes_disponibles()
+
+            if not clientes:
+                ctk.CTkLabel(self.client_list_container,
+                             text="No hay clientes disponibles\nCrea clientes primero",
+                             font=ctk.CTkFont(size=14),
+                             text_color="white").pack(pady=20)
+                return
+
+            for i, cliente in enumerate(clientes):
+                client_frame = ctk.CTkFrame(self.client_list_container,
+                                            fg_color=COLOR_CAMPO_CLARO,
+                                            corner_radius=10)
+                client_frame.pack(fill="x", pady=5, padx=10)
+
+                # Mostrar información del cliente (nombre_negocio puede ser NULL)
+                nombre_negocio = cliente['nombre_negocio'] if cliente['nombre_negocio'] else "Sin negocio registrado"
+                client_info = f"{cliente['nombre']}\nNIT: {cliente['nit']}\nNegocio: {nombre_negocio}"
+
+                ctk.CTkButton(client_frame,
+                              text=client_info,
+                              command=lambda c=cliente: self.select_client(c),
+                              fg_color="transparent",
+                              hover_color="#7D3C98",
+                              font=ctk.CTkFont(size=12),
+                              height=60,
+                              anchor="w",
+                              text_color="white").pack(fill="x", padx=10, pady=5)
+
+        except Exception as e:
+            ctk.CTkLabel(self.client_list_container,
+                         text=f"Error al cargar clientes: {str(e)}",
+                         font=ctk.CTkFont(size=14),
+                         text_color="red").pack(pady=20)
+
+    def select_client(self, cliente):
+        """Selecciona un cliente y muestra el formulario de empresa"""
+        self.selected_client = cliente
+
+        # Ocultar lista de clientes
+        self.client_list_frame.pack_forget()
+
+        # Mostrar formulario de empresa
+        self.show_company_form(cliente)
+
+    def show_company_form(self, cliente):
+        """Muestra el formulario para crear la empresa"""
+        self.company_form_frame.pack(expand=True, fill="both", pady=(0, 20))
+
+        ctk.CTkLabel(self.company_form_frame, text="CREAR EMPRESA",
+                     font=ctk.CTkFont(size=24, weight="bold"), text_color="white").pack(pady=(20, 10))
+        #esto mostrara la infromación del cliente que ha sido seleccionado
+        nombre_negocio = cliente['nombre_negocio'] if cliente['nombre_negocio'] else "Sin negocio registrado"
+        client_info = f"Cliente: {cliente['nombre']}\nNIT: {cliente['nit']}\nNegocio registrado: {nombre_negocio}"
+        ctk.CTkLabel(self.company_form_frame, text=client_info,
+                     font=ctk.CTkFont(size=14, weight="bold"),
+                     text_color="white").pack(pady=(0, 20))
+
+        ctk.CTkLabel(self.company_form_frame, text="NOMBRE EMPRESA *",
+                     font=ctk.CTkFont(size=12, weight="normal"), text_color="white", anchor="w").pack(fill="x", padx=40,
+                                                                                                      pady=(15, 0))
+
+        self.nombre_empresa_entry = ctk.CTkEntry(self.company_form_frame,
+                                                 placeholder_text="Ingrese el nombre de la empresa", height=40,
+                                                 corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0,
+                                                 text_color="white")
+        self.nombre_empresa_entry.pack(fill="x", padx=40, pady=(5, 15))
+
+        ctk.CTkLabel(self.company_form_frame, text="DIRECCIÓN (Opcional)",
+                     font=ctk.CTkFont(size=12, weight="normal"), text_color="white", anchor="w").pack(fill="x", padx=40,
+                                                                                                      pady=(5, 0))
+
+        self.direccion_entry = ctk.CTkEntry(self.company_form_frame, placeholder_text="Ingrese la dirección", height=40,
+                                            corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0,
+                                            text_color="white")
+        self.direccion_entry.pack(fill="x", padx=40, pady=(5, 20))
+
+        button_frame = ctk.CTkFrame(self.company_form_frame, fg_color="transparent")
+        button_frame.pack(fill="x", padx=40, pady=10)
+
+        ctk.CTkButton(button_frame, text="Cambiar Cliente",
+                      command=self.back_to_client_list,
+                      width=140, height=40, corner_radius=10,
+                      fg_color=COLOR_BOTON_REGRESAR,
+                      hover_color="#A948C9").pack(side="left", padx=(0, 10))
+
+        ctk.CTkButton(button_frame, text="CREAR EMPRESA",
                       command=self.create_company_action,
-                      width=180, height=60, corner_radius=15,
+                      width=140, height=40, corner_radius=10,
                       fg_color=COLOR_MORADO_OSCURO,
                       hover_color="#5D3FD3",
-                      font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(30, 40))
+                      font=ctk.CTkFont(size=14, weight="bold")).pack(side="right")
+
+    def back_to_client_list(self):
+        """Vuelve a la lista de clientes"""
+        self.company_form_frame.pack_forget()
+        self.selected_client = None
+        self.client_list_frame.pack(expand=True, fill="both", pady=(0, 20))
 
     def create_company_action(self):
-        nombre_empresa = self.entries["NOMBRE EMPRESA"].get()
-        nit = self.entries["NIT"].get()
-        direccion = self.entries["DIRECCIÓN"].get()
+        """Crea la empresa con el cliente seleccionado"""
+        if not self.selected_client:
+            messagebox.showerror("Error", "No hay cliente seleccionado")
+            return
 
-        if not all([nit, nombre_empresa]):
-            messagebox.showerror("Error", "Por favor complete los campos obligatorios: NIT y Nombre Empresa")
+        nombre_empresa = self.nombre_empresa_entry.get().strip()
+        direccion = self.direccion_entry.get().strip()
+
+        if not nombre_empresa:
+            messagebox.showerror("Error", "Por favor ingrese el nombre de la empresa")
             return
 
         try:
             auditor = Proyecto_2.Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "password")
-            success = auditor.crear_empresa(nombre_empresa, nit, direccion)
+            success = auditor.crear_empresa(nombre_empresa, self.selected_client['nit'], direccion)
 
             if success:
-                messagebox.showinfo("Éxito", f"Empresa {nombre_empresa} creada correctamente")
-                for entry in self.entries.values():
-                    entry.delete(0, tk.END)
+                messagebox.showinfo("Éxito",
+                                    f"Empresa '{nombre_empresa}' creada correctamente para el cliente {self.selected_client['nombre']}")
+                # esot limpia formulario y regresar a lista de clientes
+                self.nombre_empresa_entry.delete(0, tk.END)
+                self.direccion_entry.delete(0, tk.END)
+                self.back_to_client_list()
             else:
-                messagebox.showerror("Error", "No se pudo crear la empresa")
+                messagebox.showerror("Error",
+                                     "No se pudo crear la empresa. Puede que ya exista una empresa con ese nombre.")
 
         except Exception as e:
             messagebox.showerror("Error", f"Error al crear la empresa: {str(e)}")
-
-
-class CreateInvoicePage(ctk.CTkFrame):
-    def __init__(self, parent, controller):
-        super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
-        self.controller = controller
-
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-
-        main_container = ctk.CTkFrame(self, fg_color="transparent")
-        main_container.grid(row=0, column=0, sticky="nsew", padx=40, pady=40)
-        main_container.grid_rowconfigure(0, weight=1)
-        main_container.grid_columnconfigure(0, weight=1)
-        main_container.grid_columnconfigure(1, weight=1)
-
-        left_frame = ctk.CTkFrame(main_container, fg_color="transparent")
-        left_frame.grid(row=0, column=0, sticky="nsw", padx=20, pady=20)
-        left_frame.grid_rowconfigure(5, weight=1)
-
-        company_name = self.controller.controller.selected_company if self.controller.controller.selected_company else "Nombre empresa"
-        ctk.CTkLabel(left_frame, text=company_name,
-                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=0, column=0, sticky="nw")
-
-        ctk.CTkLabel(left_frame, text="Registrar\nFactura",
-                     font=ctk.CTkFont(size=48, weight="bold"), text_color="white",
-                     justify="left").grid(row=1, column=0, sticky="nw", pady=(30, 20))
-
-        ctk.CTkLabel(left_frame, text=f"Aquí puedes registrar una nueva factura de {company_name}.",
-                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=2,
-                                                                                                          column=0,
-                                                                                                          sticky="nw")
-
-        ctk.CTkLabel(left_frame, text="—",
-                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white",
-                     justify="left").grid(row=3, column=0, sticky="nw", pady=5)
-
-        ctk.CTkLabel(left_frame, text="Asegúrate de ingresar todos los datos requeridos.",
-                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=4,
-                                                                                                          column=0,
-                                                                                                          sticky="nw")
-
-        ctk.CTkButton(left_frame, text="Regresar",
-                      command=lambda: self.controller.nav_action("REGRESAR A EMPRESA"),
-                      width=150, height=45, corner_radius=10,
-                      fg_color=COLOR_BOTON_REGRESAR,
-                      hover_color="#A948C9",
-                      font=ctk.CTkFont(size=16, weight="normal"),
-                      text_color="white").grid(row=5, column=0, sticky="sw", pady=(100, 0))
-
-        right_frame = ctk.CTkFrame(main_container, fg_color="transparent")
-        right_frame.grid(row=0, column=1, sticky="nse", padx=20, pady=20)
-
-        form_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=30,
-                                            fg_color=COLOR_FORM_FRAME, width=350)
-        form_frame.pack(expand=False, fill="y", side="right")
-
-        ctk.CTkLabel(form_frame, text="Factura",
-                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white").pack(pady=(40, 20), padx=40)
-
-        self.entries = {}
-        fields = ["NIT CLIENTE", "NOMBRE CLIENTE", "DIRECCIÓN CLIENTE", "CORREO CLIENTE", "DPI CLIENTE",
-                  "NUMERO FACTURA", "TOTAL", "FECHA DE COMPRA"]
-
-        for field in fields:
-            ctk.CTkLabel(form_frame, text=field.replace("_", " "),
-                         font=ctk.CTkFont(size=12, weight="normal"), text_color="white", anchor="w").pack(fill="x",
-                                                                                                          padx=40,
-                                                                                                          pady=(15, 0))
-
-            if field == "FECHA DE COMPRA":
-                entry = ctk.CTkEntry(form_frame, placeholder_text="YYYY-MM-DD", height=40,
-                                     corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
-            else:
-                entry = ctk.CTkEntry(form_frame, placeholder_text="", height=40,
-                                     corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
-
-            entry.pack(fill="x", padx=40)
-            self.entries[field] = entry
-
-        ctk.CTkButton(form_frame, text="REGISTRAR\nFACTURA",
-                      command=self.register_invoice_action,
-                      width=180, height=60, corner_radius=15,
-                      fg_color=COLOR_MORADO_OSCURO,
-                      hover_color="#5D3FD3",
-                      font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(30, 40))
-
-    def register_invoice_action(self):
-        nit_cliente = self.entries["NIT CLIENTE"].get()
-        numero_factura = self.entries["NUMERO FACTURA"].get()
-        total = self.entries["TOTAL"].get()
-        fecha_compra = self.entries["FECHA DE COMPRA"].get()
-
-        if not all([nit_cliente, numero_factura, total, fecha_compra]):
-            messagebox.showerror("Error", "Por favor complete los campos obligatorios")
-            return
-
-        empresa_nombre = self.controller.controller.selected_company
-        if not empresa_nombre:
-            messagebox.showerror("Error", "No hay empresa seleccionada")
-            return
-
-        try:
-            auditor = Proyecto_2.Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "password")
-            success = auditor.registrar_factura(numero_factura, nit_cliente, empresa_nombre, float(total), fecha_compra)
-
-            if success:
-                messagebox.showinfo("Éxito", f"Factura {numero_factura} registrada correctamente")
-                for entry in self.entries.values():
-                    entry.delete(0, tk.END)
-            else:
-                messagebox.showerror("Error", "No se pudo registrar la factura")
-        except Exception as e:
-            messagebox.showerror("Error", f"Error al registrar factura: {str(e)}")
 
 
 class TableBasePage(ctk.CTkFrame):
@@ -830,19 +942,6 @@ class ModifyUsersPage(TableBasePage):
 
     def edit_user_action(self, user):
         print(f"Editando usuario: ID={user['ID']}, Nombre={user['Nombre']}")
-        """
-                Esta función se ejecuta al presionar 'Editar'.
-                Ahora llama a la ventana de edición externa.
-                """
-        # 'user' contiene un diccionario con los datos de la fila (ej: {'ID': 1, 'Nombre': '...', 'Usuario': '...', 'ROL': '...'})
-        print(f"Llamando a la ventana de edición para: ID={user['ID']}, Nombre={user['Nombre']}")
-
-        # Llama a la función importada, pasándole la página actual (self) como padre
-        # y el diccionario 'user' con los datos.
-        abrir_ventana_edicion(self, user)  # <--- ¡SOLUCIÓN FINAL!
-
-        # Después de que la ventana de edición se cierra, puedes recargar la tabla:
-        self._setup_table()
 
 
 class DeleteUsersPage(TableBasePage):
@@ -1366,6 +1465,120 @@ class ReportsPage(ctk.CTkFrame):
                          font=ctk.CTkFont(size=16), text_color="red").pack(pady=50)
 
 
+class CreateInvoicePage(ctk.CTkFrame):
+    def __init__(self, parent, controller):
+        super().__init__(parent, fg_color=COLOR_FONDO_PRINCIPAL)
+        self.controller = controller
+
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
+        main_container = ctk.CTkFrame(self, fg_color="transparent")
+        main_container.grid(row=0, column=0, sticky="nsew", padx=40, pady=40)
+        main_container.grid_rowconfigure(0, weight=1)
+        main_container.grid_columnconfigure(0, weight=1)
+        main_container.grid_columnconfigure(1, weight=1)
+
+        left_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        left_frame.grid(row=0, column=0, sticky="nsw", padx=20, pady=20)
+        left_frame.grid_rowconfigure(5, weight=1)
+
+        company_name = self.controller.controller.selected_company if self.controller.controller.selected_company else "Nombre empresa"
+        ctk.CTkLabel(left_frame, text=company_name,
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white").grid(row=0, column=0, sticky="nw")
+
+        ctk.CTkLabel(left_frame, text="Registrar\nFactura",
+                     font=ctk.CTkFont(size=48, weight="bold"), text_color="white",
+                     justify="left").grid(row=1, column=0, sticky="nw", pady=(30, 20))
+
+        ctk.CTkLabel(left_frame, text=f"Aquí puedes registrar una nueva factura de {company_name}.",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=2,
+                                                                                                          column=0,
+                                                                                                          sticky="nw")
+
+        ctk.CTkLabel(left_frame, text="—",
+                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white",
+                     justify="left").grid(row=3, column=0, sticky="nw", pady=5)
+
+        ctk.CTkLabel(left_frame, text="Asegúrate de ingresar todos los datos requeridos.",
+                     font=ctk.CTkFont(size=16, weight="normal"), text_color="white", justify="left").grid(row=4,
+                                                                                                          column=0,
+                                                                                                          sticky="nw")
+
+        ctk.CTkButton(left_frame, text="Regresar",
+                      command=lambda: self.controller.nav_action("REGRESAR A EMPRESA"),
+                      width=150, height=45, corner_radius=10,
+                      fg_color=COLOR_BOTON_REGRESAR,
+                      hover_color="#A948C9",
+                      font=ctk.CTkFont(size=16, weight="normal"),
+                      text_color="white").grid(row=5, column=0, sticky="sw", pady=(100, 0))
+
+        right_frame = ctk.CTkFrame(main_container, fg_color="transparent")
+        right_frame.grid(row=0, column=1, sticky="nse", padx=20, pady=20)
+
+        form_frame = ctk.CTkScrollableFrame(right_frame, corner_radius=30,
+                                            fg_color=COLOR_FORM_FRAME, width=350)
+        form_frame.pack(expand=False, fill="y", side="right")
+
+        ctk.CTkLabel(form_frame, text="Factura",
+                     font=ctk.CTkFont(size=30, weight="bold"), text_color="white").pack(pady=(40, 20), padx=40)
+
+        self.entries = {}
+        fields = ["NIT CLIENTE", "NOMBRE CLIENTE", "DIRECCIÓN CLIENTE", "CORREO CLIENTE", "DPI CLIENTE",
+                  "NUMERO FACTURA", "TOTAL", "FECHA DE COMPRA"]
+
+        for field in fields:
+            ctk.CTkLabel(form_frame, text=field.replace("_", " "),
+                         font=ctk.CTkFont(size=12, weight="normal"), text_color="white", anchor="w").pack(fill="x",
+                                                                                                          padx=40,
+                                                                                                          pady=(15, 0))
+
+            if field == "FECHA DE COMPRA":
+                entry = ctk.CTkEntry(form_frame, placeholder_text="YYYY-MM-DD", height=40,
+                                     corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
+            else:
+                entry = ctk.CTkEntry(form_frame, placeholder_text="", height=40,
+                                     corner_radius=10, fg_color=COLOR_CAMPO_CLARO, border_width=0, text_color="white")
+
+            entry.pack(fill="x", padx=40)
+            self.entries[field] = entry
+
+        ctk.CTkButton(form_frame, text="REGISTRAR\nFACTURA",
+                      command=self.register_invoice_action,
+                      width=180, height=60, corner_radius=15,
+                      fg_color=COLOR_MORADO_OSCURO,
+                      hover_color="#5D3FD3",
+                      font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(30, 40))
+
+    def register_invoice_action(self):
+        nit_cliente = self.entries["NIT CLIENTE"].get()
+        numero_factura = self.entries["NUMERO FACTURA"].get()
+        total = self.entries["TOTAL"].get()
+        fecha_compra = self.entries["FECHA DE COMPRA"].get()
+
+        if not all([nit_cliente, numero_factura, total, fecha_compra]):
+            messagebox.showerror("Error", "Por favor complete los campos obligatorios")
+            return
+
+        empresa_nombre = self.controller.controller.selected_company
+        if not empresa_nombre:
+            messagebox.showerror("Error", "No hay empresa seleccionada")
+            return
+
+        try:
+            auditor = Proyecto_2.Auditor("Administrador", "123456789", "admin@empresa.com", "admin", "password")
+            success = auditor.registrar_factura(numero_factura, nit_cliente, empresa_nombre, float(total), fecha_compra)
+
+            if success:
+                messagebox.showinfo("Éxito", f"Factura {numero_factura} registrada correctamente")
+                for entry in self.entries.values():
+                    entry.delete(0, tk.END)
+            else:
+                messagebox.showerror("Error", "No se pudo registrar la factura")
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al registrar factura: {str(e)}")
+
+
 class DashboardPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent, fg_color="white")
@@ -1381,6 +1594,7 @@ class DashboardPage(ctk.CTkFrame):
 
         self.user_menu_open = False
         self.company_menu_open = False
+        self.client_menu_open = False
 
         self.sidebar_frame = ctk.CTkFrame(
             self, width=200, corner_radius=0,
@@ -1455,6 +1669,14 @@ class DashboardPage(ctk.CTkFrame):
             self._create_sub_menu(self.user_menu_frame, "MODIFICAR USUARIOS").pack(fill="x")
             self._create_sub_menu(self.user_menu_frame, "ELIMINAR USUARIOS").pack(fill="x")
 
+        # Solo mostrar gestión de clientes si es administrador
+        if self.controller.is_admin():
+            self.btn_clientes = self._create_nav_button("GESTIONAR CLIENTES ▾",
+                                                        lambda: self.toggle_menu('client'))
+            self.btn_clientes.pack(fill="x", padx=0, pady=(10, 0))
+            self.client_menu_frame = ctk.CTkFrame(self.nav_frame, fg_color="transparent")
+            self._create_sub_menu(self.client_menu_frame, "CREAR CLIENTE").pack(fill="x")
+
         # Solo mostrar gestión de empresa si es administrador
         if self.controller.is_admin():
             self.btn_empresa = self._create_nav_button("GESTIONAR EMPRESA ▾",
@@ -1489,6 +1711,11 @@ class DashboardPage(ctk.CTkFrame):
             if self.user_menu_open:
                 self.user_menu_frame.pack(fill="x", padx=20, pady=(0, 10))
 
+        if self.controller.is_admin() and hasattr(self, 'btn_clientes'):
+            self.btn_clientes.pack(fill="x", padx=0, pady=(10, 0))
+            if self.client_menu_open:
+                self.client_menu_frame.pack(fill="x", padx=20, pady=(0, 10))
+
         if self.controller.is_admin() and hasattr(self, 'btn_empresa'):
             self.btn_empresa.pack(fill="x", padx=0, pady=(10, 0))
             if self.company_menu_open:
@@ -1504,18 +1731,38 @@ class DashboardPage(ctk.CTkFrame):
             self.user_menu_open = not self.user_menu_open
             if self.user_menu_open:
                 self.company_menu_open = False
+                self.client_menu_open = False
                 self.btn_usuarios.configure(text="GESTIONAR USUARIOS ▴")
                 if hasattr(self, 'btn_empresa'):
                     self.btn_empresa.configure(text="GESTIONAR EMPRESA ▾")
+                if hasattr(self, 'btn_clientes'):
+                    self.btn_clientes.configure(text="GESTIONAR CLIENTES ▾")
             else:
                 self.btn_usuarios.configure(text="GESTIONAR USUARIOS ▾")
+
+        elif menu_type == 'client' and self.controller.is_admin():
+            self.client_menu_open = not self.client_menu_open
+            if self.client_menu_open:
+                self.user_menu_open = False
+                self.company_menu_open = False
+                self.btn_clientes.configure(text="GESTIONAR CLIENTES ▴")
+                if hasattr(self, 'btn_usuarios'):
+                    self.btn_usuarios.configure(text="GESTIONAR USUARIOS ▾")
+                if hasattr(self, 'btn_empresa'):
+                    self.btn_empresa.configure(text="GESTIONAR EMPRESA ▾")
+            else:
+                self.btn_clientes.configure(text="GESTIONAR CLIENTES ▾")
+
         elif menu_type == 'company' and self.controller.is_admin():
             self.company_menu_open = not self.company_menu_open
             if self.company_menu_open:
                 self.user_menu_open = False
+                self.client_menu_open = False
                 self.btn_empresa.configure(text="GESTIONAR EMPRESA ▴")
                 if hasattr(self, 'btn_usuarios'):
                     self.btn_usuarios.configure(text="GESTIONAR USUARIOS ▾")
+                if hasattr(self, 'btn_clientes'):
+                    self.btn_clientes.configure(text="GESTIONAR CLIENTES ▾")
             else:
                 self.btn_empresa.configure(text="GESTIONAR EMPRESA ▾")
 
@@ -1556,7 +1803,8 @@ class DashboardPage(ctk.CTkFrame):
 
         # Verificar permisos para acciones de administrador
         if action in ["CREAR USUARIO", "MODIFICAR USUARIOS", "ELIMINAR USUARIOS",
-                      "CREAR EMPRESA", "MODIFICAR INFORMACIÓN EMPRESA", "ELIMINAR EMPRESA"]:
+                      "CREAR EMPRESA", "MODIFICAR INFORMACIÓN EMPRESA", "ELIMINAR EMPRESA",
+                      "CREAR CLIENTE"]:
             if not self.controller.is_admin():
                 messagebox.showwarning("Acceso Denegado",
                                        "No tienes permisos para acceder a esta función.")
@@ -1568,6 +1816,8 @@ class DashboardPage(ctk.CTkFrame):
             self.show_content(ModifyUsersPage)
         elif action == "ELIMINAR USUARIOS":
             self.show_content(DeleteUsersPage)
+        elif action == "CREAR CLIENTE":
+            self.show_content(CreateClientPage)
         elif action == "CREAR EMPRESA":
             self.show_content(CreateCompanyPage)
         elif action == "MODIFICAR INFORMACIÓN EMPRESA":

@@ -65,8 +65,8 @@ class BasedeDatos:
         conn = mysql.connector.connect(
             host="localhost",
             user="root",
-            password="rufisbb7",
-            database="prueba2",
+            password="Wilson200.",
+            database="nueva_prueba",
             port=3306
         )
         return conn
@@ -284,7 +284,7 @@ class Auditor(Usuario):
             cursor.execute("""
                 SELECT c.nit, c.nombre, c.nombre_negocio 
                 FROM clientes c
-                WHERE c.nit NOT IN (SELECT DISTINCT nit_cliente FROM empresas WHERE nit_cliente IS NOT NULL)
+                ORDER BY c.nombre
             """)
             clientes = cursor.fetchall()
             cursor.close()
@@ -310,7 +310,7 @@ class Cliente:
         self._direccion = direccion
         self._dpi = dpi
         self._fecha_nacimiento = fecha_nacimiento
-        self.__nombre_negocio = nombre_negocio
+        self.__nombre_negocio = nombre_negocio  # Ahora es opcional
         self._conn()
 
     @staticmethod
@@ -330,7 +330,7 @@ class Cliente:
                     direccion TEXT,
                     dpi VARCHAR(50),
                     fecha_nacimiento DATE,
-                    nombre_negocio VARCHAR(255)
+                    nombre_negocio VARCHAR(255)  -- Ahora es opcional
             );
             """)
             conn.commit()
@@ -363,10 +363,11 @@ class Cliente:
             if cursor.fetchone():
                 print(f"⚠ Cliente con NIT {self._nit} ya existe.")
                 return False
-            cursor.execute("""INSERT INTO clientes (nit, nombre, telefono, correo, direccion, dpi, fecha_nacimiento, nombre_negocio)VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-             """, (self._nit, self._nombre, self._telefono, self._correo, self._direccion, self._dpi,
-                   self._fecha_nacimiento,
-                   self.__nombre_negocio))
+
+            cursor.execute("""INSERT INTO clientes (nit, nombre, telefono, correo, direccion, dpi, fecha_nacimiento, nombre_negocio) 
+                           VALUES (%s,%s,%s,%s,%s,%s,%s,%s)""",
+                           (self._nit, self._nombre, self._telefono, self._correo, self._direccion, self._dpi,
+                            self._fecha_nacimiento, self.__nombre_negocio if self.__nombre_negocio else None))
             conn.commit()
             print(f"Cliente {self._nombre} guardado.")
             return True
@@ -378,7 +379,6 @@ class Cliente:
                 cursor.close()
             if conn:
                 conn.close()
-
     @staticmethod
     def listar():
         conn = BasedeDatos.conectar()
